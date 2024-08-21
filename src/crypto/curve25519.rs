@@ -6,6 +6,13 @@ use crate::crypto::sha2::Sha512;
 pub struct X25519 {}
 pub struct Ed25519 {}
 
+struct Curve25519Point {
+    x: Curve25519Uint,
+    y: Curve25519Uint,
+    z: Curve25519Uint,
+    t: Curve25519Uint
+}
+
 struct Curve25519Uint {
     u256: Uint256
 }
@@ -40,6 +47,24 @@ const U: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000009
 ]}};
 
+
+
+// edwords25519 parm
+
+// -(121665 / 121666) == MODULE - ((121665 * mulinv(121666)) % MODULE)
+// 37095705934669439343138083508754565189542113879843219016388785533085940283555
+// 0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3
+const D: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+    0x52036cee, 0x2b6ffe73, 0x8cc74079, 0x7779e898, 0x00700a4d, 0x4141d8ab, 0x75eb4dca, 0x135978a3
+]}};
+
+// (2 ** 252) + 27742317777372353535851937790883648493
+// 7237005577332262213973186563042994240857116359379907606001950938285454250989
+// 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
+const L: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+    0x10000000, 0x00000000, 0x00000000, 0x000000001, 0x4def9de, 0xa2f79cd6, 0x5812631a, 0x5cf5d3ed
+]}};
+
 // 15112221349535400772501151409588531511454012693041857206046113283949847762202
 // 0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a
 const BX: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
@@ -51,6 +76,7 @@ const BX: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
 const BY: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
     0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666658
 ]}};
+
 
 const X25519_PRIVATE_KEY_LEN: usize   = 32;
 const X25519_PUBLIC_KEY_LEN: usize    = 32;
@@ -186,6 +212,11 @@ impl Dh for X25519 {
 
 // [*1] https://www.rfc-editor.org/rfc/rfc8032.html section-5.1, section-5.1.6, section-2
 // [*2] https://www.cryptrec.go.jp/exreport/cryptrec-ex-3002-2020.pdf
+// [*3] https://www.cryptrec.go.jp/exreport/cryptrec-ex-3102-2021.pdf
+// [*4] https://github.com/golang/go/blob/master/src/crypto/ed25519/ed25519.go
+
+
+// - 拡張射影座標系について [*3] pp17
 
 impl Ed25519 {
 
@@ -197,13 +228,24 @@ impl Ed25519 {
         h[0]  = h[0]  & 0xf8;
         h[31] = (h[31] & 0x7f) | 0x40;
 
-        let mut r: Curve25519Uint = {
+        let s: Curve25519Uint = Curve25519Uint::try_new_with_bytes(&h[..32])?;
+        let r: Curve25519Uint = {
             let mut sha512 = Sha512::new();
             let mut r: [u8; 64] = [0; 64];
             sha512.update(&h[32..]);
             sha512.update(&msg);
             sha512.digest(&mut r[..]);
-            Curve25519Uint::try_new_with_bytes(&r[32..])
+
+            // DECI(SHA-512(h[32..64] || M)) mod L
+            // cf. https://www.cryptrec.go.jp/exreport/cryptrec-ex-3102-2021.pdf, pp. 9
+
+            let t1: Curve25519Uint = Curve25519Uint::try_new_with_bytes(&r[..21])?;
+
+
+
+            // x = a + b * 2^168 + c * 2^336 mod L
+            // cf. https://github.com/golang/go/blob/master/src/crypto/internal/edwards25519/scalar.go
+
         };
 
 
@@ -211,8 +253,86 @@ impl Ed25519 {
 
     }
 
+}
+
+impl Curve25519Point {
+
+    pub fn add(dst: &mut Curve25519Point, lhs: &Curve25519Point, rhs: &Curve25519Point) {
+
+        let mut t1: Curve25519Uint = Curve25519Uint::new();
+        let mut t2: Curve25519Uint = Curve25519Uint::new();
+        let mut t3: Curve25519Uint = Curve25519Uint::new();
+        let mut t4: Curve25519Uint = Curve25519Uint::new();
+        let mut t5: Curve25519Uint = Curve25519Uint::new();
+
+        // A = (Y1-X1)*(Y2-X2)
+        Curve25519Uint::gsub(&mut t5, &lhs.y, &lhs.x);
+        Curve25519Uint::gsub(&mut t1, &rhs.y, &rhs.x);
+        Curve25519Uint::gmul_overwrite(&mut t5, &t2);
+
+        // B = (Y1+X1)*(Y2+X2)
+        Curve25519Uint::gadd(&mut t4, &lhs.y, &lhs.x);
+        Curve25519Uint::gadd(&mut t1, &rhs.y, &rhs.x);
+        Curve25519Uint::gmul_overwrite(&mut t4, &t1);
+
+        // E = B-A
+        Curve25519Uint::gsub(&mut t1, &t4, &t5);
+
+        // H = B+A
+        Curve25519Uint::gadd_overwrite(&mut t4, &t5);
+
+        // C = T1*2*d*T2
+        Curve25519Uint::gmul(&mut t5, &lhs.t, &rhs.t);
+        Curve25519Uint::gmul_overwrite(&mut t5, &Curve25519Uint::new_as(2));
+        Curve25519Uint::gmul_overwrite(&mut t5, &D);
+
+        // D = Z1*2*Z2
+        Curve25519Uint::gmul(&mut t3, &lhs.z, &rhs.z);
+        Curve25519Uint::gmul_overwrite(&mut t3, &Curve25519Uint::new_as(2));
+
+        // F = D-C
+        Curve25519Uint::gsub(&mut t2, &t3, &t5);
+
+        // G = D+C
+        Curve25519Uint::gadd_overwrite(&mut t3, &t5);
+
+        // X3 = E*F
+        Curve25519Uint::gmul(&mut dst.x, &t1, &t2);
+
+        // Y3 = G*H
+        Curve25519Uint::gmul(&mut dst.y, &t3, &t4);
+
+        // Z3 = F*G
+        Curve25519Uint::gmul(&mut dst.z, &t2, &t3);
+
+        // T3 = E*H
+        Curve25519Uint::gmul(&mut dst.t, &t1, &t4);
+
+        // A = (Y1-X1)*(Y2-X2)
+        // B = (Y1+X1)*(Y2+X2)
+        // C = T1*2*d*T2
+        // D = Z1*2*Z2
+        // E = B-A
+        // F = D-C
+        // G = D+C
+        // H = B+A
+        // X3 = E*F
+        // Y3 = G*H
+        // T3 = E*H
+        // Z3 = F*G
+
+    }
+
+    pub fn dbl(dst: &mut Curve25519Point, src: &Curve25519Point) {
+
+
+
+
+    }
 
 }
+
+
 
 impl Curve25519Uint {
 

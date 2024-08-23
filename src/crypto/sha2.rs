@@ -227,12 +227,12 @@ fn sha2_32_update(state: &mut Sha2State32, bytes: &[u8]) {
 
     if bytes.len() < SHA2_32_BLOCK_LEN - state.buf_len {
         state.buf[(state.buf_len)..(state.buf_len + bytes.len())].clone_from_slice(&bytes[..]);
-        state.buf_len = state.buf_len - bytes.len();
+        state.buf_len = state.buf_len + bytes.len();
         return;
     }
 
     let mut w: [u32; 64] = [0; 64];
-    let mut i: usize     = if state.buf_len == 0 { 0 } else { SHA2_32_BLOCK_LEN - state.buf_len };
+    let mut i: usize = if state.buf_len == 0 { 0 } else { SHA2_32_BLOCK_LEN - state.buf_len };
 
     if i != 0 {
 
@@ -605,12 +605,12 @@ fn sha2_64_update(state: &mut Sha2State64, bytes: &[u8]) {
 
     if bytes.len() < SHA2_64_BLOCK_LEN - state.buf_len {
         state.buf[(state.buf_len)..(state.buf_len + bytes.len())].clone_from_slice(&bytes[..]);
-        state.buf_len = state.buf_len - bytes.len();
+        state.buf_len = state.buf_len + bytes.len();
         return;
     }
 
     let mut w: [u64; 80] = [0; 80];
-    let mut i: usize     = if state.buf_len == 0 { 0 } else { SHA2_64_BLOCK_LEN - state.buf_len };
+    let mut i: usize = if state.buf_len == 0 { 0 } else { SHA2_64_BLOCK_LEN - state.buf_len };
 
     if i != 0 {
 

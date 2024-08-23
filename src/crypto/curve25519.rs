@@ -1,5 +1,6 @@
 use crate::crypto::CryptoError;
 use crate::crypto::dh::Dh;
+use crate::crypto::hash::Hash;
 use crate::crypto::uint::Uint256;
 use crate::crypto::sha2::Sha512;
 
@@ -14,7 +15,7 @@ struct Curve25519Point {
 }
 
 struct Curve25519Uint {
-    u256: Uint256
+    buf: Uint256
 }
 
 // (2 ^ 255) - 19
@@ -31,19 +32,19 @@ const MODULE_ADDINV256: Uint256 = Uint256{ w: [
 
 // (486662 - 2) / 4 == 121665
 // 0x000000000000000000000000000000000000000000000000000000000001db41
-const A24: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const A24: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x0001db41
 ]}};
 
 // ((2 ^ 255) - 19) - 2
 // 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffeb
-const MODULE_SUB_2: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const MODULE_SUB_2: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x7fffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffeb
 ]}};
 
 // 9
 // 0x0000000000000000000000000000000000000000000000000000000000000009
-const U: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const U: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000000, 0x00000009
 ]}};
 
@@ -54,35 +55,38 @@ const U: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
 // -(121665 / 121666) == MODULE - ((121665 * mulinv(121666)) % MODULE)
 // 37095705934669439343138083508754565189542113879843219016388785533085940283555
 // 0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3
-const D: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const D: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x52036cee, 0x2b6ffe73, 0x8cc74079, 0x7779e898, 0x00700a4d, 0x4141d8ab, 0x75eb4dca, 0x135978a3
 ]}};
 
 // (2 ** 252) + 27742317777372353535851937790883648493
 // 7237005577332262213973186563042994240857116359379907606001950938285454250989
 // 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
-const L: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const L: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x10000000, 0x00000000, 0x00000000, 0x000000001, 0x4def9de, 0xa2f79cd6, 0x5812631a, 0x5cf5d3ed
 ]}};
 
 // 15112221349535400772501151409588531511454012693041857206046113283949847762202
 // 0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a
-const BX: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const BX: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x216936d3, 0xcd6e53fe, 0xc0a4e231, 0xfdd6dc5c, 0x692cc760, 0x9525a7b2, 0xc9562d60, 0x8f25d51a
 ]}};
 
 // 46316835694926478169428394003475163141307993866256225615783033603165251855960
 // 0x6666666666666666666666666666666666666666666666666666666666666658
-const BY: Curve25519Uint = Curve25519Uint{ u256: Uint256{ w: [
+const BY: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666666, 0x66666658
 ]}};
-
 
 const X25519_PRIVATE_KEY_LEN: usize   = 32;
 const X25519_PUBLIC_KEY_LEN: usize    = 32;
 const X25519_SHARED_SECRET_LEN: usize = 32;
 
-fn x25519_core(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint) {
+const ED25519_PRIVATE_KEY_LEN: usize  = 32;
+const ED25519_PUBLIC_KEY_LEN: usize   = 32;
+const ED25519_SIGNATURE_LEN: usize    = 64;
+
+fn x25519(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint) {
 
     let x1: Curve25519Uint     = u.clone();
     let mut x2: Curve25519Uint = Curve25519Uint::new_as(1);
@@ -103,11 +107,11 @@ fn x25519_core(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint)
 
     for i in 0..8 {
 
-        loop {
+        while j > 0 {
 
             j = j - 1;
 
-            bit = ((k.u256.w[i] as usize) >> j) & 1;
+            bit = ((k.buf.w[i] as usize) >> j) & 1;
             swap = swap ^ bit;
             constant_time_swap(swap, &mut x2, &mut x3);
             constant_time_swap(swap, &mut z2, &mut z3);
@@ -132,10 +136,6 @@ fn x25519_core(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint)
             Curve25519Uint::gsqr_overwrite(&mut t0);
             Curve25519Uint::gmul(&mut z3, &x1, &t0);        // z3 = x1 * (DA - CB) ^ 2
 
-            if j == 0 {
-                break;
-            }
-
         }
 
         j = 32;
@@ -153,9 +153,9 @@ fn x25519_core(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint)
 fn constant_time_swap(swap: usize, a: &mut Curve25519Uint, b: &mut Curve25519Uint) {
     let mask: u32 = 0u32.wrapping_sub(swap as u32);
     for i in 0..8 {
-        let x: u32 = (a.u256.w[i] ^ b.u256.w[i]) & mask;
-        a.u256.w[i] = a.u256.w[i] ^ x;
-        b.u256.w[i] = b.u256.w[i] ^ x;
+        let x: u32 = (a.buf.w[i] ^ b.buf.w[i]) & mask;
+        a.buf.w[i] = a.buf.w[i] ^ x;
+        b.buf.w[i] = b.buf.w[i] ^ x;
     }
 }
 
@@ -169,14 +169,10 @@ impl Dh for X25519 {
             return Some(CryptoError::new("the length of \"pub_key\" is not enough"));
         }
 
-        let mut k: Curve25519Uint = Curve25519Uint::try_new_with_bytes(priv_key).ok()?;
-        k.u256.w[0] = (k.u256.w[0] & 0x7fffffff) | 0x40000000;
-        k.u256.w[7] = k.u256.w[7] & 0xfffffff8;
-
+        let k: Curve25519Uint = Curve25519Uint::try_decode_as_scalar(priv_key).ok()?;
         let mut v: Curve25519Uint = Curve25519Uint::new();
-
-        x25519_core(&mut v, &k, &U);
-        v.try_to_bytes(pub_key)?;
+        x25519(&mut v, &k, &U);
+        v.try_into_bytes(pub_key)?;
 
         return None;
 
@@ -192,17 +188,11 @@ impl Dh for X25519 {
             return Some(CryptoError::new("the length of \"shared_secret\" is not enough"));
         }
 
-        let mut k: Curve25519Uint = Curve25519Uint::try_new_with_bytes(priv_key).ok()?;
-        k.u256.w[0] = (k.u256.w[0] & 0x7fffffff) | 0x40000000;
-        k.u256.w[7] = k.u256.w[7] & 0xfffffff8;
-
-        let mut u: Curve25519Uint = Curve25519Uint::try_new_with_bytes(peer_pub_key).ok()?;
-        u.u256.w[0] = u.u256.w[0] & 0x7fffffff;
-        Curve25519Uint::may_sub_module_once(&mut u);
-
+        let k: Curve25519Uint = Curve25519Uint::try_decode_as_scalar(priv_key).ok()?;
+        let u: Curve25519Uint = Curve25519Uint::try_decode_as_u_coordinate(peer_pub_key).ok()?;
         let mut v: Curve25519Uint = Curve25519Uint::new();
-        x25519_core(&mut v, &k, &u);
-        v.try_to_bytes(shared_secret)?;
+        x25519(&mut v, &k, &u);
+        v.try_into_bytes(shared_secret)?;
 
         return None;
 
@@ -221,15 +211,31 @@ impl Dh for X25519 {
 impl Ed25519 {
 
     // PureEdDSA
-    fn sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Option<CryptoError> {
+    pub fn sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Option<CryptoError> {
 
+        // ENCI: encode int
+        // DECI: decode int
+        // ENCE: encode point
+        // ENC
+
+        // h = SHA-512(k)
         let mut h: [u8; 64] = [0; 64];
         Sha512::digest_oneshot(&priv_key, &mut h);
+
+        // h[0]{0} = 0, h[0]{1} = 0, h[0]{2} = 0, h[31]{7} = 0, h[32]{6} = 1
         h[0]  = h[0]  & 0xf8;
         h[31] = (h[31] & 0x7f) | 0x40;
 
-        let s: Curve25519Uint = Curve25519Uint::try_new_with_bytes(&h[..32])?;
+        // s = DECI(s[0..32])
+        let s: Curve25519Uint = Curve25519Uint::try_from_bytes(&h[..32]).ok()?;
+
+        // A = ENCE([s]B)
+        let mut a: Curve25519Point = Curve25519Point::new();
+        Curve25519Point::scalar_mul(&mut a, &s);
+
+        // r = DECI(SHA-512(h[32..64] || M)) mod L
         let r: Curve25519Uint = {
+
             let mut sha512 = Sha512::new();
             let mut r: [u8; 64] = [0; 64];
             sha512.update(&h[32..]);
@@ -238,24 +244,77 @@ impl Ed25519 {
 
             // DECI(SHA-512(h[32..64] || M)) mod L
             // cf. https://www.cryptrec.go.jp/exreport/cryptrec-ex-3102-2021.pdf, pp. 9
+            let mut buf: [u32; 16] = [
+                u32::from_le_bytes(r[60..64].try_into().unwrap()),
+                u32::from_le_bytes(r[56..60].try_into().unwrap()),
+                u32::from_le_bytes(r[52..56].try_into().unwrap()),
+                u32::from_le_bytes(r[48..52].try_into().unwrap()),
+                u32::from_le_bytes(r[44..48].try_into().unwrap()),
+                u32::from_le_bytes(r[40..44].try_into().unwrap()),
+                u32::from_le_bytes(r[36..40].try_into().unwrap()),
+                u32::from_le_bytes(r[32..36].try_into().unwrap()),
+                u32::from_le_bytes(r[28..32].try_into().unwrap()),
+                u32::from_le_bytes(r[24..28].try_into().unwrap()),
+                u32::from_le_bytes(r[20..24].try_into().unwrap()),
+                u32::from_le_bytes(r[16..20].try_into().unwrap()),
+                u32::from_le_bytes(r[12..16].try_into().unwrap()),
+                u32::from_le_bytes(r[ 8..12].try_into().unwrap()),
+                u32::from_le_bytes(r[ 4.. 8].try_into().unwrap()),
+                u32::from_le_bytes(r[ 0.. 4].try_into().unwrap())
+            ];
 
-            let t1: Curve25519Uint = Curve25519Uint::try_new_with_bytes(&r[..21])?;
+            let mut v: Curve25519Uint = Curve25519Uint::new();
+            let mut acc: u64 = 0;
 
 
+            // mod P じゃなくて mod L
+
+            acc = ((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64;
+            buf[8] = buf[8] & 0x7fffffff;
+            for i in (0..8).rev() {
+                let tmp: u64 = buf[i] as u64;
+                acc = acc + (buf[i + 8] as u64) + (tmp << 5) + (tmp << 2) + (tmp << 1);
+                buf[i + 8] = (acc & 0xffffffff) as u32;
+                acc = acc >> 32;
+            }
+
+            acc = (acc << 5) + (acc << 2) + (acc << 1);
+            acc = acc + (((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64);
+            buf[8] = buf[8] & 0x7fffffff;
+            for i in (0..8).rev() {
+                acc = acc + (buf[i + 8] as u64);
+                v.buf.w[i] = (acc & 0xffffffff) as u32;
+                acc = acc >> 32;
+            }
+
+            Curve25519Uint::reduce_to_field_element(&mut v);
+
+            v
 
             // x = a + b * 2^168 + c * 2^336 mod L
             // cf. https://github.com/golang/go/blob/master/src/crypto/internal/edwards25519/scalar.go
 
         };
 
+        // R = ENCE([r]B)
 
+        // k = DECI(SHA-512(R || A || M)) mod L
 
+        // S = (r + k * s) mod L
+
+        // signature = R || ENCO(S)    <- ENCO? typo?
+
+        return None;
 
     }
 
 }
 
 impl Curve25519Point {
+
+    pub fn scalar_mul(dst: &mut Curve25519Point, scalar: &Curve25519Uint) {
+
+    }
 
     pub fn add(dst: &mut Curve25519Point, lhs: &Curve25519Point, rhs: &Curve25519Point) {
 
@@ -337,62 +396,59 @@ impl Curve25519Point {
 impl Curve25519Uint {
 
     pub fn new() -> Curve25519Uint {
-        return Curve25519Uint{ u256: Uint256{ w: [0; 8] }};
+        return Curve25519Uint{ buf: Uint256{ w: [0; 8] }};
     }
 
     pub fn new_as(u: usize) -> Curve25519Uint {
-        return Curve25519Uint{ u256: Uint256::new_as(u) };
+        return Curve25519Uint{ buf: Uint256::new_as(u) };
     }
 
-    pub fn try_new_with_bytes(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
+    fn try_from_bytes_inner(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
 
         if b.len() < 32 {
             return Err(CryptoError::new("the length of bytes \"b\" is not enough"));
         }
 
-        if false {
-            return Err(CryptoError::new("the bytes \"b\" could not convert into Curve25519Uint value"));
-        }
-
-        return Ok(Curve25519Uint{ u256: Uint256{ w: [
-            (b[28] as u32) | ((b[29] as u32) << 8) | ((b[30] as u32) << 16) | ((b[31] as u32) << 24),
-            (b[24] as u32) | ((b[25] as u32) << 8) | ((b[26] as u32) << 16) | ((b[27] as u32) << 24),
-            (b[20] as u32) | ((b[21] as u32) << 8) | ((b[22] as u32) << 16) | ((b[23] as u32) << 24),
-            (b[16] as u32) | ((b[17] as u32) << 8) | ((b[18] as u32) << 16) | ((b[19] as u32) << 24),
-            (b[12] as u32) | ((b[13] as u32) << 8) | ((b[14] as u32) << 16) | ((b[15] as u32) << 24),
-            (b[8]  as u32) | ((b[9]  as u32) << 8) | ((b[10] as u32) << 16) | ((b[11] as u32) << 24),
-            (b[4]  as u32) | ((b[5]  as u32) << 8) | ((b[6]  as u32) << 16) | ((b[7]  as u32) << 24),
-            (b[0]  as u32) | ((b[1]  as u32) << 8) | ((b[2]  as u32) << 16) | ((b[3]  as u32) << 24)
+        return Ok(Curve25519Uint{ buf: Uint256{ w: [
+            u32::from_le_bytes(b[28..32].try_into().unwrap()),
+            u32::from_le_bytes(b[24..28].try_into().unwrap()),
+            u32::from_le_bytes(b[20..24].try_into().unwrap()),
+            u32::from_le_bytes(b[16..20].try_into().unwrap()),
+            u32::from_le_bytes(b[12..16].try_into().unwrap()),
+            u32::from_le_bytes(b[ 8..12].try_into().unwrap()),
+            u32::from_le_bytes(b[ 4.. 8].try_into().unwrap()),
+            u32::from_le_bytes(b[ 0.. 4].try_into().unwrap())
         ]}});
 
     }
 
-    pub fn try_from_bytes(&mut self, b: &[u8]) -> Option<CryptoError> {
-
-        if b.len() < 32 {
-            return Some(CryptoError::new("the length of bytes \"b\" is not enough"));
+    pub fn try_from_bytes(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
+        let v: Curve25519Uint = Curve25519Uint::try_from_bytes_inner(b)?;
+        return if Uint256::lt(&v.buf, &MODULE) {
+            Ok(v)
+        } else {
+            Err(CryptoError::new(
+                "the bytes \"b\" was decoded as a number greater than or equal the modulo prime"
+            ))
         }
-
-        if false {
-            return Some(CryptoError::new("the bytes \"b\" could not convert into Curve25519Uint value"));
-        }
-
-        self.u256 = Uint256{ w: [
-            (b[28] as u32) | ((b[29] as u32) << 8) | ((b[30] as u32) << 16) | ((b[31] as u32) << 24),
-            (b[24] as u32) | ((b[25] as u32) << 8) | ((b[26] as u32) << 16) | ((b[27] as u32) << 24),
-            (b[20] as u32) | ((b[21] as u32) << 8) | ((b[22] as u32) << 16) | ((b[23] as u32) << 24),
-            (b[16] as u32) | ((b[17] as u32) << 8) | ((b[18] as u32) << 16) | ((b[19] as u32) << 24),
-            (b[12] as u32) | ((b[13] as u32) << 8) | ((b[14] as u32) << 16) | ((b[15] as u32) << 24),
-            (b[8]  as u32) | ((b[9]  as u32) << 8) | ((b[10] as u32) << 16) | ((b[11] as u32) << 24),
-            (b[4]  as u32) | ((b[5]  as u32) << 8) | ((b[6]  as u32) << 16) | ((b[7]  as u32) << 24),
-            (b[0]  as u32) | ((b[1]  as u32) << 8) | ((b[2]  as u32) << 16) | ((b[3]  as u32) << 24)
-        ]};
-
-        return None;
-
     }
 
-    pub fn try_to_bytes(&self, b: &mut [u8]) -> Option<CryptoError> {
+    pub fn try_decode_as_scalar(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
+        let mut v: Curve25519Uint = Curve25519Uint::try_from_bytes_inner(b)?;
+        v.buf.w[0] = v.buf.w[0] & 0x7fffffff;
+        v.buf.w[0] = v.buf.w[0] | 0x40000000;
+        v.buf.w[7] = v.buf.w[7] & 0xfffffff8;
+        return Ok(v);
+    }
+
+    pub fn try_decode_as_u_coordinate(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
+        let mut v: Curve25519Uint = Curve25519Uint::try_from_bytes_inner(b)?;
+        v.buf.w[0] = v.buf.w[0] & 0x7fffffff;
+        Curve25519Uint::reduce_to_field_element(&mut v);
+        return Ok(v);
+    }
+
+    pub fn try_into_bytes(&self, b: &mut [u8]) -> Option<CryptoError> {
 
         if b.len() < 32 {
             return Some(CryptoError::new("the length of bytes \"b\" is not enough"));
@@ -400,10 +456,10 @@ impl Curve25519Uint {
 
         for i in 0..8 {
             let j: usize = i << 2;
-            b[j + 0] = (self.u256.w[7 - i] >>  0) as u8;
-            b[j + 1] = (self.u256.w[7 - i] >>  8) as u8;
-            b[j + 2] = (self.u256.w[7 - i] >> 16) as u8;
-            b[j + 3] = (self.u256.w[7 - i] >> 24) as u8;
+            b[j + 0] = (self.buf.w[7 - i] >>  0) as u8;
+            b[j + 1] = (self.buf.w[7 - i] >>  8) as u8;
+            b[j + 2] = (self.buf.w[7 - i] >> 16) as u8;
+            b[j + 3] = (self.buf.w[7 - i] >> 24) as u8;
         }
 
         return None;
@@ -451,15 +507,15 @@ impl Curve25519Uint {
     }}
 
     unsafe fn gadd_raw(dst: *mut Self, lhs: *const Self, rhs: *const Self) {
-        Uint256::add(&mut (*dst).u256, &(*lhs).u256, &(*rhs).u256);
-        Self::may_sub_module_once(&mut (*dst));
+        Uint256::add(&mut (*dst).buf, &(*lhs).buf, &(*rhs).buf);
+        Self::reduce_to_field_element(&mut (*dst));
     }
 
     unsafe fn gsub_raw(dst: *mut Self, lhs: *const Self, rhs: *const Self) {
         let mut rhs_addinv256: Uint256 = Uint256::new();
-        Self::addinv256(&mut rhs_addinv256, &(*rhs).u256);
-        Uint256::add(&mut (*dst).u256, &(*lhs).u256, &rhs_addinv256);
-        Self::may_sub_module_once(&mut (*dst));
+        Self::addinv256(&mut rhs_addinv256, &(*rhs).buf);
+        Uint256::add(&mut (*dst).buf, &(*lhs).buf, &rhs_addinv256);
+        Self::reduce_to_field_element(&mut (*dst));
     }
 
     unsafe fn gmul_raw(dst: *mut Self, lhs: *const Self, rhs: *const Self) {
@@ -471,64 +527,44 @@ impl Curve25519Uint {
         for i in 0..8 {
             for j in 0..8 {
 
-                let tmp: u64 = ((*lhs).u256.w[i] as u64) * ((*rhs).u256.w[j] as u64);
+                let tmp: u64 = ((*lhs).buf.w[i] as u64) * ((*rhs).buf.w[j] as u64);
 
                 acc = tmp & 0xffffffff;
-                k = i + j + 2;
-                loop {
-                    k = k - 1;
+                for k in (0..(i + j + 2)).rev() {
                     acc = acc + (buf[k] as u64);
                     buf[k] = (acc & 0xffffffff) as u32;
                     acc = acc >> 32;
-                    if k == 0 {
-                        break;
-                    }
                 }
 
                 acc = tmp >> 32;
-                k = i + j + 1;
-                loop {
-                    k = k - 1;
+                for k in (0..(i + j + 1)).rev() {
                     acc = acc + (buf[k] as u64);
                     buf[k] = (acc & 0xffffffff) as u32;
                     acc = acc >> 32;
-                    if k == 0 {
-                        break;
-                    }
                 }
 
             }
         }
 
-        acc    = ((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64;
+        acc = ((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64;
         buf[8] = buf[8] & 0x7fffffff;
-        k      = 8;
-        loop {
-            k = k - 1;
-            let tmp: u64 = buf[k] as u64;
-            acc = acc + (buf[k + 8] as u64) + (tmp << 5) + (tmp << 2) + (tmp << 1);
-            buf[k + 8] = (acc & 0xffffffff) as u32;
+        for i in (0..8).rev() {
+            let tmp: u64 = buf[i] as u64;
+            acc = acc + (buf[i + 8] as u64) + (tmp << 5) + (tmp << 2) + (tmp << 1);
+            buf[i + 8] = (acc & 0xffffffff) as u32;
             acc = acc >> 32;
-            if k == 0 {
-                break;
-            }
         }
 
-        acc    = (acc << 5) + (acc << 2) + (acc << 1);
-        acc    = acc + (((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64);
+        acc = (acc << 5) + (acc << 2) + (acc << 1);
+        acc = acc + (((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64);
         buf[8] = buf[8] & 0x7fffffff;
-        k      = 8;
-        loop {
-            k = k - 1;
-            acc = acc + (buf[k + 8] as u64);
-            (*dst).u256.w[k] = (acc & 0xffffffff) as u32;
+        for i in (0..8).rev() {
+            acc = acc + (buf[i + 8] as u64);
+            (*dst).buf.w[i] = (acc & 0xffffffff) as u32;
             acc = acc >> 32;
-            if k == 0 {
-                break;
-            }
         }
 
-        Self::may_sub_module_once(&mut (*dst));
+        Self::reduce_to_field_element(&mut (*dst));
 
     }
 
@@ -541,7 +577,7 @@ impl Curve25519Uint {
             let mut s: u32 = 0x80000000;
             loop {
 
-                if ((*exp).u256.w[i] & s) == 0 {
+                if ((*exp).buf.w[i] & s) == 0 {
                     Self::gmul_overwrite(&mut b, &a);
                     Self::gsqr_overwrite(&mut a);
                 } else {
@@ -559,19 +595,19 @@ impl Curve25519Uint {
         }
 
         for i in 0..8 {
-            (*dst).u256.w[i] = a.u256.w[i];
+            (*dst).buf.w[i] = a.buf.w[i];
         }
 
     }
 
-    pub fn may_sub_module_once(v: &mut Self) {
-        let mask: u32    = if Uint256::lt(&v.u256, &MODULE) { 0u32 } else { u32::MAX };
+    pub fn reduce_to_field_element(v: &mut Self) {
+        let mask: u32    = if Uint256::lt(&v.buf, &MODULE) { 0u32 } else { u32::MAX };
         let mut acc: u64 = 0;
         let mut u: usize = 8;
         loop {
             u = u - 1;
-            acc = acc + (v.u256.w[u] as u64) + ((MODULE_ADDINV256.w[u] & mask) as u64);
-            v.u256.w[u] = (acc & 0xffffffff) as u32;
+            acc = acc + (v.buf.w[u] as u64) + ((MODULE_ADDINV256.w[u] & mask) as u64);
+            v.buf.w[u] = (acc & 0xffffffff) as u32;
             acc = acc >> 32;
             if u == 0 {
                 break;
@@ -598,9 +634,9 @@ impl Curve25519Uint {
 impl Clone for Curve25519Uint {
 
     fn clone(&self) -> Self {
-        return Self{ u256: Uint256{ w: [
-            self.u256.w[0], self.u256.w[1], self.u256.w[2], self.u256.w[3],
-            self.u256.w[4], self.u256.w[5], self.u256.w[6], self.u256.w[7],
+        return Self{ buf: Uint256{ w: [
+            self.buf.w[0], self.buf.w[1], self.buf.w[2], self.buf.w[3],
+            self.buf.w[4], self.buf.w[5], self.buf.w[6], self.buf.w[7],
         ]}};
     }
 

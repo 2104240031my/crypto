@@ -207,7 +207,7 @@ impl Dh for X25519 {
 
 
 // - 拡張射影座標系について [*3] pp17
-
+/*
 impl Ed25519 {
 
     // PureEdDSA
@@ -390,6 +390,7 @@ impl Curve25519Point {
     }
 
 }
+*/
 
 
 

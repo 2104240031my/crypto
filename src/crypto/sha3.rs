@@ -1,14 +1,26 @@
 use crate::crypto::CryptoError;
+use crate::crypto::hash::Hash;
 
-pub struct Sha3_256 {
-    s: Sha3StateArray, // Keccak1600 state
-    // d: usize,         // message digest size (in bytes)
-    // r: usize,         // rate (in bytes)
-    // w: usize,         // lane size of Keccak-p permutation (in bytes), i.e., r / 8
+pub struct Sha3224 {
+    s: Sha3State
 }
 
-struct Sha3StateArray {
-    a: [[u64; 5]; 5] // Keccak1600 state
+pub struct Sha3256 {
+    s: Sha3State
+}
+
+pub struct Sha3384 {
+    s: Sha3State
+}
+
+pub struct Sha3512 {
+    s: Sha3State
+}
+
+struct Sha3State {
+    a: [u64; 25],
+    buf: [u8; 168],
+    buf_len: usize
 }
 
 static RC: [u64; 24] = [
@@ -17,145 +29,431 @@ static RC: [u64; 24] = [
     0x000000000000008a, 0x0000000000000088, 0x0000000080008009, 0x000000008000000a,
     0x000000008000808b, 0x800000000000008b, 0x8000000000008089, 0x8000000000008003,
     0x8000000000008002, 0x8000000000000080, 0x000000000000800a, 0x800000008000000a,
-    0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008,
+    0x8000000080008081, 0x8000000000008080, 0x0000000080000001, 0x8000000080008008
 ];
 
-static ROT: [[usize; 5]; 5] = [
-    [ 0, 36,  3, 41, 18], //  0,  1, 62, 28, 27,
-    [ 1, 44, 10, 45 , 2], // 36, 44,  6, 55, 20,
-    [62,  6, 43, 15, 61], //  3, 10, 43, 25, 39,
-    [28, 55, 25, 21, 56], // 41, 45, 15, 21,  8,
-    [27, 20, 39,  8, 14]  // 18,  2, 61, 56, 14
-];
+const SHA3_224_RATE: usize = 144;
+const SHA3_256_RATE: usize = 136;
+const SHA3_384_RATE: usize = 104;
+const SHA3_512_RATE: usize = 72;
 
 fn rotl64(u: u64, r: usize) -> u64 {
-    return (u << r) | (u >> (64 - r));
+    return (u << r) | (u >> ((64 - r) & 63));
 }
 
-fn absorb(s: &mut Sha3StateArray) {
+fn sha3_reset(a: &mut [u64; 25]) {
+    *a = [0; 25];
+}
 
-    for i in 0..24 {
+fn sha3_block(a: &mut [u64; 25]) {
 
-        let mut b: [[u64; 5]; 5] = [[0u64; 5]; 5];
+    let mut b: [u64; 25] = [0; 25];
+    let mut t: [u64; 25] = [0; 25];
 
-        b[0][0] = s.a[0][0] ^ s.a[0][1] ^ s.a[0][2] ^ s.a[0][3] ^ s.a[0][4];
-        b[0][1] = s.a[1][0] ^ s.a[1][1] ^ s.a[1][2] ^ s.a[1][3] ^ s.a[1][4];
-        b[0][2] = s.a[2][0] ^ s.a[2][1] ^ s.a[2][2] ^ s.a[2][3] ^ s.a[2][4];
-        b[0][3] = s.a[3][0] ^ s.a[3][1] ^ s.a[3][2] ^ s.a[3][3] ^ s.a[3][4];
-        b[0][4] = s.a[4][0] ^ s.a[4][1] ^ s.a[4][2] ^ s.a[4][3] ^ s.a[4][4];
+    for r in 0..24 {
 
-        b[1][0] = b[0][4] ^ rotl64(b[0][1], 1);
-        b[1][1] = b[0][0] ^ rotl64(b[0][2], 1);
-        b[1][2] = b[0][1] ^ rotl64(b[0][3], 1);
-        b[1][3] = b[0][2] ^ rotl64(b[0][4], 1);
-        b[1][4] = b[0][3] ^ rotl64(b[0][0], 1);
+        // theta
+        t[0] = a[0] ^ a[5] ^ a[10] ^ a[15] ^ a[20];
+        t[1] = a[1] ^ a[6] ^ a[11] ^ a[16] ^ a[21];
+        t[2] = a[2] ^ a[7] ^ a[12] ^ a[17] ^ a[22];
+        t[3] = a[3] ^ a[8] ^ a[13] ^ a[18] ^ a[23];
+        t[4] = a[4] ^ a[9] ^ a[14] ^ a[19] ^ a[24];
+        b[0] = t[4] ^ rotl64(t[1], 1);
+        b[1] = t[0] ^ rotl64(t[2], 1);
+        b[2] = t[1] ^ rotl64(t[3], 1);
+        b[3] = t[2] ^ rotl64(t[4], 1);
+        b[4] = t[3] ^ rotl64(t[0], 1);
+        a[ 0] = a[ 0] ^ b[0];
+        a[ 1] = a[ 1] ^ b[1];
+        a[ 2] = a[ 2] ^ b[2];
+        a[ 3] = a[ 3] ^ b[3];
+        a[ 4] = a[ 4] ^ b[4];
+        a[ 5] = a[ 5] ^ b[0];
+        a[ 6] = a[ 6] ^ b[1];
+        a[ 7] = a[ 7] ^ b[2];
+        a[ 8] = a[ 8] ^ b[3];
+        a[ 9] = a[ 9] ^ b[4];
+        a[10] = a[10] ^ b[0];
+        a[11] = a[11] ^ b[1];
+        a[12] = a[12] ^ b[2];
+        a[13] = a[13] ^ b[3];
+        a[14] = a[14] ^ b[4];
+        a[15] = a[15] ^ b[0];
+        a[16] = a[16] ^ b[1];
+        a[17] = a[17] ^ b[2];
+        a[18] = a[18] ^ b[3];
+        a[19] = a[19] ^ b[4];
+        a[20] = a[20] ^ b[0];
+        a[21] = a[21] ^ b[1];
+        a[22] = a[22] ^ b[2];
+        a[23] = a[23] ^ b[3];
+        a[24] = a[24] ^ b[4];
 
-        for y in 0..5 {
-            s.a[0][y] = s.a[0][y] ^ b[1][0];
-            s.a[1][y] = s.a[1][y] ^ b[1][1];
-            s.a[2][y] = s.a[2][y] ^ b[1][2];
-            s.a[3][y] = s.a[3][y] ^ b[1][3];
-            s.a[4][y] = s.a[4][y] ^ b[1][4];
-        }
+        // rho
+        t[ 0] = rotl64(a[ 0],  0);
+        t[ 1] = rotl64(a[ 1],  1);
+        t[ 2] = rotl64(a[ 2], 62);
+        t[ 3] = rotl64(a[ 3], 28);
+        t[ 4] = rotl64(a[ 4], 27);
+        t[ 5] = rotl64(a[ 5], 36);
+        t[ 6] = rotl64(a[ 6], 44);
+        t[ 7] = rotl64(a[ 7],  6);
+        t[ 8] = rotl64(a[ 8], 55);
+        t[ 9] = rotl64(a[ 9], 20);
+        t[10] = rotl64(a[10],  3);
+        t[11] = rotl64(a[11], 10);
+        t[12] = rotl64(a[12], 43);
+        t[13] = rotl64(a[13], 25);
+        t[14] = rotl64(a[14], 39);
+        t[15] = rotl64(a[15], 41);
+        t[16] = rotl64(a[16], 45);
+        t[17] = rotl64(a[17], 15);
+        t[18] = rotl64(a[18], 21);
+        t[19] = rotl64(a[19],  8);
+        t[20] = rotl64(a[20], 18);
+        t[21] = rotl64(a[21],  2);
+        t[22] = rotl64(a[22], 61);
+        t[23] = rotl64(a[23], 56);
+        t[24] = rotl64(a[24], 14);
 
-        for x in 0..5 {
-            b[0][(2 * x +  0) % 5] = rotl64(s.a[x][0], ROT[x][0]);
-            b[1][(2 * x +  3) % 5] = rotl64(s.a[x][1], ROT[x][1]);
-            b[2][(2 * x +  6) % 5] = rotl64(s.a[x][2], ROT[x][2]);
-            b[3][(2 * x +  9) % 5] = rotl64(s.a[x][3], ROT[x][3]);
-            b[4][(2 * x + 12) % 5] = rotl64(s.a[x][4], ROT[x][4]);
-        }
+        // pi
+        b[ 0] = t[ 0];
+        b[ 1] = t[ 6];
+        b[ 2] = t[12];
+        b[ 3] = t[18];
+        b[ 4] = t[24];
+        b[ 5] = t[ 3];
+        b[ 6] = t[ 9];
+        b[ 7] = t[10];
+        b[ 8] = t[16];
+        b[ 9] = t[22];
+        b[10] = t[ 1];
+        b[11] = t[ 7];
+        b[12] = t[13];
+        b[13] = t[19];
+        b[14] = t[20];
+        b[15] = t[ 4];
+        b[16] = t[ 5];
+        b[17] = t[11];
+        b[18] = t[17];
+        b[19] = t[23];
+        b[20] = t[ 2];
+        b[21] = t[ 8];
+        b[22] = t[14];
+        b[23] = t[15];
+        b[24] = t[21];
 
-        for x in 0..5 {
-            s.a[x][0] = b[x][0] ^ ((!b[(x + 1) % 5][0]) & b[(x + 2) % 5][0]);
-            s.a[x][1] = b[x][1] ^ ((!b[(x + 1) % 5][1]) & b[(x + 2) % 5][1]);
-            s.a[x][2] = b[x][2] ^ ((!b[(x + 1) % 5][2]) & b[(x + 2) % 5][2]);
-            s.a[x][3] = b[x][3] ^ ((!b[(x + 1) % 5][3]) & b[(x + 2) % 5][3]);
-            s.a[x][4] = b[x][4] ^ ((!b[(x + 1) % 5][4]) & b[(x + 2) % 5][4]);
-        }
+        // chi
+        a[ 0] = b[ 0] ^ ((!b[ 1]) & b[ 2]);
+        a[ 1] = b[ 1] ^ ((!b[ 2]) & b[ 3]);
+        a[ 2] = b[ 2] ^ ((!b[ 3]) & b[ 4]);
+        a[ 3] = b[ 3] ^ ((!b[ 4]) & b[ 0]);
+        a[ 4] = b[ 4] ^ ((!b[ 0]) & b[ 1]);
+        a[ 5] = b[ 5] ^ ((!b[ 6]) & b[ 7]);
+        a[ 6] = b[ 6] ^ ((!b[ 7]) & b[ 8]);
+        a[ 7] = b[ 7] ^ ((!b[ 8]) & b[ 9]);
+        a[ 8] = b[ 8] ^ ((!b[ 9]) & b[ 5]);
+        a[ 9] = b[ 9] ^ ((!b[ 5]) & b[ 6]);
+        a[10] = b[10] ^ ((!b[11]) & b[12]);
+        a[11] = b[11] ^ ((!b[12]) & b[13]);
+        a[12] = b[12] ^ ((!b[13]) & b[14]);
+        a[13] = b[13] ^ ((!b[14]) & b[10]);
+        a[14] = b[14] ^ ((!b[10]) & b[11]);
+        a[15] = b[15] ^ ((!b[16]) & b[17]);
+        a[16] = b[16] ^ ((!b[17]) & b[18]);
+        a[17] = b[17] ^ ((!b[18]) & b[19]);
+        a[18] = b[18] ^ ((!b[19]) & b[15]);
+        a[19] = b[19] ^ ((!b[15]) & b[16]);
+        a[20] = b[20] ^ ((!b[21]) & b[22]);
+        a[21] = b[21] ^ ((!b[22]) & b[23]);
+        a[22] = b[22] ^ ((!b[23]) & b[24]);
+        a[23] = b[23] ^ ((!b[24]) & b[20]);
+        a[24] = b[24] ^ ((!b[20]) & b[21]);
 
-        s.a[0][0] = s.a[0][0] ^ RC[i];
+        // iota
+        a[0]  = a[0] ^ RC[r];
 
     }
 
 }
 
-fn reset(s: &mut Sha3StateArray) {
-    for y in 0..5 {
-        for x in 0..5 {
-            s.a[x][y] = 0;
+fn sha3_digest_oneshot(msg: &[u8], md: &mut [u8], rate: usize) -> Option<CryptoError> {
+
+    let mut a: [u64; 25] = [0; 25];
+    let mut b: usize     = 0;
+    let mut i: usize     = 0;
+    let mut n: usize     = 0;
+    let r: usize = rate >> 3;
+
+    while msg.len() - b >= rate {
+
+        for i in 0..r {
+            let b: usize = i << 3;
+            a[i] = a[i] ^ (
+                 (msg[b + 0] as u64)        |
+                ((msg[b + 1] as u64) <<  8) |
+                ((msg[b + 2] as u64) << 16) |
+                ((msg[b + 3] as u64) << 24) |
+                ((msg[b + 4] as u64) << 32) |
+                ((msg[b + 5] as u64) << 40) |
+                ((msg[b + 6] as u64) << 48) |
+                ((msg[b + 7] as u64) << 56)
+            );
         }
+
+        sha3_block(&mut a);
+
     }
+
+    i = 0;
+    n = 0;
+
+    while b < msg.len() {
+
+        a[i] = a[i] ^ ((msg[b] as u64) << n);
+        n = n + 8;
+
+        if n == 64 {
+            n = 0;
+            i = i + 1;
+        }
+
+        b = b + 1;
+
+    }
+
+    a[i]     = a[i] ^ (0x06u64 << n);
+    a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
+
+    sha3_block(&mut a);
+
+    return None;
+
 }
 
-impl Sha3_256 {
+fn sha3_absorb(state: &mut Sha3State, bytes: &[u8], rate: usize) {
 
-    pub fn compute(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    /*
+    if bytes.len() < rate - state.buf_len {
+        state.buf[(state.buf_len)..(state.buf_len + bytes.len())].clone_from_slice(&bytes[..]);
+        state.buf_len = state.buf_len + bytes.len();
+        return;
+    }
 
-        let mut s: Sha3StateArray = Sha3StateArray{ a: [[0; 5]; 5] };
-        let mut ofs: usize = 0;
-        let mut block: [u64; 25] = [0u64; 25];
+    let mut w: [u64; 80] = [0; 80];
+    let mut i: usize = if s.buf_len == 0 { 0 } else { rate - state.buf_len };
 
-        while msg.len() - ofs >= 136 {
-            for i in 0..17 {
-                block[i] = (
-                    ((msg[ofs + 0] as u64) <<  0) | ((msg[ofs + 1] as u64) <<  8) |
-                    ((msg[ofs + 2] as u64) << 16) | ((msg[ofs + 3] as u64) << 24) |
-                    ((msg[ofs + 4] as u64) << 31) | ((msg[ofs + 5] as u64) << 40) |
-                    ((msg[ofs + 6] as u64) << 48) | ((msg[ofs + 7] as u64) << 56)
-                );
-                ofs = ofs + 8;
-            }
-            for y in 0..5 {
-                for x in 0..5 {
-                    s.a[x][y] = s.a[x][y] ^ block[x + 5 * y];
-                }
-            }
-            absorb(&mut s);
+    if i != 0 {
+
+        state.buf[(state.buf_len)..i].clone_from_slice(&bytes[..i]);
+
+        // absorb
+
+        state.total_len = state.total_len + state.buf_len;
+
+    }
+
+    for _ in (((bytes.len() - i) >> 7)..0).rev() {
+
+        // absorb
+
+    }
+
+    if i < bytes.len() {
+        state.buf_len = bytes.len() - i;
+        state.buf[..(state.buf_len)].clone_from_slice(&bytes[i..(i + state.buf_len)]);
+    } else {
+        state.buf_len = 0;
+    }
+    */
+
+}
+
+fn sha3_squeeze(state: &mut Sha2State64, out: &mut [u64]) {
+
+    let mut i: usize = 0;
+    let mut n: usize = 0;
+
+    for b in 0..state.buf_len {
+
+        a[i] = a[i] ^ ((state.buf[b] as u64) << n);
+        n = n + 8;
+
+        if n == 64 {
+            n = 0;
+            i = i + 1;
         }
 
-        let mut x: usize = 0;
-        let mut y: usize = 0;
-        let mut n: usize = 0;
+        b = b + 1;
 
-        while ofs < msg.len() {
-            s.a[x][y] = s.a[x][y] ^ ((msg[ofs] as u64) << n);
-            n = n + 8;
-            if n == 64 {
-                n = 0;
-                x = x + 1;
-                if x == 5 {
-                    y = y + 1;
-                }
+    }
+
+    a[i]     = a[i] ^ (0x06u64 << n);
+    a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
+
+}
+
+impl Sha3224 {
+
+    pub fn new() -> Result<Self, CryptoError> {
+        return Ok(Self{ a: [0; 25]});
+    }
+
+}
+
+impl Hash for Sha3224 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        sha3_digest_oneshot(msg, md, SHA3_224_RATE);
+
+        let mut i: usize = 0;
+        loop {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            if i >= 3 {
+                break;
             }
-            ofs = ofs + 1;
-        }
-
-        s.a[x][y] = s.a[x][y] ^ (0x06u64 << n);
-        x = (17 % 5) - 1;
-        y = 17 / 5;
-        s.a[x][y] = s.a[x][y] ^ (0x80u64 << 56);
-        absorb(&mut s);
-
-        n = 0;
-        x = 0;
-        y = 0;
-
-        for i in 0..32 {
-            md[i] = ((s.a[x][y] >> n) & 0xff) as u8;
-            n = n + 8;
-            if n == 64 {
-                n = 0;
-                x = x + 1;
-                if x == 5 {
-                    x = 0;
-                    y = y + 1;
-                }
-            }
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+            i = i + 1;
         }
 
         return None;
 
+    }
+
+    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+}
+
+impl Sha3256 {
+
+    pub fn new() -> Result<Self, CryptoError> {
+        return Ok(Self{ a: [0; 25]});
+    }
+
+}
+
+impl Hash for Sha3256 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        sha3_digest_oneshot(msg, md, SHA3_256_RATE);
+
+        for i in 0..4 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+}
+
+impl Sha3384 {
+
+    pub fn new() -> Result<Self, CryptoError> {
+        return Ok(Self{ a: [0; 25]});
+    }
+
+}
+
+impl Hash for Sha3384 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        sha3_digest_oneshot(msg, md, SHA3_384_RATE);
+
+        for i in 0..6 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+}
+
+impl Sha3512 {
+
+    pub fn new() -> Result<Self, CryptoError> {
+        return Ok(Self{ a: [0; 25]});
+    }
+
+}
+
+impl Hash for Sha3512 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        sha3_digest_oneshot(msg, md, SHA3_512_RATE);
+
+        for i in 0..8 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
+        return None;
+    }
+
+    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+        return None;
     }
 
 }

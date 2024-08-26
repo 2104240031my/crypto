@@ -14,6 +14,10 @@ use crate::crypto::sha2::Sha384;
 use crate::crypto::sha2::Sha512;
 use crate::crypto::sha2::Sha512224;
 use crate::crypto::sha2::Sha512256;
+use crate::crypto::sha3::Sha3224;
+use crate::crypto::sha3::Sha3256;
+use crate::crypto::sha3::Sha3384;
+use crate::crypto::sha3::Sha3512;
 use crate::crypto::curve25519::Ed25519;
 use crate::crypto::curve25519::X25519;
 
@@ -53,6 +57,10 @@ fn main() {
                     "sha-512"     => (Sha512::digest_oneshot, 64),
                     "sha-512/224" => (Sha512224::digest_oneshot, 28),
                     "sha-512/256" => (Sha512256::digest_oneshot, 32),
+                    "sha3-224"    => (Sha3224::digest_oneshot, 28),
+                    "sha3-256"    => (Sha3256::digest_oneshot, 32),
+                    "sha3-384"    => (Sha3384::digest_oneshot, 48),
+                    "sha3-512"    => (Sha3512::digest_oneshot, 64),
                     _             => (|b: &[u8], d: &mut [u8]| -> Option<CryptoError> {
                         return Some(CryptoError::new("!Err: the algorithm is not supported."));
                     }, 0)
@@ -83,7 +91,10 @@ fn main() {
                 println!(" - sha-512");
                 println!(" - sha-512/224");
                 println!(" - sha-512/256");
+                println!(" - sha3-224");
                 println!(" - sha3-256");
+                println!(" - sha3-384");
+                println!(" - sha3-512");
             }
 
         },
@@ -249,7 +260,7 @@ fn test_ed25519() {
     let msg: [u8; 32] = [0; 32];
     let mut sign: [u8; 32] = [0; 32];
 
-    Ed25519::sign(&privkey[..], &msg[..], &mut sign[..]);
+    // Ed25519::sign(&privkey[..], &msg[..], &mut sign[..]);
 
 }
 

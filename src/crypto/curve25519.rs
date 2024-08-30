@@ -1,3 +1,9 @@
+/*
+
+The cord is not stable.
+
+*/
+
 use crate::crypto::CryptoError;
 use crate::crypto::dh::Dh;
 use crate::crypto::hash::Hash;
@@ -86,7 +92,7 @@ const ED25519_PRIVATE_KEY_LEN: usize  = 32;
 const ED25519_PUBLIC_KEY_LEN: usize   = 32;
 const ED25519_SIGNATURE_LEN: usize    = 64;
 
-fn x25519(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint) {
+fn x25519(v: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint) {
 
     let x1: Curve25519Uint     = u.clone();
     let mut x2: Curve25519Uint = Curve25519Uint::new_as(1);
@@ -113,28 +119,28 @@ fn x25519(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint) {
 
             bit = ((k.buf.w[i] as usize) >> j) & 1;
             swap = swap ^ bit;
-            constant_time_swap(swap, &mut x2, &mut x3);
-            constant_time_swap(swap, &mut z2, &mut z3);
+            Curve25519Uint::constant_time_swap(&mut x2, &mut x3, swap == 1);
+            Curve25519Uint::constant_time_swap(&mut z2, &mut z3, swap == 1);
             swap = bit;
 
-            Curve25519Uint::gadd(&mut t0, &x2, &z2);        // A  = x2 + z2
-            Curve25519Uint::gsub(&mut t1, &x2, &z2);        // B  = x2 - z2
-            Curve25519Uint::gsqr(&mut t2, &t0);             // AA = A ^ 2
-            Curve25519Uint::gsqr(&mut t3, &t1);             // BB = B ^ 2
-            Curve25519Uint::gmul(&mut x2, &t2, &t3);        // x2 = AA * BB
-            Curve25519Uint::gsub(&mut t4, &t2, &t3);        // E  = AA - BB
+            Curve25519Uint::gadd(&mut t0, &x2, &z2);   // A  = x2 + z2
+            Curve25519Uint::gsub(&mut t1, &x2, &z2);   // B  = x2 - z2
+            Curve25519Uint::gsqr(&mut t2, &t0);        // AA = A ^ 2
+            Curve25519Uint::gsqr(&mut t3, &t1);        // BB = B ^ 2
+            Curve25519Uint::gmul(&mut x2, &t2, &t3);   // x2 = AA * BB
+            Curve25519Uint::gsub(&mut t4, &t2, &t3);   // E  = AA - BB
             Curve25519Uint::gmul(&mut t3, &A24, &t4);
-            Curve25519Uint::gadd_overwrite(&mut t3, &t2);
-            Curve25519Uint::gmul(&mut z2, &t4, &t3);        // z2 = E * (AA + a24 * E)
-            Curve25519Uint::gsub(&mut t2, &x3, &z3);        // D  = x3 - z3
-            Curve25519Uint::gmul_overwrite(&mut t2, &t0);   // DA = D * A
-            Curve25519Uint::gadd(&mut t3, &x3, &z3);        // C  = x3 + z3
-            Curve25519Uint::gmul_overwrite(&mut t3, &t1);   // CB = C * B
+            Curve25519Uint::gadd_assign(&mut t3, &t2);
+            Curve25519Uint::gmul(&mut z2, &t4, &t3);   // z2 = E * (AA + a24 * E)
+            Curve25519Uint::gsub(&mut t2, &x3, &z3);   // D  = x3 - z3
+            Curve25519Uint::gmul_assign(&mut t2, &t0); // DA = D * A
+            Curve25519Uint::gadd(&mut t3, &x3, &z3);   // C  = x3 + z3
+            Curve25519Uint::gmul_assign(&mut t3, &t1); // CB = C * B
             Curve25519Uint::gadd(&mut t0, &t2, &t3);
-            Curve25519Uint::gmul(&mut x3, &t0, &t0);        // x3 = (DA + CB) ^ 2
+            Curve25519Uint::gmul(&mut x3, &t0, &t0);   // x3 = (DA + CB) ^ 2
             Curve25519Uint::gsub(&mut t0, &t2, &t3);
-            Curve25519Uint::gsqr_overwrite(&mut t0);
-            Curve25519Uint::gmul(&mut z3, &x1, &t0);        // z3 = x1 * (DA - CB) ^ 2
+            Curve25519Uint::gsqr_assign(&mut t0);
+            Curve25519Uint::gmul(&mut z3, &x1, &t0);   // z3 = x1 * (DA - CB) ^ 2
 
         }
 
@@ -142,21 +148,12 @@ fn x25519(out: &mut Curve25519Uint, k: &Curve25519Uint, u: &Curve25519Uint) {
 
     }
 
-    constant_time_swap(swap, &mut x2, &mut x3);
-    constant_time_swap(swap, &mut z2, &mut z3);
+    Curve25519Uint::constant_time_swap(&mut x2, &mut x3, swap == 1);
+    Curve25519Uint::constant_time_swap(&mut z2, &mut z3, swap == 1);
 
-    Curve25519Uint::gpow_overwrite(&mut z2, &MODULE_SUB_2);
-    Curve25519Uint::gmul(out, &x2, &z2); // return x2 * (z2 ^ (p - 2))
+    Curve25519Uint::gpow_assign(&mut z2, &MODULE_SUB_2);
+    Curve25519Uint::gmul(v, &x2, &z2); // return x2 * (z2 ^ (p - 2))
 
-}
-
-fn constant_time_swap(swap: usize, a: &mut Curve25519Uint, b: &mut Curve25519Uint) {
-    let mask: u32 = 0u32.wrapping_sub(swap as u32);
-    for i in 0..8 {
-        let x: u32 = (a.buf.w[i] ^ b.buf.w[i]) & mask;
-        a.buf.w[i] = a.buf.w[i] ^ x;
-        b.buf.w[i] = b.buf.w[i] ^ x;
-    }
 }
 
 impl Dh for X25519 {
@@ -204,10 +201,11 @@ impl Dh for X25519 {
 // [*2] https://www.cryptrec.go.jp/exreport/cryptrec-ex-3002-2020.pdf
 // [*3] https://www.cryptrec.go.jp/exreport/cryptrec-ex-3102-2021.pdf
 // [*4] https://github.com/golang/go/blob/master/src/crypto/ed25519/ed25519.go
-
+// [*5] https://cr.yp.to/bib/2003/joye-ladder.pdf
+// [*6] https://dspace.jaist.ac.jp/dspace/bitstream/10119/9146/7/paper.pdf
 
 // - 拡張射影座標系について [*3] pp17
-/*
+
 impl Ed25519 {
 
     // PureEdDSA
@@ -308,15 +306,67 @@ impl Ed25519 {
 
     }
 
+    fn add_mod_l() {
+
+    }
+
+    fn mul_mod_l() {
+
+        // - use Uint256 as buffer
+        // - handle the overflow part (0 ~ 27742317777372353535851937790883648493)
+
+    }
+
 }
 
 impl Curve25519Point {
 
-    pub fn scalar_mul(dst: &mut Curve25519Point, scalar: &Curve25519Uint) {
+    // t = (x * y) / z
+
+    fn constant_time_swap(a: &mut Self, b: &mut Self, swap: bool) {
+        Curve25519Uint::constant_time_swap(&mut a.x, &mut b.x, swap);
+        Curve25519Uint::constant_time_swap(&mut a.y, &mut b.y, swap);
+        Curve25519Uint::constant_time_swap(&mut a.z, &mut b.z, swap);
+        Curve25519Uint::constant_time_swap(&mut a.t, &mut b.t, swap);
+    }
+
+    pub fn scalar_mul(v: &mut Curve25519Point, scalar: &Curve25519Uint) {
+
+        let mut r0: Self = v.clone();
+        let mut r1: Self = v.dbl();
+
+        let mut swap: usize = 0;
+        let mut bit: usize;
+
+        let mut j: usize = 31; // i == 0 ? j = 31 : 32;
+
+        for i in 0..8 {
+
+            while j > 0 {
+                j = j - 1;
+                bit = ((scalar.buf.w[i] as usize) >> j) & 1;
+                // [*5] section-3.1 Fig. 3., [*6] pp5
+                if bit == 0 {
+                    Self::add(&mut r1, &r0, &r1);
+                    Self::dbl(&mut r0, &r0);
+                } else {
+                    Self::add(&mut r0, &r0, &r1);
+                    Self::dbl(&mut r1, &r1);
+                }
+                // Self::constant_time_swap(&mut r0, &mut r1, swap == 1);
+                // Self::add(&mut r1, &r0, &r1);
+                // Self::dbl(&mut r0, &r0);
+            }
+
+            j = 32;
+
+        }
+
+        return r0;
 
     }
 
-    pub fn add(dst: &mut Curve25519Point, lhs: &Curve25519Point, rhs: &Curve25519Point) {
+    pub fn add(v: &mut Curve25519Point, lhs: &Curve25519Point, rhs: &Curve25519Point) {
 
         let mut t1: Curve25519Uint = Curve25519Uint::new();
         let mut t2: Curve25519Uint = Curve25519Uint::new();
@@ -327,45 +377,45 @@ impl Curve25519Point {
         // A = (Y1-X1)*(Y2-X2)
         Curve25519Uint::gsub(&mut t5, &lhs.y, &lhs.x);
         Curve25519Uint::gsub(&mut t1, &rhs.y, &rhs.x);
-        Curve25519Uint::gmul_overwrite(&mut t5, &t2);
+        Curve25519Uint::gmul_assign(&mut t5, &t2);
 
         // B = (Y1+X1)*(Y2+X2)
         Curve25519Uint::gadd(&mut t4, &lhs.y, &lhs.x);
         Curve25519Uint::gadd(&mut t1, &rhs.y, &rhs.x);
-        Curve25519Uint::gmul_overwrite(&mut t4, &t1);
+        Curve25519Uint::gmul_assign(&mut t4, &t1);
 
         // E = B-A
         Curve25519Uint::gsub(&mut t1, &t4, &t5);
 
         // H = B+A
-        Curve25519Uint::gadd_overwrite(&mut t4, &t5);
+        Curve25519Uint::gadd_assign(&mut t4, &t5);
 
         // C = T1*2*d*T2
         Curve25519Uint::gmul(&mut t5, &lhs.t, &rhs.t);
-        Curve25519Uint::gmul_overwrite(&mut t5, &Curve25519Uint::new_as(2));
-        Curve25519Uint::gmul_overwrite(&mut t5, &D);
+        Curve25519Uint::gmul_assign(&mut t5, &Curve25519Uint::new_as(2));
+        Curve25519Uint::gmul_assign(&mut t5, &D);
 
         // D = Z1*2*Z2
         Curve25519Uint::gmul(&mut t3, &lhs.z, &rhs.z);
-        Curve25519Uint::gmul_overwrite(&mut t3, &Curve25519Uint::new_as(2));
+        Curve25519Uint::gmul_assign(&mut t3, &Curve25519Uint::new_as(2));
 
         // F = D-C
         Curve25519Uint::gsub(&mut t2, &t3, &t5);
 
         // G = D+C
-        Curve25519Uint::gadd_overwrite(&mut t3, &t5);
+        Curve25519Uint::gadd_assign(&mut t3, &t5);
 
         // X3 = E*F
-        Curve25519Uint::gmul(&mut dst.x, &t1, &t2);
+        Curve25519Uint::gmul(&mut v.x, &t1, &t2);
 
         // Y3 = G*H
-        Curve25519Uint::gmul(&mut dst.y, &t3, &t4);
+        Curve25519Uint::gmul(&mut v.y, &t3, &t4);
 
         // Z3 = F*G
-        Curve25519Uint::gmul(&mut dst.z, &t2, &t3);
+        Curve25519Uint::gmul(&mut v.z, &t2, &t3);
 
         // T3 = E*H
-        Curve25519Uint::gmul(&mut dst.t, &t1, &t4);
+        Curve25519Uint::gmul(&mut v.t, &t1, &t4);
 
         // A = (Y1-X1)*(Y2-X2)
         // B = (Y1+X1)*(Y2+X2)
@@ -382,35 +432,84 @@ impl Curve25519Point {
 
     }
 
-    pub fn dbl(dst: &mut Curve25519Point, src: &Curve25519Point) {
+    pub fn dbl(v: &mut Curve25519Point, p: &Curve25519Point) {
 
+        let mut t1: Curve25519Uint = Curve25519Uint::new();
+        let mut t2: Curve25519Uint = Curve25519Uint::new();
+        let mut t3: Curve25519Uint = Curve25519Uint::new();
+        let mut t4: Curve25519Uint = Curve25519Uint::new();
 
+        // A = X1^2
+        Curve25519Uint::gsqr(&mut t1, &p.x);
 
+        // B = Y1^2
+        Curve25519Uint::gsqr(&mut t3, &p.y);
+
+        // C = 2*Z1^2
+        Curve25519Uint::gsqr(&mut t2, &p.z);
+        Curve25519Uint::gmul_assign(&mut t2, &Curve25519Uint::new_as(2));
+
+        // H = A+B
+        Curve25519Uint::gadd(&mut t4, &t1, &t3);
+
+        // G = A-B
+        Curve25519Uint::gsub_assign(&mut t3, &t1);
+
+        // F = C+G
+        Curve25519Uint::gsub_assign(&mut t2, &t3);
+
+        // E = H-(X1+Y1)^2
+        Curve25519Uint::gadd(&mut t1, &p.x, &p.y);
+        Curve25519Uint::gsqr_assign(&mut t1);
+        Curve25519Uint::gsub_assign(&mut t1, &t4);
+
+        // X3 = E*F
+        Curve25519Uint::gmul_assign(&mut v.x, &t1, &t2);
+
+        // Y3 = G*H
+        Curve25519Uint::gmul_assign(&mut v.y, &t3, &t4);
+
+        // Z3 = F*G
+        Curve25519Uint::gmul_assign(&mut v.z, &t2, &t3);
+
+        // T3 = E*H
+        Curve25519Uint::gmul_assign(&mut v.t, &t1, &t4);
+
+        // A = X1^2
+        // B = Y1^2
+        // C = 2*Z1^2
+        // H = A+B
+        // E = H-(X1+Y1)^2
+        // G = A-B
+        // F = C+G
+        // X3 = E*F
+        // Y3 = G*H
+        // T3 = E*H
+        // Z3 = F*G
 
     }
 
 }
-*/
 
 
 
 impl Curve25519Uint {
 
-    pub fn new() -> Curve25519Uint {
-        return Curve25519Uint{ buf: Uint256{ w: [0; 8] }};
+    pub fn new() -> Self {
+        return Self{ buf: Uint256{ w: [0; 8] }};
     }
 
-    pub fn new_as(u: usize) -> Curve25519Uint {
-        return Curve25519Uint{ buf: Uint256::new_as(u) };
+    pub fn new_as(u: usize) -> Self {
+        return Self{ buf: Uint256::new_as(u) };
     }
 
-    fn try_from_bytes_inner(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
+    fn try_from_bytes_inner(b: &[u8]) -> Result<Self, CryptoError> {
 
         if b.len() < 32 {
             return Err(CryptoError::new("the length of bytes \"b\" is not enough"));
         }
 
-        return Ok(Curve25519Uint{ buf: Uint256{ w: [
+        return Ok(Self{ buf: Uint256{ w: [
             u32::from_le_bytes(b[28..32].try_into().unwrap()),
             u32::from_le_bytes(b[24..28].try_into().unwrap()),
             u32::from_le_bytes(b[20..24].try_into().unwrap()),
@@ -423,8 +522,8 @@ impl Curve25519Uint {
 
     }
 
-    pub fn try_from_bytes(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
-        let v: Curve25519Uint = Curve25519Uint::try_from_bytes_inner(b)?;
+    pub fn try_from_bytes(b: &[u8]) -> Result<Self, CryptoError> {
+        let v: Self = Self::try_from_bytes_inner(b)?;
         return if Uint256::lt(&v.buf, &MODULE) {
             Ok(v)
         } else {
@@ -434,18 +533,18 @@ impl Curve25519Uint {
         }
     }
 
-    pub fn try_decode_as_scalar(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
-        let mut v: Curve25519Uint = Curve25519Uint::try_from_bytes_inner(b)?;
+    pub fn try_decode_as_scalar(b: &[u8]) -> Result<Self, CryptoError> {
+        let mut v: Self = Self::try_from_bytes_inner(b)?;
         v.buf.w[0] = v.buf.w[0] & 0x7fffffff;
         v.buf.w[0] = v.buf.w[0] | 0x40000000;
         v.buf.w[7] = v.buf.w[7] & 0xfffffff8;
         return Ok(v);
     }
 
-    pub fn try_decode_as_u_coordinate(b: &[u8]) -> Result<Curve25519Uint, CryptoError> {
-        let mut v: Curve25519Uint = Curve25519Uint::try_from_bytes_inner(b)?;
+    pub fn try_decode_as_u_coordinate(b: &[u8]) -> Result<Self, CryptoError> {
+        let mut v: Self = Self::try_from_bytes_inner(b)?;
         v.buf.w[0] = v.buf.w[0] & 0x7fffffff;
-        Curve25519Uint::reduce_to_field_element(&mut v);
+        Self::reduce_to_field_element(&mut v);
         return Ok(v);
     }
 
@@ -467,63 +566,101 @@ impl Curve25519Uint {
 
     }
 
-    pub fn gadd(dst: &mut Self, lhs: &Self, rhs: &Self) { unsafe {
-        Self::gadd_raw(dst as *mut Self, lhs as *const Self, rhs as *const Self);
-    }}
-
-    pub fn gsub(dst: &mut Self, lhs: &Self, rhs: &Self) { unsafe {
-        Self::gsub_raw(dst as *mut Self, lhs as *const Self, rhs as *const Self);
-    }}
-
-    pub fn gmul(dst: &mut Self, lhs: &Self, rhs: &Self) { unsafe {
-        Self::gmul_raw(dst as *mut Self, lhs as *const Self, rhs as *const Self);
-    }}
-
-    pub fn gsqr(dst: &mut Self, src: &Self) { unsafe {
-        Self::gmul_raw(dst as *mut Self, src as *const Self, src as *const Self);
-    }}
-
-    pub fn gpow(dst: &mut Self, base: &Self, exp: &Self) { unsafe {
-        Self::gpow_raw(dst as *mut Self, base as *const Self, exp as *const Self);
-    }}
-
-    pub fn gadd_overwrite(lhs_dst: &mut Self, rhs: &Self) { unsafe {
-        Self::gadd_raw(lhs_dst as *mut Self, lhs_dst as *const Self, rhs as *const Self);
-    }}
-
-    pub fn gsub_overwrite(lhs_dst: &mut Self, rhs: &Self) { unsafe {
-        Self::gsub_raw(lhs_dst as *mut Self, lhs_dst as *const Self, rhs as *const Self);
-    }}
-
-    pub fn gmul_overwrite(lhs_dst: &mut Self, rhs: &Self) { unsafe {
-        Self::gmul_raw(lhs_dst as *mut Self, lhs_dst as *const Self, rhs as *const Self);
-    }}
-
-    pub fn gsqr_overwrite(src_dst: &mut Self) { unsafe {
-        Self::gmul_raw(src_dst as *mut Self, src_dst as *const Self, src_dst as *const Self);
-    }}
-
-    pub fn gpow_overwrite(base_dst: &mut Self, exp: &Self) { unsafe {
-        Self::gpow_raw(base_dst as *mut Self, base_dst as *const Self, exp as *const Self);
-    }}
-
-    unsafe fn gadd_raw(dst: *mut Self, lhs: *const Self, rhs: *const Self) {
-        Uint256::add(&mut (*dst).buf, &(*lhs).buf, &(*rhs).buf);
-        Self::reduce_to_field_element(&mut (*dst));
+    pub fn constant_time_swap(a: &mut Self, b: &mut Self, swap: bool) {
+        let mask: u32 = if swap { u32::MAX } else { 0 }
+        for i in 0..8 {
+            let x: u32 = (a.buf.w[i] ^ b.buf.w[i]) & mask;
+            a.buf.w[i] = a.buf.w[i] ^ x;
+            b.buf.w[i] = b.buf.w[i] ^ x;
+        }
     }
 
-    unsafe fn gsub_raw(dst: *mut Self, lhs: *const Self, rhs: *const Self) {
+    // v = lhs + rhs mod p
+    pub fn gadd(v: &mut Self, lhs: &Self, rhs: &Self) { unsafe {
+        Self::gadd_raw(v as *mut Self, lhs as *const Self, rhs as *const Self);
+    }}
+
+    // v = lhs - rhs mod p
+    pub fn gsub(v: &mut Self, lhs: &Self, rhs: &Self) { unsafe {
+        Self::gsub_raw(v as *mut Self, lhs as *const Self, rhs as *const Self);
+    }}
+
+    // v = lhs * rhs mod p
+    pub fn gmul(v: &mut Self, lhs: &Self, rhs: &Self) { unsafe {
+        Self::gmul_raw(v as *mut Self, lhs as *const Self, rhs as *const Self);
+    }}
+
+    // v = u * u mod p
+    pub fn gsqr(v: &mut Self, u: &Self) { unsafe {
+        Self::gmul_raw(v as *mut Self, u as *const Self, u as *const Self);
+    }}
+
+    // v = base ** exp mod p
+    pub fn gpow(v: &mut Self, base: &Self, exp: &Self) { unsafe {
+        Self::gpow_raw(v as *mut Self, base as *const Self, exp as *const Self);
+    }}
+
+    // v = v + rhs mod p
+    pub fn gadd_assign(v: &mut Self, rhs: &Self) { unsafe {
+        Self::gadd_raw(v as *mut Self, v as *const Self, rhs as *const Self);
+    }}
+
+    // v = v - rhs mod p
+    pub fn gsub_assign(v: &mut Self, rhs: &Self) { unsafe {
+        Self::gsub_raw(v as *mut Self, v as *const Self, rhs as *const Self);
+    }}
+
+    // v = v * rhs mod p
+    pub fn gmul_assign(v: &mut Self, rhs: &Self) { unsafe {
+        Self::gmul_raw(v as *mut Self, v as *const Self, rhs as *const Self);
+    }}
+
+    // v = v * v mod p
+    pub fn gsqr_assign(v: &mut Self) { unsafe {
+        Self::gmul_raw(v as *mut Self, v as *const Self, v as *const Self);
+    }}
+
+    // v = v ** exp mod p
+    pub fn gpow_assign(v: &mut Self, exp: &Self) { unsafe {
+        Self::gpow_raw(v as *mut Self, v as *const Self, exp as *const Self);
+    }}
+
+    // Let v be element on GF(p)
+    pub fn reduce_to_field_element(v: &mut Self) {
+        let mask: u32 = if Uint256::lt(&v.buf, &MODULE) { 0u32 } else { u32::MAX };
+        let mut acc: u64 = 0;
+        for i in (0..8).rev() {
+            acc = acc + (v.buf.w[i] as u64) + ((MODULE_ADDINV256.w[i] & mask) as u64);
+            v.buf.w[i] = (acc & 0xffffffff) as u32;
+            acc = acc >> 32;
+        }
+    }
+
+    fn addinv256(v: &mut Uint256, src: &Uint256) {
+        let mut acc: u64 = 1;
+        for i in (0..8).rev() {
+            acc = acc + ((!(src.w[i] as u64)) & 0xffffffff) + (MODULE.w[i] as u64);
+            v.w[i] = (acc & 0xffffffff) as u32;
+            acc = acc >> 32;
+        }
+    }
+
+    unsafe fn gadd_raw(v: *mut Self, lhs: *const Self, rhs: *const Self) {
+        Uint256::add(&mut (*v).buf, &(*lhs).buf, &(*rhs).buf);
+        Self::reduce_to_field_element(&mut (*v));
+    }
+
+    unsafe fn gsub_raw(v: *mut Self, lhs: *const Self, rhs: *const Self) {
         let mut rhs_addinv256: Uint256 = Uint256::new();
         Self::addinv256(&mut rhs_addinv256, &(*rhs).buf);
-        Uint256::add(&mut (*dst).buf, &(*lhs).buf, &rhs_addinv256);
-        Self::reduce_to_field_element(&mut (*dst));
+        Uint256::add(&mut (*v).buf, &(*lhs).buf, &rhs_addinv256);
+        Self::reduce_to_field_element(&mut (*v));
     }
 
-    unsafe fn gmul_raw(dst: *mut Self, lhs: *const Self, rhs: *const Self) {
+    unsafe fn gmul_raw(v: *mut Self, lhs: *const Self, rhs: *const Self) {
 
         let mut buf: [u32; 16] = [0; 16];
         let mut acc: u64;
-        let mut k: usize;
 
         for i in 0..8 {
             for j in 0..8 {
@@ -561,15 +698,15 @@ impl Curve25519Uint {
         buf[8] = buf[8] & 0x7fffffff;
         for i in (0..8).rev() {
             acc = acc + (buf[i + 8] as u64);
-            (*dst).buf.w[i] = (acc & 0xffffffff) as u32;
+            (*v).buf.w[i] = (acc & 0xffffffff) as u32;
             acc = acc >> 32;
         }
 
-        Self::reduce_to_field_element(&mut (*dst));
+        Self::reduce_to_field_element(&mut (*v));
 
     }
 
-    unsafe fn gpow_raw(dst: *mut Self, base: *const Self, exp: *const Self) {
+    unsafe fn gpow_raw(v: *mut Self, base: *const Self, exp: *const Self) {
 
         let mut a: Self = Self::new_as(1);
         let mut b: Self = (*base).clone();
@@ -579,11 +716,11 @@ impl Curve25519Uint {
             loop {
 
                 if ((*exp).buf.w[i] & s) == 0 {
-                    Self::gmul_overwrite(&mut b, &a);
-                    Self::gsqr_overwrite(&mut a);
+                    Self::gmul_assign(&mut b, &a);
+                    Self::gsqr_assign(&mut a);
                 } else {
-                    Self::gmul_overwrite(&mut a, &b);
-                    Self::gsqr_overwrite(&mut b);
+                    Self::gmul_assign(&mut a, &b);
+                    Self::gsqr_assign(&mut b);
                 }
 
                 s = s >> 1;
@@ -596,38 +733,9 @@ impl Curve25519Uint {
         }
 
         for i in 0..8 {
-            (*dst).buf.w[i] = a.buf.w[i];
+            (*v).buf.w[i] = a.buf.w[i];
         }
 
-    }
-
-    pub fn reduce_to_field_element(v: &mut Self) {
-        let mask: u32    = if Uint256::lt(&v.buf, &MODULE) { 0u32 } else { u32::MAX };
-        let mut acc: u64 = 0;
-        let mut u: usize = 8;
-        loop {
-            u = u - 1;
-            acc = acc + (v.buf.w[u] as u64) + ((MODULE_ADDINV256.w[u] & mask) as u64);
-            v.buf.w[u] = (acc & 0xffffffff) as u32;
-            acc = acc >> 32;
-            if u == 0 {
-                break;
-            }
-        }
-    }
-
-    fn addinv256(dst: &mut Uint256, src: &Uint256) {
-        let mut acc: u64 = 1;
-        let mut u: usize = 8;
-        loop {
-            u = u - 1;
-            acc = acc + ((!(src.w[u] as u64)) & 0xffffffff) + (MODULE.w[u] as u64);
-            dst.w[u] = (acc & 0xffffffff) as u32;
-            acc = acc >> 32;
-            if u == 0 {
-                break;
-            }
-        }
     }
 
 }

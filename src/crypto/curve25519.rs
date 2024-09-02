@@ -72,6 +72,12 @@ const L: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
     0x10000000, 0x00000000, 0x00000000, 0x000000001, 0x4def9de, 0xa2f79cd6, 0x5812631a, 0x5cf5d3ed
 ]}};
 
+// (2 ** 256) - L
+// 0xefffffffffffffffffffffffffffffffeb2106215d086329a7ed9ce5a30a2c13
+const L_ADDINV256: Uint = Uint256{ w: [
+    0xefffffff, 0xffffffff, 0xffffffff, 0xffffffff, 0xeb210621, 0x5d086329, 0xa7ed9ce5, 0xa30a2c13
+]};
+
 // 15112221349535400772501151409588531511454012693041857206046113283949847762202
 // 0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a
 const BX: Curve25519Uint = Curve25519Uint{ buf: Uint256{ w: [
@@ -242,7 +248,7 @@ impl Ed25519 {
 
             // DECI(SHA-512(h[32..64] || M)) mod L
             // cf. https://www.cryptrec.go.jp/exreport/cryptrec-ex-3102-2021.pdf, pp. 9
-            let mut buf: [u32; 16] = [
+            let mut buf: Uint512 = Uint512{ w: [
                 u32::from_le_bytes(r[60..64].try_into().unwrap()),
                 u32::from_le_bytes(r[56..60].try_into().unwrap()),
                 u32::from_le_bytes(r[52..56].try_into().unwrap()),
@@ -259,33 +265,9 @@ impl Ed25519 {
                 u32::from_le_bytes(r[ 8..12].try_into().unwrap()),
                 u32::from_le_bytes(r[ 4.. 8].try_into().unwrap()),
                 u32::from_le_bytes(r[ 0.. 4].try_into().unwrap())
-            ];
-
-            let mut v: Curve25519Uint = Curve25519Uint::new();
-            let mut acc: u64 = 0;
+            ]};
 
 
-            // mod P じゃなくて mod L
-
-            acc = ((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64;
-            buf[8] = buf[8] & 0x7fffffff;
-            for i in (0..8).rev() {
-                let tmp: u64 = buf[i] as u64;
-                acc = acc + (buf[i + 8] as u64) + (tmp << 5) + (tmp << 2) + (tmp << 1);
-                buf[i + 8] = (acc & 0xffffffff) as u32;
-                acc = acc >> 32;
-            }
-
-            acc = (acc << 5) + (acc << 2) + (acc << 1);
-            acc = acc + (((!(((buf[8] >> 31) & 1u32).wrapping_sub(1))) & 19) as u64);
-            buf[8] = buf[8] & 0x7fffffff;
-            for i in (0..8).rev() {
-                acc = acc + (buf[i + 8] as u64);
-                v.buf.w[i] = (acc & 0xffffffff) as u32;
-                acc = acc >> 32;
-            }
-
-            Curve25519Uint::reduce_to_field_element(&mut v);
 
             v
 
@@ -299,6 +281,9 @@ impl Ed25519 {
         // k = DECI(SHA-512(R || A || M)) mod L
 
         // S = (r + k * s) mod L
+        //   = ((k * s) mod L) + r mod L
+        // # k * s の結果をuint512として持ってきて、それをLに収める、そうすればmul_mod_lを実装せずによくなる（ほかのmod L処理も全部Uint512 mod Lの処理やから）
+        // # つまり Uint512 mod Lの処理だけ必要
 
         // signature = R || ENCO(S)    <- ENCO? typo?
 
@@ -312,8 +297,30 @@ impl Ed25519 {
 
     fn mul_mod_l() {
 
+        // 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
         // - use Uint256 as buffer
         // - handle the overflow part (0 ~ 27742317777372353535851937790883648493)
+        // # 512-bit int as (c (2-bit) * (Uint255 ** 2)) + (b (255-bit) * Uint255) + (a (255-bit))
+
+
+    }
+
+    fn reduce_to_lt_l(v: &mut Curve25519Uint) {
+        let mask: u32 = if Uint256::lt(&v, &L) { 0u32 } else { u32::MAX };
+        let mut acc: u64 = 0;
+        for i in (0..8).rev() {
+            acc = acc + (v.w[i] as u64) + ((L_ADDINV256.w[i] & mask) as u64);
+            v.w[i] = (acc & 0xffffffff) as u32;
+            acc = acc >> 32;
+        }
+    }
+
+    unsafe fn add_raw(v: *mut Self, lhs: *const Self, rhs: *const Self) {
+        Uint256::add(&mut (*v).buf, &(*lhs).buf, &(*rhs).buf);
+        Self::reduce_to_lt_l(&mut (*v));
+    }
+
+    unsafe fn mod_raw(v: *mut Self, lhs: *const Self, rhs: *const Self) {
 
     }
 

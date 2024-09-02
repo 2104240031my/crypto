@@ -4,6 +4,10 @@ pub struct Uint256 {
     pub w: [u32; 8]
 }
 
+pub struct Uint512 {
+    pub w: [u32; 16]
+}
+
 impl Uint256 {
 
     pub fn new() -> Uint256 {
@@ -42,6 +46,38 @@ impl Uint256 {
     }
 
     pub fn mul(into: &mut Uint256, lhs: &Uint256, rhs: &Uint256) {
+
+        for i in 0..8 {
+            for j in 0..8 {
+
+                let tmp: u64 = (lhs.w[i] as u64) * (rhs.w[j] as u64);
+                let mut acc: u64;
+                let mut k: usize;
+
+                acc = tmp & 0xffffffffu64;
+                k = i + j + 1;
+                while k > 8 {
+                    acc = acc + (into.w[k - 8] as u64);
+                    into.w[k - 8] = (acc & 0xffffffffu64) as u32;
+                    acc = acc >> 32;
+                    k = k - 1;
+                }
+
+                acc = tmp >> 32;
+                k = i + j;
+                while k > 8 {
+                    acc = acc + (into.w[k - 8] as u64);
+                    into.w[k - 8] = (acc & 0xffffffffu64) as u32;
+                    acc = acc >> 32;
+                    k = k - 1;
+                }
+
+            }
+        }
+
+    }
+
+    pub fn mul_to_uint512(into: &mut Uint521, lhs: &Uint256, rhs: &Uint256) {
 
         for i in 0..8 {
             for j in 0..8 {

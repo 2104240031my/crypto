@@ -1,5 +1,5 @@
 use crate::crypto::CryptoError;
-use crate::crypto::cipher::BlockCipher128;
+use crate::crypto::blockcipher::BlockCipher128;
 
 pub enum AesAlgorithm {
     Aes128,

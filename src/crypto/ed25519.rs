@@ -15,6 +15,9 @@ const ED25519_PRIVATE_KEY_LEN: usize  = 32;
 const ED25519_PUBLIC_KEY_LEN: usize   = 32;
 const ED25519_SIGNATURE_LEN: usize    = 64;
 
+fn ec25519_uint_try_from_sha512_digest() {
+
+}
 
 impl Ed25519 {
 
@@ -35,8 +38,8 @@ impl Ed25519 {
         let s: Curve25519Uint = Curve25519Uint::try_new_from_bytes_as_scalar(&h[..32]).ok()?;
 
         // A = ENCE([s]B)
-        let mut a: Curve25519Point = Curve25519Point::new();
-        Curve25519Point::scalar_mul(&mut a, &s);
+        let mut a: Edwards25519Point = Edwards25519Point::new();
+        Edwards25519Point::scalar_mul(&mut a, &s);
 
         // r = DECI(SHA-512(h[32..64] || M)) mod L
         let r: Curve25519Uint = {

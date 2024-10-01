@@ -152,7 +152,7 @@ impl BlockCipher128Mode {
 
     fn gcm_compute_tag(cipher: &impl BlockCipher128, subkey: &Block128, ctr: &mut [u8],
         aad: &[u8], bytes_in: &[u8], tag: &mut [u8]) {
-        let mut state: Block128 = Block128::as_zero();
+        let mut state: Block128 = Block128::new_as_zero();
         Self::gcm_ghash(subkey, &mut state, aad);
         Self::gcm_ghash(subkey, &mut state, bytes_in);
         Self::gcm_ghash_block(
@@ -237,7 +237,7 @@ impl BlockCipher128Mode {
             counter_block[14] = 0x00;
             counter_block[15] = 0x01;
         } else {
-            let mut state: Block128 = Block128::as_zero();
+            let mut state: Block128 = Block128::new_as_zero();
             let block: Block128     = Block128::from_two_u64s(0, (iv.len() << 3) as u64);
             Self::gcm_ghash(subkey, &mut state, iv);
             Self::gcm_ghash_block(subkey, &mut state, &block);
@@ -254,7 +254,7 @@ struct Block128 {
 
 impl Block128 {
 
-    pub fn as_zero() -> Self {
+    pub fn new_as_zero() -> Self {
         return Self{
             l64: 0,
             r64: 0
@@ -268,32 +268,32 @@ impl Block128 {
         };
     }
 
-    pub fn from_be_bytes(bytes: &[u8]) -> Self {
+    pub fn try_from_be_bytes(b: &[u8]) -> Self {
         return Self{
             l64: {
-                ((bytes[ 0] as u64) << 56) |
-                ((bytes[ 1] as u64) << 48) |
-                ((bytes[ 2] as u64) << 40) |
-                ((bytes[ 3] as u64) << 32) |
-                ((bytes[ 4] as u64) << 24) |
-                ((bytes[ 5] as u64) << 16) |
-                ((bytes[ 6] as u64) <<  8) |
-                  bytes[ 7] as u64
+                ((b[ 0] as u64) << 56) |
+                ((b[ 1] as u64) << 48) |
+                ((b[ 2] as u64) << 40) |
+                ((b[ 3] as u64) << 32) |
+                ((b[ 4] as u64) << 24) |
+                ((b[ 5] as u64) << 16) |
+                ((b[ 6] as u64) <<  8) |
+                  b[ 7] as u64
             },
             r64: {
-                ((bytes[ 8] as u64) << 56) |
-                ((bytes[ 9] as u64) << 48) |
-                ((bytes[10] as u64) << 40) |
-                ((bytes[11] as u64) << 32) |
-                ((bytes[12] as u64) << 24) |
-                ((bytes[13] as u64) << 16) |
-                ((bytes[14] as u64) <<  8) |
-                  bytes[15] as u64
+                ((b[ 8] as u64) << 56) |
+                ((b[ 9] as u64) << 48) |
+                ((b[10] as u64) << 40) |
+                ((b[11] as u64) << 32) |
+                ((b[12] as u64) << 24) |
+                ((b[13] as u64) << 16) |
+                ((b[14] as u64) <<  8) |
+                  b[15] as u64
             }
         };
     }
 
-    pub fn copy_to_buf_as_be(&self, buf: &mut [u8]) {
+    pub fn try_into_be_bytes(&self, b: &mut [u8]) {
         buf[ 0] = (self.l64 >> 56) as u8;
         buf[ 1] = (self.l64 >> 48) as u8;
         buf[ 2] = (self.l64 >> 40) as u8;

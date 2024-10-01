@@ -2,27 +2,27 @@ use crate::crypto::CryptoError;
 use crate::crypto::hash::Hash;
 
 pub struct Sha224 {
-    state: Sha2State32
+    s: Sha2State32
 }
 
 pub struct Sha256 {
-    state: Sha2State32
+    s: Sha2State32
 }
 
 pub struct Sha384 {
-    state: Sha2State64
+    s: Sha2State64
 }
 
 pub struct Sha512 {
-    state: Sha2State64
+    s: Sha2State64
 }
 
 pub struct Sha512224 {
-    state: Sha2State64
+    s: Sha2State64
 }
 
 pub struct Sha512256 {
-    state: Sha2State64
+    s: Sha2State64
 }
 
 static K256: [u32; 64] = [
@@ -878,9 +878,9 @@ impl Sha224 {
 
 impl Hash for Sha224 {
 
-    fn digest_oneshot(bytes: &[u8], digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(bytes: &[u8], dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA224_DIGEST_LEN {
+        if dgst.len() < SHA224_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
@@ -904,10 +904,10 @@ impl Hash for Sha224 {
 
         for i in 0..7 {
             let d: usize = i << 2;
-            digest[d + 0] = (state.h[i] >> 24) as u8;
-            digest[d + 1] = (state.h[i] >> 16) as u8;
-            digest[d + 2] = (state.h[i] >>  8) as u8;
-            digest[d + 3] =  state.h[i]        as u8;
+            dgst[d + 0] = (state.h[i] >> 24) as u8;
+            dgst[d + 1] = (state.h[i] >> 16) as u8;
+            dgst[d + 2] = (state.h[i] >>  8) as u8;
+            dgst[d + 3] =  state.h[i]        as u8;
         }
 
         return None;
@@ -915,25 +915,25 @@ impl Hash for Sha224 {
     }
 
     fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        sha2_32_update(&mut self.state, bytes);
+        sha2_32_update(&mut self.s, bytes);
         return None;
     }
 
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA224_DIGEST_LEN {
+        if dgst.len() < SHA224_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
         let mut h: [u32; 8] = [0; 8];
-        sha2_32_digest(&mut self.state, &mut h[..]);
+        sha2_32_digest(&mut self.s, &mut h[..]);
 
         for i in 0..7 {
             let d: usize = i << 2;
-            digest[d + 0] = (h[i] >> 24) as u8;
-            digest[d + 1] = (h[i] >> 16) as u8;
-            digest[d + 2] = (h[i] >>  8) as u8;
-            digest[d + 3] =  h[i]        as u8;
+            dgst[d + 0] = (h[i] >> 24) as u8;
+            dgst[d + 1] = (h[i] >> 16) as u8;
+            dgst[d + 2] = (h[i] >>  8) as u8;
+            dgst[d + 3] =  h[i]        as u8;
         }
 
         return None;
@@ -977,9 +977,9 @@ impl Sha256 {
 
 impl Hash for Sha256 {
 
-    fn digest_oneshot(bytes: &[u8], digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(bytes: &[u8], dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA256_DIGEST_LEN {
+        if dgst.len() < SHA256_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
@@ -1003,10 +1003,10 @@ impl Hash for Sha256 {
 
         for i in 0..8 {
             let d: usize = i << 2;
-            digest[d + 0] = (state.h[i] >> 24) as u8;
-            digest[d + 1] = (state.h[i] >> 16) as u8;
-            digest[d + 2] = (state.h[i] >>  8) as u8;
-            digest[d + 3] =  state.h[i]        as u8;
+            dgst[d + 0] = (state.h[i] >> 24) as u8;
+            dgst[d + 1] = (state.h[i] >> 16) as u8;
+            dgst[d + 2] = (state.h[i] >>  8) as u8;
+            dgst[d + 3] =  state.h[i]        as u8;
         }
 
         return None;
@@ -1015,25 +1015,25 @@ impl Hash for Sha256 {
 
 
     fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        sha2_32_update(&mut self.state, bytes);
+        sha2_32_update(&mut self.s, bytes);
         return None;
     }
 
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA256_DIGEST_LEN {
+        if dgst.len() < SHA256_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
         let mut h: [u32; 8] = [0; 8];
-        sha2_32_digest(&mut self.state, &mut h[..]);
+        sha2_32_digest(&mut self.s, &mut h[..]);
 
         for i in 0..8 {
             let d: usize = i << 2;
-            digest[d + 0] = (h[i] >> 24) as u8;
-            digest[d + 1] = (h[i] >> 16) as u8;
-            digest[d + 2] = (h[i] >>  8) as u8;
-            digest[d + 3] =  h[i]        as u8;
+            dgst[d + 0] = (h[i] >> 24) as u8;
+            dgst[d + 1] = (h[i] >> 16) as u8;
+            dgst[d + 2] = (h[i] >>  8) as u8;
+            dgst[d + 3] =  h[i]        as u8;
         }
 
         return None;
@@ -1077,9 +1077,9 @@ impl Sha384 {
 
 impl Hash for Sha384 {
 
-    fn digest_oneshot(bytes: &[u8], digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(bytes: &[u8], dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA384_DIGEST_LEN {
+        if dgst.len() < SHA384_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
@@ -1103,14 +1103,14 @@ impl Hash for Sha384 {
 
         for i in 0..6 {
             let d: usize = i << 3;
-            digest[d + 0] = (state.h[i] >> 56) as u8;
-            digest[d + 1] = (state.h[i] >> 48) as u8;
-            digest[d + 2] = (state.h[i] >> 40) as u8;
-            digest[d + 3] = (state.h[i] >> 32) as u8;
-            digest[d + 4] = (state.h[i] >> 24) as u8;
-            digest[d + 5] = (state.h[i] >> 16) as u8;
-            digest[d + 6] = (state.h[i] >>  8) as u8;
-            digest[d + 7] =  state.h[i]        as u8;
+            dgst[d + 0] = (state.h[i] >> 56) as u8;
+            dgst[d + 1] = (state.h[i] >> 48) as u8;
+            dgst[d + 2] = (state.h[i] >> 40) as u8;
+            dgst[d + 3] = (state.h[i] >> 32) as u8;
+            dgst[d + 4] = (state.h[i] >> 24) as u8;
+            dgst[d + 5] = (state.h[i] >> 16) as u8;
+            dgst[d + 6] = (state.h[i] >>  8) as u8;
+            dgst[d + 7] =  state.h[i]        as u8;
         }
 
         return None;
@@ -1118,29 +1118,29 @@ impl Hash for Sha384 {
     }
 
     fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        sha2_64_update(&mut self.state, bytes);
+        sha2_64_update(&mut self.s, bytes);
         return None;
     }
 
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA384_DIGEST_LEN {
+        if dgst.len() < SHA384_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.state, &mut h[..]);
+        sha2_64_digest(&mut self.s, &mut h[..]);
 
         for i in 0..6 {
             let d: usize = i << 3;
-            digest[d + 0] = (h[i] >> 56) as u8;
-            digest[d + 1] = (h[i] >> 48) as u8;
-            digest[d + 2] = (h[i] >> 40) as u8;
-            digest[d + 3] = (h[i] >> 32) as u8;
-            digest[d + 4] = (h[i] >> 24) as u8;
-            digest[d + 5] = (h[i] >> 16) as u8;
-            digest[d + 6] = (h[i] >>  8) as u8;
-            digest[d + 7] =  h[i]        as u8;
+            dgst[d + 0] = (h[i] >> 56) as u8;
+            dgst[d + 1] = (h[i] >> 48) as u8;
+            dgst[d + 2] = (h[i] >> 40) as u8;
+            dgst[d + 3] = (h[i] >> 32) as u8;
+            dgst[d + 4] = (h[i] >> 24) as u8;
+            dgst[d + 5] = (h[i] >> 16) as u8;
+            dgst[d + 6] = (h[i] >>  8) as u8;
+            dgst[d + 7] =  h[i]        as u8;
         }
 
         return None;
@@ -1184,9 +1184,9 @@ impl Sha512 {
 
 impl Hash for Sha512 {
 
-    fn digest_oneshot(bytes: &[u8], digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(bytes: &[u8], dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA512_DIGEST_LEN {
+        if dgst.len() < SHA512_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
@@ -1210,14 +1210,14 @@ impl Hash for Sha512 {
 
         for i in 0..8 {
             let d: usize = i << 3;
-            digest[d + 0] = (state.h[i] >> 56) as u8;
-            digest[d + 1] = (state.h[i] >> 48) as u8;
-            digest[d + 2] = (state.h[i] >> 40) as u8;
-            digest[d + 3] = (state.h[i] >> 32) as u8;
-            digest[d + 4] = (state.h[i] >> 24) as u8;
-            digest[d + 5] = (state.h[i] >> 16) as u8;
-            digest[d + 6] = (state.h[i] >>  8) as u8;
-            digest[d + 7] =  state.h[i]        as u8;
+            dgst[d + 0] = (state.h[i] >> 56) as u8;
+            dgst[d + 1] = (state.h[i] >> 48) as u8;
+            dgst[d + 2] = (state.h[i] >> 40) as u8;
+            dgst[d + 3] = (state.h[i] >> 32) as u8;
+            dgst[d + 4] = (state.h[i] >> 24) as u8;
+            dgst[d + 5] = (state.h[i] >> 16) as u8;
+            dgst[d + 6] = (state.h[i] >>  8) as u8;
+            dgst[d + 7] =  state.h[i]        as u8;
         }
 
         return None;
@@ -1225,29 +1225,29 @@ impl Hash for Sha512 {
     }
 
     fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        sha2_64_update(&mut self.state, bytes);
+        sha2_64_update(&mut self.s, bytes);
         return None;
     }
 
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA512_DIGEST_LEN {
+        if dgst.len() < SHA512_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.state, &mut h[..]);
+        sha2_64_digest(&mut self.s, &mut h[..]);
 
         for i in 0..8 {
             let d: usize = i << 3;
-            digest[d + 0] = (h[i] >> 56) as u8;
-            digest[d + 1] = (h[i] >> 48) as u8;
-            digest[d + 2] = (h[i] >> 40) as u8;
-            digest[d + 3] = (h[i] >> 32) as u8;
-            digest[d + 4] = (h[i] >> 24) as u8;
-            digest[d + 5] = (h[i] >> 16) as u8;
-            digest[d + 6] = (h[i] >>  8) as u8;
-            digest[d + 7] =  h[i]        as u8;
+            dgst[d + 0] = (h[i] >> 56) as u8;
+            dgst[d + 1] = (h[i] >> 48) as u8;
+            dgst[d + 2] = (h[i] >> 40) as u8;
+            dgst[d + 3] = (h[i] >> 32) as u8;
+            dgst[d + 4] = (h[i] >> 24) as u8;
+            dgst[d + 5] = (h[i] >> 16) as u8;
+            dgst[d + 6] = (h[i] >>  8) as u8;
+            dgst[d + 7] =  h[i]        as u8;
         }
 
         return None;
@@ -1291,9 +1291,9 @@ impl Sha512224 {
 
 impl Hash for Sha512224 {
 
-    fn digest_oneshot(bytes: &[u8], digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(bytes: &[u8], dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA512224_DIGEST_LEN {
+        if dgst.len() < SHA512224_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
@@ -1318,17 +1318,17 @@ impl Hash for Sha512224 {
         let mut i: usize = 0;
         loop {
             let d: usize = i << 3;
-            digest[d + 0] = (state.h[i] >> 56) as u8;
-            digest[d + 1] = (state.h[i] >> 48) as u8;
-            digest[d + 2] = (state.h[i] >> 40) as u8;
-            digest[d + 3] = (state.h[i] >> 32) as u8;
+            dgst[d + 0] = (state.h[i] >> 56) as u8;
+            dgst[d + 1] = (state.h[i] >> 48) as u8;
+            dgst[d + 2] = (state.h[i] >> 40) as u8;
+            dgst[d + 3] = (state.h[i] >> 32) as u8;
             if i >= 3 {
                 break;
             }
-            digest[d + 4] = (state.h[i] >> 24) as u8;
-            digest[d + 5] = (state.h[i] >> 16) as u8;
-            digest[d + 6] = (state.h[i] >>  8) as u8;
-            digest[d + 7] =  state.h[i]        as u8;
+            dgst[d + 4] = (state.h[i] >> 24) as u8;
+            dgst[d + 5] = (state.h[i] >> 16) as u8;
+            dgst[d + 6] = (state.h[i] >>  8) as u8;
+            dgst[d + 7] =  state.h[i]        as u8;
             i = i + 1;
         }
 
@@ -1337,33 +1337,33 @@ impl Hash for Sha512224 {
     }
 
     fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        sha2_64_update(&mut self.state, bytes);
+        sha2_64_update(&mut self.s, bytes);
         return None;
     }
 
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA512224_DIGEST_LEN {
+        if dgst.len() < SHA512224_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.state, &mut h[..]);
+        sha2_64_digest(&mut self.s, &mut h[..]);
 
         let mut i: usize = 0;
         loop {
             let d: usize = i << 3;
-            digest[d + 0] = (h[i] >> 56) as u8;
-            digest[d + 1] = (h[i] >> 48) as u8;
-            digest[d + 2] = (h[i] >> 40) as u8;
-            digest[d + 3] = (h[i] >> 32) as u8;
+            dgst[d + 0] = (h[i] >> 56) as u8;
+            dgst[d + 1] = (h[i] >> 48) as u8;
+            dgst[d + 2] = (h[i] >> 40) as u8;
+            dgst[d + 3] = (h[i] >> 32) as u8;
             if i >= 3 {
                 break;
             }
-            digest[d + 4] = (h[i] >> 24) as u8;
-            digest[d + 5] = (h[i] >> 16) as u8;
-            digest[d + 6] = (h[i] >>  8) as u8;
-            digest[d + 7] =  h[i]        as u8;
+            dgst[d + 4] = (h[i] >> 24) as u8;
+            dgst[d + 5] = (h[i] >> 16) as u8;
+            dgst[d + 6] = (h[i] >>  8) as u8;
+            dgst[d + 7] =  h[i]        as u8;
             i = i + 1;
         }
 
@@ -1408,9 +1408,9 @@ impl Sha512256 {
 
 impl Hash for Sha512256 {
 
-    fn digest_oneshot(bytes: &[u8], digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(bytes: &[u8], dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA512256_DIGEST_LEN {
+        if dgst.len() < SHA512256_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
@@ -1434,14 +1434,14 @@ impl Hash for Sha512256 {
 
         for i in 0..4 {
             let d: usize = i << 3;
-            digest[d + 0] = (state.h[i] >> 56) as u8;
-            digest[d + 1] = (state.h[i] >> 48) as u8;
-            digest[d + 2] = (state.h[i] >> 40) as u8;
-            digest[d + 3] = (state.h[i] >> 32) as u8;
-            digest[d + 4] = (state.h[i] >> 24) as u8;
-            digest[d + 5] = (state.h[i] >> 16) as u8;
-            digest[d + 6] = (state.h[i] >>  8) as u8;
-            digest[d + 7] =  state.h[i]        as u8;
+            dgst[d + 0] = (state.h[i] >> 56) as u8;
+            dgst[d + 1] = (state.h[i] >> 48) as u8;
+            dgst[d + 2] = (state.h[i] >> 40) as u8;
+            dgst[d + 3] = (state.h[i] >> 32) as u8;
+            dgst[d + 4] = (state.h[i] >> 24) as u8;
+            dgst[d + 5] = (state.h[i] >> 16) as u8;
+            dgst[d + 6] = (state.h[i] >>  8) as u8;
+            dgst[d + 7] =  state.h[i]        as u8;
         }
 
         return None;
@@ -1449,29 +1449,29 @@ impl Hash for Sha512256 {
     }
 
     fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        sha2_64_update(&mut self.state, bytes);
+        sha2_64_update(&mut self.s, bytes);
         return None;
     }
 
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, dgst: &mut [u8]) -> Option<CryptoError> {
 
-        if digest.len() < SHA512256_DIGEST_LEN {
+        if dgst.len() < SHA512256_DIGEST_LEN {
             return Some(CryptoError::new(""));
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.state, &mut h[..]);
+        sha2_64_digest(&mut self.s, &mut h[..]);
 
         for i in 0..4 {
             let d: usize = i << 3;
-            digest[d + 0] = (h[i] >> 56) as u8;
-            digest[d + 1] = (h[i] >> 48) as u8;
-            digest[d + 2] = (h[i] >> 40) as u8;
-            digest[d + 3] = (h[i] >> 32) as u8;
-            digest[d + 4] = (h[i] >> 24) as u8;
-            digest[d + 5] = (h[i] >> 16) as u8;
-            digest[d + 6] = (h[i] >>  8) as u8;
-            digest[d + 7] =  h[i]        as u8;
+            dgst[d + 0] = (h[i] >> 56) as u8;
+            dgst[d + 1] = (h[i] >> 48) as u8;
+            dgst[d + 2] = (h[i] >> 40) as u8;
+            dgst[d + 3] = (h[i] >> 32) as u8;
+            dgst[d + 4] = (h[i] >> 24) as u8;
+            dgst[d + 5] = (h[i] >> 16) as u8;
+            dgst[d + 6] = (h[i] >>  8) as u8;
+            dgst[d + 7] =  h[i]        as u8;
         }
 
         return None;

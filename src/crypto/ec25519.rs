@@ -1,4 +1,5 @@
 use crate::crypto::CryptoError;
+use crate::crypto::CryptoErrorCode;
 
 pub struct Edwards25519Point {
     x: Ec25519Uint,
@@ -8,7 +9,7 @@ pub struct Edwards25519Point {
 }
 
 pub struct Ec25519Uint {
-    w: [u32; 8]
+    pub w: [u32; 8]
 }
 
 // (2 ^ 255) - 19
@@ -112,11 +113,12 @@ pub const B: Edwards25519Point = Edwards25519Point{
 
 };
 
+const U32_MAX: u64 = 0xffffffff;
 
 impl Edwards25519Point {
 
     // t = (x * y) / z
-
+    /*
     fn constant_time_swap(a: &mut Self, b: &mut Self, swap: bool) {
         Ec25519Uint::constant_time_swap(&mut a.x, &mut b.x, swap);
         Ec25519Uint::constant_time_swap(&mut a.y, &mut b.y, swap);
@@ -225,7 +227,7 @@ impl Edwards25519Point {
         // Z3 = F*G
 
     }
-
+    */
 }
 
 impl Ec25519Uint {
@@ -235,7 +237,7 @@ impl Ec25519Uint {
     }
 
     pub fn from_usize(u: usize) -> Self {
-        return Self{ w: [0, 0, 0, 0, 0, 0, (u >> 32) as u32, (u & 0xffffffffusize) as u32] };
+        return Self{ w: [0, 0, 0, 0, 0, 0, (u as u64 >> 32) as u32, (u as u64 & U32_MAX) as u32] };
     }
 
     pub fn try_from_bytes_as_scalar(b: &[u8]) -> Result<Self, CryptoError> {
@@ -256,7 +258,7 @@ impl Ec25519Uint {
     pub fn try_into_bytes(&self, b: &mut [u8]) -> Option<CryptoError> {
 
         if b.len() < 32 {
-            return Some(CryptoError::new("the length of bytes \"b\" is not enough"));
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         for i in 0..8 {
@@ -271,8 +273,21 @@ impl Ec25519Uint {
 
     }
 
+    pub fn clone(&self) -> Self {
+        return Self{ w: [
+            self.w[0],
+            self.w[1],
+            self.w[2],
+            self.w[3],
+            self.w[4],
+            self.w[5],
+            self.w[6],
+            self.w[7]
+        ]};
+    }
+
     pub fn constant_time_swap(a: &mut Self, b: &mut Self, swap: bool) {
-        let mask: u32 = if swap { u32::MAX } else { 0 }
+        let mask: u32 = if swap { u32::MAX } else { 0 };
         for i in 0..8 {
             let x: u32 = (a.w[i] ^ b.w[i]) & mask;
             a.w[i] = a.w[i] ^ x;
@@ -294,12 +309,12 @@ impl Ec25519Uint {
         return Self::lt_inner(0, lhs, 0, rhs);
     }
 
-    // res = val + 1
+    // res = val + 1 mod p
     pub fn ginc(res: &mut Self, val: &Self) { unsafe {
         Self::ginc_inner(res as *mut Self, val as *const Self);
     }}
 
-    // res = val - 1
+    // res = val - 1 mod p
     pub fn gdec(res: &mut Self, val: &Self) { unsafe {
         Self::gdec_inner(res as *mut Self, val as *const Self);
     }}
@@ -334,12 +349,12 @@ impl Ec25519Uint {
         Self::gpow_inner(res as *mut Self, base as *const Self, exp as *const Self);
     }}
 
-    // res++
+    // res++ mod p
     pub fn ginc_assign(res: &mut Self) { unsafe {
         Self::ginc_inner(res as *mut Self, res as *const Self);
     }}
 
-    // res--
+    // res-- mod p
     pub fn gdec_assign(res: &mut Self) { unsafe {
         Self::gdec_inner(res as *mut Self, res as *const Self);
     }}
@@ -376,11 +391,11 @@ impl Ec25519Uint {
 
     // res = res - if res < p { 0 } else { p }
     pub fn wrap(res: &mut Self) {
-        let mask: u32 = if Uint256::lt(&res.w, &P) { 0u32 } else { u32::MAX };
+        let mask: u32 = if Self::lt(&res, &P) { 0 } else { u32::MAX };
         let mut acc: u64 = 0;
         for i in (0..8).rev() {
             acc = acc + (res.w[i] as u64) + ((P_ADDINV.w[i] & mask) as u64);
-            res.w[i] = (acc & 0xffffffff) as u32;
+            res.w[i] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
     }
@@ -388,14 +403,14 @@ impl Ec25519Uint {
     fn addinv(res: &mut Self, val: &Self) {
         let mut acc: u64 = 1;
         for i in (0..8).rev() {
-            acc = acc + ((!(val.w[i] as u64)) & 0xffffffff) + (P.w[i] as u64);
-            res.w[i] = (acc & 0xffffffff) as u32;
+            acc = acc + ((!(val.w[i] as u64)) & U32_MAX) + (P.w[i] as u64);
+            res.w[i] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
     }
 
     pub fn mulinv(res: &mut Self, val: &Self) {
-        Self::gpow(val, &P_SUB_2);
+        Self::gpow(res, val, &P_SUB2);
     }
 
     fn mr(res: &mut Self, val: &Self) {
@@ -405,7 +420,7 @@ impl Ec25519Uint {
     fn try_from_bytes_inner(b: &[u8]) -> Result<Self, CryptoError> {
 
         if b.len() < 32 {
-            return Err(CryptoError::new("the length of bytes \"b\" is not enough"));
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         return Ok(Self{ w: [
@@ -414,9 +429,9 @@ impl Ec25519Uint {
             u32::from_le_bytes(b[20..24].try_into().unwrap()),
             u32::from_le_bytes(b[16..20].try_into().unwrap()),
             u32::from_le_bytes(b[12..16].try_into().unwrap()),
-            u32::from_le_bytes(b[8..12].try_into().unwrap()),
-            u32::from_le_bytes(b[4..8].try_into().unwrap()),
-            u32::from_le_bytes(b[0..4].try_into().unwrap())
+            u32::from_le_bytes(b[ 8..12].try_into().unwrap()),
+            u32::from_le_bytes(b[ 4.. 8].try_into().unwrap()),
+            u32::from_le_bytes(b[ 0.. 4].try_into().unwrap())
         ]});
 
     }
@@ -428,10 +443,10 @@ impl Ec25519Uint {
         let mut r: u64   = rhs_carry << 8; // summary of right
 
         for i in (0..8).rev() {
-            let gt_mask: u64 = if lhs.w[i] > rhs.w[i] { u64::MAX } else { 0u64 };
-            let lt_mask: u64 = if lhs.w[i] < rhs.w[i] { u64::MAX } else { 0u64 };
-            l = l ^ (bit & gt_mask);
-            r = r ^ (bit & lt_mask);
+            let gt_mask: u64 = if lhs.w[i] > rhs.w[i] { u64::MAX } else { 0 };
+            let lt_mask: u64 = if lhs.w[i] < rhs.w[i] { u64::MAX } else { 0 };
+            l = l | (bit & gt_mask);
+            r = r | (bit & lt_mask);
             bit = bit << 1;
         }
 
@@ -443,7 +458,7 @@ impl Ec25519Uint {
         let mut acc: u64 = 1;
         for i in (0..8).rev() {
             acc = acc + ((*val).w[i] as u64);
-            (*res).w[i] = (acc & 0xffffffffu64) as u32;
+            (*res).w[i] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
         Self::wrap(&mut (*res));
@@ -453,7 +468,7 @@ impl Ec25519Uint {
         let mut acc: u64 = 0;
         for i in (0..8).rev() {
             acc = acc + ((*val).w[i] as u64) + (P_SUB1.w[i] as u64);
-            (*res).w[i] = (acc & 0xffffffffu64) as u32;
+            (*res).w[i] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
         Self::wrap(&mut (*res));
@@ -463,7 +478,7 @@ impl Ec25519Uint {
         let mut acc: u64 = 0;
         for i in (0..8).rev() {
             acc = acc + ((*lhs).w[i] as u64) + ((*rhs).w[i] as u64);
-            (*res).w[i] = (acc & 0xffffffffu64) as u32;
+            (*res).w[i] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
         Self::wrap(&mut (*res));
@@ -485,17 +500,17 @@ impl Ec25519Uint {
 
                 let tmp: u64 = ((*lhs).w[i] as u64) * ((*rhs).w[j] as u64);
 
-                acc = tmp & 0xffffffff;
+                acc = tmp & U32_MAX;
                 for k in (0..(i + j + 2)).rev() {
                     acc = acc + (buf[k] as u64);
-                    buf[k] = (acc & 0xffffffff) as u32;
+                    buf[k] = (acc & U32_MAX) as u32;
                     acc = acc >> 32;
                 }
 
                 acc = tmp >> 32;
                 for k in (0..(i + j + 1)).rev() {
                     acc = acc + (buf[k] as u64);
-                    buf[k] = (acc & 0xffffffff) as u32;
+                    buf[k] = (acc & U32_MAX) as u32;
                     acc = acc >> 32;
                 }
 
@@ -507,7 +522,7 @@ impl Ec25519Uint {
         for i in (0..8).rev() {
             let tmp: u64 = buf[i] as u64;
             acc = acc + (buf[i + 8] as u64) + (tmp << 5) + (tmp << 2) + (tmp << 1);
-            buf[i + 8] = (acc & 0xffffffff) as u32;
+            buf[i + 8] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
 
@@ -516,7 +531,7 @@ impl Ec25519Uint {
         buf[8] = buf[8] & 0x7fffffff;
         for i in (0..8).rev() {
             acc = acc + (buf[i + 8] as u64);
-            (*res).buf.w[i] = (acc & 0xffffffff) as u32;
+            (*res).w[i] = (acc & U32_MAX) as u32;
             acc = acc >> 32;
         }
 
@@ -527,35 +542,44 @@ impl Ec25519Uint {
     unsafe fn gdiv_inner(res: *mut Self, lhs: *const Self, rhs: *const Self) {
         let mut rhs_mulinv: Self = Self::new();
         Self::mulinv(&mut rhs_mulinv, &(*rhs));
-        Self::add_inner(res, lhs, &rhs_mulinv as *const Self);
+        Self::gadd_inner(res, lhs, &rhs_mulinv as *const Self);
         Self::wrap(&mut (*res));
     }
 
     unsafe fn gpow_inner(res: *mut Self, base: *const Self, exp: *const Self) {
 
         let mut a: Self = Self::from_usize(1);
-        let mut b: Self = (*base).clone();
+        let mut b: Self = Self{ w: [
+            (*base).w[0], (*base).w[1], (*base).w[2], (*base).w[3],
+            (*base).w[4], (*base).w[5], (*base).w[6], (*base).w[7]
+        ]};
+
+        let mut swap: bool = false;
+        let mut bit: bool  = false;
+
+        let mut j: usize = 31; // i == 0 ? j = 31 : 32;
 
         for i in 0..8 {
-            let mut s: u32 = 0x80000000;
-            loop {
 
-                if ((*exp).buf.w[i] & s) == 0 {
-                    Self::gmul_assign(&mut b, &a);
-                    Self::gsqr_assign(&mut a);
-                } else {
-                    Self::gmul_assign(&mut a, &b);
-                    Self::gsqr_assign(&mut b);
-                }
+            while j > 0 {
 
-                s = s >> 1;
+                j = j - 1;
 
-                if s == 0 {
-                    break;
-                }
+                bit  = (((*exp).w[i] as usize) >> j) & 1 == 1;
+                swap = swap ^ bit;
+                Ec25519Uint::constant_time_swap(&mut a, &mut b, swap);
+                swap = bit;
+
+                Ec25519Uint::gadd_assign(&mut b, &a);
+                Ec25519Uint::gsqr_assign(&mut a);
 
             }
+
+            j = 32;
+
         }
+
+        Ec25519Uint::constant_time_swap(&mut a, &mut b, swap);
 
         for i in 0..8 {
             (*res).w[i] = a.w[i];

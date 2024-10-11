@@ -1,30 +1,20 @@
 use crate::crypto::CryptoError;
-
-pub trait BlockCipher128 {
-    fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
-    fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
-    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError>;
-    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError>;
-}
-
-static GCM_R: Block128 = Block128{
-    l64: 0xe100000000000000,
-    r64: 0x0000000000000000
-};
+use crate::crypto::CryptoErrorCode;
+use crate::crypto::BlockCipher;
 
 pub struct BlockCipher128Mode;
 impl BlockCipher128Mode {
 
-    pub fn ecb_encrypt(cipher: &impl BlockCipher128, bytes_in: &[u8], bytes_out: &mut [u8]) -> Option<CryptoError> {
+    pub fn ecb_encrypt(cipher: &impl BlockCipher, bytes_in: &[u8], bytes_out: &mut [u8]) -> Option<CryptoError> {
 
         let len: usize = bytes_in.len();
 
         if len > bytes_out.len() {
-            return Some(CryptoError::new(""))
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         if len & 15 != 0 {
-            return Some(CryptoError::new(""));
+            return Some(CryptoError::new(CryptoErrorCode::Unknown));
         }
 
         for i in (0..len).step_by(16) {
@@ -38,16 +28,16 @@ impl BlockCipher128Mode {
 
     }
 
-    pub fn ecb_decrypt(cipher: &impl BlockCipher128, bytes_in: &[u8], bytes_out: &mut [u8]) -> Option<CryptoError> {
+    pub fn ecb_decrypt(cipher: &impl BlockCipher, bytes_in: &[u8], bytes_out: &mut [u8]) -> Option<CryptoError> {
 
         let len: usize = bytes_in.len();
 
         if len > bytes_out.len() {
-            return Some(CryptoError::new(""))
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort))
         }
 
         if len & 15 != 0 {
-            return Some(CryptoError::new(""));
+            return Some(CryptoError::new(CryptoErrorCode::Unknown));
         }
 
         for i in (0..len).step_by(16) {
@@ -61,15 +51,11 @@ impl BlockCipher128Mode {
 
     }
 
-    pub fn ctr(cipher: &impl BlockCipher128, counter_block: &mut [u8], counter_size: usize,
+    pub fn ctr(cipher: &impl BlockCipher, counter_block: &mut [u8], counter_size: usize,
         bytes_in: &[u8], bytes_out: &mut [u8]) -> Option<CryptoError> {
 
-        if bytes_in.len() > bytes_out.len() {
-            return Some(CryptoError::new(""));
-        }
-
-        if counter_block.len() < 16 {
-            return Some(CryptoError::new(""));
+        if bytes_in.len() > bytes_out.len() || counter_block.len() < 16 {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut b: [u8; 16] = [0; 16];
@@ -105,8 +91,8 @@ impl BlockCipher128Mode {
             out[i] = lhs[i] ^ rhs[i];
         }
     }
-
-    fn gcm_encrypt_generate(cipher: &impl BlockCipher128, iv: &[u8], aad: &[u8], bytes_in: &[u8],
+/*
+    fn gcm_encrypt_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], bytes_in: &[u8],
         bytes_out: &mut [u8], tag: &mut [u8]) -> Option<CryptoError> {
 
         let subkey: Block128   = Self::gcm_generate_subkey(cipher);
@@ -129,7 +115,7 @@ impl BlockCipher128Mode {
 
     }
 
-    fn gcm_decrypt_verify(cipher: &impl BlockCipher128, iv: &[u8], aad: &[u8], bytes_in: &[u8],
+    fn gcm_decrypt_verify(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], bytes_in: &[u8],
         bytes_out: &mut [u8], tag: &[u8]) -> Option<CryptoError> {
 
         let subkey: Block128   = Self::gcm_generate_subkey(cipher);
@@ -150,7 +136,7 @@ impl BlockCipher128Mode {
 
     }
 
-    fn gcm_compute_tag(cipher: &impl BlockCipher128, subkey: &Block128, ctr: &mut [u8],
+    fn gcm_compute_tag(cipher: &impl BlockCipher, subkey: &Block128, ctr: &mut [u8],
         aad: &[u8], bytes_in: &[u8], tag: &mut [u8]) {
         let mut state: Block128 = Block128::new_as_zero();
         Self::gcm_ghash(subkey, &mut state, aad);
@@ -222,7 +208,7 @@ impl BlockCipher128Mode {
 
     }
 
-    fn gcm_generate_subkey(cipher: &impl BlockCipher128) -> Block128 {
+    fn gcm_generate_subkey(cipher: &impl BlockCipher) -> Block128 {
         let b: [u8; 16]     = [0; 16];
         let mut h: [u8; 16] = [0; 16];
         cipher.encrypt_unchecked(&b, &mut h[..]);
@@ -244,8 +230,13 @@ impl BlockCipher128Mode {
             block.copy_to_buf_as_be(counter_block);
         }
     }
-
+*/
 }
+
+static GCM_R: Block128 = Block128{
+    l64: 0xe100000000000000,
+    r64: 0x0000000000000000
+};
 
 struct Block128 {
     pub l64: u64,
@@ -261,10 +252,10 @@ impl Block128 {
         };
     }
 
-    pub fn from_two_u64s(left: u64, right: u64) -> Self {
+    pub fn from_two_u64s(l64: u64, r64: u64) -> Self {
         return Self{
-            l64: left,
-            r64: right
+            l64: l64,
+            r64: r64
         };
     }
 
@@ -294,28 +285,22 @@ impl Block128 {
     }
 
     pub fn try_into_be_bytes(&self, b: &mut [u8]) {
-        buf[ 0] = (self.l64 >> 56) as u8;
-        buf[ 1] = (self.l64 >> 48) as u8;
-        buf[ 2] = (self.l64 >> 40) as u8;
-        buf[ 3] = (self.l64 >> 32) as u8;
-        buf[ 4] = (self.l64 >> 24) as u8;
-        buf[ 5] = (self.l64 >> 16) as u8;
-        buf[ 6] = (self.l64 >>  8) as u8;
-        buf[ 7] =  self.l64        as u8;
-        buf[ 8] = (self.r64 >> 56) as u8;
-        buf[ 9] = (self.r64 >> 48) as u8;
-        buf[10] = (self.r64 >> 40) as u8;
-        buf[11] = (self.r64 >> 32) as u8;
-        buf[12] = (self.r64 >> 24) as u8;
-        buf[13] = (self.r64 >> 16) as u8;
-        buf[14] = (self.r64 >>  8) as u8;
-        buf[15] =  self.r64        as u8;
-    }
-
-    pub fn to_be_bytes(&self) -> [u8; 16] {
-        let mut bytes: [u8; 16] = [0; 16];
-        self.copy_to_buf_as_be(&mut bytes);
-        return bytes;
+        b[ 0] = (self.l64 >> 56) as u8;
+        b[ 1] = (self.l64 >> 48) as u8;
+        b[ 2] = (self.l64 >> 40) as u8;
+        b[ 3] = (self.l64 >> 32) as u8;
+        b[ 4] = (self.l64 >> 24) as u8;
+        b[ 5] = (self.l64 >> 16) as u8;
+        b[ 6] = (self.l64 >>  8) as u8;
+        b[ 7] =  self.l64        as u8;
+        b[ 8] = (self.r64 >> 56) as u8;
+        b[ 9] = (self.r64 >> 48) as u8;
+        b[10] = (self.r64 >> 40) as u8;
+        b[11] = (self.r64 >> 32) as u8;
+        b[12] = (self.r64 >> 24) as u8;
+        b[13] = (self.r64 >> 16) as u8;
+        b[14] = (self.r64 >>  8) as u8;
+        b[15] =  self.r64        as u8;
     }
 
 }

@@ -2,10 +2,11 @@ mod crypto;
 
 use std::env;
 use crate::crypto::CryptoError;
-use crate::crypto::cipher::BlockCipher128;
-use crate::crypto::cipher::BlockCipher128Mode;
-use crate::crypto::hash::Hash;
-use crate::crypto::dh::Dh;
+use crate::crypto::CryptoErrorCode;
+use crate::crypto::blockcipher::BlockCipher128Mode;
+use crate::crypto::BlockCipher;
+use crate::crypto::Hash;
+use crate::crypto::Dh;
 use crate::crypto::aes::Aes;
 use crate::crypto::aes::AesAlgorithm;
 use crate::crypto::sha2::Sha224;
@@ -18,8 +19,7 @@ use crate::crypto::sha3::Sha3224;
 use crate::crypto::sha3::Sha3256;
 use crate::crypto::sha3::Sha3384;
 use crate::crypto::sha3::Sha3512;
-use crate::crypto::curve25519::Ed25519;
-use crate::crypto::curve25519::X25519;
+use crate::crypto::x25519::X25519;
 
 fn main() {
 
@@ -62,7 +62,7 @@ fn main() {
                     "sha3-384"    => (Sha3384::digest_oneshot, 48),
                     "sha3-512"    => (Sha3512::digest_oneshot, 64),
                     _             => (|b: &[u8], d: &mut [u8]| -> Option<CryptoError> {
-                        return Some(CryptoError::new("!Err: the algorithm is not supported."));
+                        return Some(CryptoError::new(CryptoErrorCode::UnsupportedAlgorithm));
                     }, 0)
                 };
 
@@ -101,8 +101,9 @@ fn main() {
         "test" => {
             test_aes();
             test_sha2();
+            test_sha3();
             test_x25519();
-            test_ed25519();
+            // test_ed25519();
             return;
         }
         _ => return
@@ -111,27 +112,28 @@ fn main() {
 }
 
 fn test_aes() {
-    // let k = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c];
-    // let p = [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34];
-    // let c = [0x39, 0x25, 0x84, 0x1d, 0x02, 0xdc, 0x09, 0xfb, 0xdc, 0x11, 0x85, 0x97, 0x19, 0x6a, 0x0b, 0x32];
+    let k = [0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf, 0x4f, 0x3c];
+    let p = [0x32, 0x43, 0xf6, 0xa8, 0x88, 0x5a, 0x30, 0x8d, 0x31, 0x31, 0x98, 0xa2, 0xe0, 0x37, 0x07, 0x34];
+    let c = [0x39, 0x25, 0x84, 0x1d, 0x02, 0xdc, 0x09, 0xfb, 0xdc, 0x11, 0x85, 0x97, 0x19, 0x6a, 0x0b, 0x32];
     // let k = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f];
     // let p = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff];
     // let c = [0x69, 0xc4, 0xe0, 0xd8, 0x6a, 0x7b, 0x04, 0x30, 0xd8, 0xcd, 0xb7, 0x80, 0x70, 0xb4, 0xc5, 0x5a];
-    let k = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-             0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f];
-    let p = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff];
-    let c = [0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89];
+    // let k = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    //          0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f];
+    // let p = [0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff];
+    // let c = [0x8e, 0xa2, 0xb7, 0xca, 0x51, 0x67, 0x45, 0xbf, 0xea, 0xfc, 0x49, 0x90, 0x4b, 0x49, 0x60, 0x89];
     let mut out = [0; 16];
     let mut tag = [0; 16];
-    let aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    printlnbytes(&aes.w[..]);
     aes.encrypt(&p[..], &mut out[..]);
     printlnbytes(&out[..]);
     aes.decrypt(&c[..], &mut out[..]);
     printlnbytes(&out[..]);
-    BlockCipher128Mode::ecb_encrypt(&aes, &p[..], &mut out[..]);
-    printlnbytes(&out[..]);
-    BlockCipher128Mode::ecb_decrypt(&aes, &c[..], &mut out[..]);
-    printlnbytes(&out[..]);
+    // BlockCipher128Mode::ecb_encrypt(&aes, &p[..], &mut out[..]);
+    // printlnbytes(&out[..]);
+    // BlockCipher128Mode::ecb_decrypt(&aes, &c[..], &mut out[..]);
+    // printlnbytes(&out[..]);
 
     // BlockCipher128Mode::gcm_encrypt_generate(&aes, &p[..], &mut out[..]);
     // printlnbytes(&out[..]);
@@ -186,6 +188,42 @@ fn test_sha2() {
     sha2.update(&bytes[..]);
     sha2.digest(&mut out[..32]);
     printlnbytes(&out[..32]);
+
+}
+
+fn test_sha3() {
+
+    let bytes: [u8; 0] = [0; 0];
+    let mut out: [u8; 64] = [0; 64];
+
+    Sha3224::digest_oneshot(&bytes[..], &mut out[..28]);
+    printlnbytes(&out[..28]);
+    Sha3256::digest_oneshot(&bytes[..], &mut out[..32]);
+    printlnbytes(&out[..32]);
+    Sha3384::digest_oneshot(&bytes[..], &mut out[..48]);
+    printlnbytes(&out[..48]);
+    Sha3512::digest_oneshot(&bytes[..], &mut out[..64]);
+    printlnbytes(&out[..64]);
+
+    let mut sha3 = Sha3224::new();
+    sha3.update(&bytes[..]);
+    sha3.digest(&mut out[..28]);
+    printlnbytes(&out[..28]);
+
+    let mut sha3 = Sha3256::new();
+    sha3.update(&bytes[..]);
+    sha3.digest(&mut out[..32]);
+    printlnbytes(&out[..32]);
+
+    let mut sha3 = Sha3384::new();
+    sha3.update(&bytes[..]);
+    sha3.digest(&mut out[..48]);
+    printlnbytes(&out[..48]);
+
+    let mut sha3 = Sha3512::new();
+    sha3.update(&bytes[..]);
+    sha3.digest(&mut out[..64]);
+    printlnbytes(&out[..64]);
 
 }
 

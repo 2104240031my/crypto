@@ -1,5 +1,6 @@
 use crate::crypto::CryptoError;
-use crate::crypto::blockcipher::BlockCipher128;
+use crate::crypto::CryptoErrorCode;
+use crate::crypto::BlockCipher;
 
 pub enum AesAlgorithm {
     Aes128,
@@ -8,9 +9,105 @@ pub enum AesAlgorithm {
 }
 
 pub struct Aes {
-    w: [u8; 240],  // expanded key for Cipher
+    pub w: [u8; 240],  // expanded key for Cipher
     dw: [u8; 240], // expanded key for EqInvCipher
-    n: usize       // Nr (and Nk can also be derived from this value)
+    nk: usize      // Nk (and Nr can also be derived from this value)
+}
+
+pub const AES_128_KEY_LEN: usize = 16;
+pub const AES_192_KEY_LEN: usize = 24;
+pub const AES_256_KEY_LEN: usize = 32;
+
+pub const AES_BLOCK_SIZE: usize  = 16;
+
+impl BlockCipher for Aes {
+
+    fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
+        unsafe {
+            aes_cipher(
+                self.w.as_ptr() as *const u8,
+                block_in.as_ptr() as *const u8,
+                block_out.as_ptr() as *mut u8,
+                self.nk
+            );
+        }
+    }
+
+    fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
+        unsafe {
+            aes_eq_inv_cipher(
+                self.dw.as_ptr() as *const u8,
+                block_in.as_ptr() as *const u8,
+                block_out.as_ptr() as *mut u8,
+                self.nk
+            );
+        }
+    }
+
+    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError> {
+
+        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        self.encrypt_unchecked(block_in, block_out);
+        return None;
+
+    }
+
+    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError> {
+
+        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        self.decrypt_unchecked(block_in, block_out);
+        return None;
+
+    }
+
+}
+
+impl Aes {
+
+    pub fn new(algo: AesAlgorithm, key: &[u8]) -> Result<Self, CryptoError> {
+
+        let nk: usize = match algo {
+            AesAlgorithm::Aes128 => AES_128_NK,
+            AesAlgorithm::Aes192 => AES_192_NK,
+            AesAlgorithm::Aes256 => AES_256_NK
+        };
+
+        if key.len() < (nk << 2) {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let aes: Aes = Aes{
+            w:  [0x00; 240],
+            dw: [0x00; 240],
+            nk: nk
+        };
+
+        unsafe {
+
+            aes_key_expansion(
+                key.as_ptr() as *const u8,
+                aes.w.as_ptr() as *mut u8,
+                aes.nk
+            );
+
+            aes_expanded_key_inversion(
+                aes.w.as_ptr() as *const u8,
+                aes.dw.as_ptr() as *mut u8,
+                aes.nk
+            );
+
+        }
+
+        return Ok(aes);
+
+    }
+
 }
 
 static S_BOX: [u8; 256] = [
@@ -591,82 +688,75 @@ static RCON: [u8; 15] = [
     0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d
 ];
 
-const AES_128_KEY_LEN: usize = 16;
-const AES_192_KEY_LEN: usize = 24;
-const AES_256_KEY_LEN: usize = 32;
+const AES_128_NK: usize = 4;
+const AES_192_NK: usize = 6;
+const AES_256_NK: usize = 8;
 
-const AES_BLOCK_SIZE: usize  = 16;
+const AES_128_NB: usize = 4;
+const AES_192_NB: usize = 4;
+const AES_256_NB: usize = 4;
 
-const AES_128_NK: usize      = 4;
-const AES_192_NK: usize      = 6;
-const AES_256_NK: usize      = 8;
-
-const AES_128_NB: usize      = 4;
-const AES_192_NB: usize      = 4;
-const AES_256_NB: usize      = 4;
-
-const AES_128_NR: usize      = 10;
-const AES_192_NR: usize      = 12;
-const AES_256_NR: usize      = 14;
+const AES_128_NR: usize = 10;
+const AES_192_NR: usize = 12;
+const AES_256_NR: usize = 14;
 
 fn double_on_gf(a: u64) -> u64 {
     let b: u64 = a & 0x8080808080808080;
     return ((a & 0x7f7f7f7f7f7f7f7f) << 1) ^ (b >> 3) ^ (b >> 4) ^ (b >> 6) ^ (b >> 7);
 }
 
-unsafe fn aes_key_expansion(key: *const u8, expanded_key: *mut u8, n: usize) {
+unsafe fn aes_key_expansion(key: *const u8, expanded_key: *mut u8, nk: usize) {
 
-    let nk: usize = n - 6;
-
-    for i in 0..nk {
-        *(expanded_key as *mut u32).add(i) = *(key as *const u32).add(i);
+    for i in 0..(nk << 4) {
+        *expanded_key.add(i) = *key.add(i);
     }
 
-    for i in nk..((n + 1) << 2) {
+    for i in nk..((nk + 6) << 2) {
 
-        let wt: u32 = *(expanded_key as *mut u32).add(i - 1);
-        let wt_u8: *mut u8 = (&wt as *const u32) as *mut u8;
+        let t32: u32    = *(expanded_key as *mut u32).add(i - 1);
+        let t8: *mut u8 = (&t32 as *const u32) as *mut u8;
 
         if i % nk == 0 {
 
-            // RotWord o SubWord
-            let temp: u8  = *wt_u8.add(0);
-            *wt_u8.add(0) = S_BOX[*wt_u8.add(1) as usize];
-            *wt_u8.add(1) = S_BOX[*wt_u8.add(2) as usize];
-            *wt_u8.add(2) = S_BOX[*wt_u8.add(3) as usize];
-            *wt_u8.add(3) = S_BOX[temp      as usize];
-
-            *wt_u8.add(0) = *wt_u8.add(0) ^ RCON[i / nk];
+            // RotWord and SubWord
+            let b8: u8 = *t8.add(0);
+            *t8.add(0) = S_BOX[*t8.add(1) as usize];
+            *t8.add(1) = S_BOX[*t8.add(2) as usize];
+            *t8.add(2) = S_BOX[*t8.add(3) as usize];
+            *t8.add(3) = S_BOX[b8         as usize];
+            *t8.add(0) = *t8.add(0) ^ RCON[i / nk];
 
         } else if nk > 6 && i % nk == 4 {
 
             // SubWord
-            *wt_u8.add(0) = S_BOX[*wt_u8.add(0) as usize];
-            *wt_u8.add(1) = S_BOX[*wt_u8.add(1) as usize];
-            *wt_u8.add(2) = S_BOX[*wt_u8.add(2) as usize];
-            *wt_u8.add(3) = S_BOX[*wt_u8.add(3) as usize];
+            *t8.add(0) = S_BOX[*t8.add(0) as usize];
+            *t8.add(1) = S_BOX[*t8.add(1) as usize];
+            *t8.add(2) = S_BOX[*t8.add(2) as usize];
+            *t8.add(3) = S_BOX[*t8.add(3) as usize];
 
         }
 
-        *(expanded_key as *mut u32).add(i) = *(expanded_key as *mut u32).add(i - nk) ^ wt;
+        *(expanded_key as *mut u32).add(i) = *(expanded_key as *mut u32).add(i - nk) ^ t32;
 
     }
 
 }
 
 unsafe fn aes_expanded_key_inversion(expanded_key: *const u8, inv_expanded_key: *mut u8,
-    n: usize) {
+    nk: usize) {
+
+    let n: usize = (nk + 6) << 1;
 
     *(inv_expanded_key as *mut u64).add(0) = *(expanded_key as *const u64).add(0);
     *(inv_expanded_key as *mut u64).add(1) = *(expanded_key as *const u64).add(1);
 
-    for i in 1..n {
+    for i in 2..n {
 
         // InvMixColumns
 
-        let rk: usize = i << 4;
+        let rk: usize = i << 3;
 
-        let x1: u64 = *(expanded_key as *const u64).add(i << 1);
+        let x1: u64 = *(expanded_key as *const u64).add(i);
         let x2: u64 = double_on_gf(x1);
         let x4: u64 = double_on_gf(x2);
         let x8: u64 = double_on_gf(x4);
@@ -716,325 +806,150 @@ unsafe fn aes_expanded_key_inversion(expanded_key: *const u8, inv_expanded_key: 
             *((&x9 as *const u64) as *const u8).add(6) ^
             *((&xe as *const u64) as *const u8).add(7);
 
-        let x1: u64 = *(expanded_key as *const u64).add((i << 1) + 1);
-        let x2: u64 = double_on_gf(x1);
-        let x4: u64 = double_on_gf(x2);
-        let x8: u64 = double_on_gf(x4);
-        let x9: u64 = x8 ^ x1;
-        let xb: u64 = x8 ^ x2 ^ x1;
-        let xd: u64 = x8 ^ x4 ^ x1;
-        let xe: u64 = x8 ^ x4 ^ x2;
-
-        *inv_expanded_key.add(rk + 8) =
-            *((&xe as *const u64) as *const u8).add(0) ^
-            *((&xb as *const u64) as *const u8).add(1) ^
-            *((&xd as *const u64) as *const u8).add(2) ^
-            *((&x9 as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 9) =
-            *((&x9 as *const u64) as *const u8).add(0) ^
-            *((&xe as *const u64) as *const u8).add(1) ^
-            *((&xb as *const u64) as *const u8).add(2) ^
-            *((&xd as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 10) =
-            *((&xd as *const u64) as *const u8).add(0) ^
-            *((&x9 as *const u64) as *const u8).add(1) ^
-            *((&xe as *const u64) as *const u8).add(2) ^
-            *((&xb as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 11) =
-            *((&xb as *const u64) as *const u8).add(0) ^
-            *((&xd as *const u64) as *const u8).add(1) ^
-            *((&x9 as *const u64) as *const u8).add(2) ^
-            *((&xe as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 12) =
-            *((&xe as *const u64) as *const u8).add(4) ^
-            *((&xb as *const u64) as *const u8).add(5) ^
-            *((&xd as *const u64) as *const u8).add(6) ^
-            *((&x9 as *const u64) as *const u8).add(7);
-        *inv_expanded_key.add(rk + 13) =
-            *((&x9 as *const u64) as *const u8).add(4) ^
-            *((&xe as *const u64) as *const u8).add(5) ^
-            *((&xb as *const u64) as *const u8).add(6) ^
-            *((&xd as *const u64) as *const u8).add(7);
-        *inv_expanded_key.add(rk + 14) =
-            *((&xd as *const u64) as *const u8).add(4) ^
-            *((&x9 as *const u64) as *const u8).add(5) ^
-            *((&xe as *const u64) as *const u8).add(6) ^
-            *((&xb as *const u64) as *const u8).add(7);
-        *inv_expanded_key.add(rk + 15) =
-            *((&xb as *const u64) as *const u8).add(4) ^
-            *((&xd as *const u64) as *const u8).add(5) ^
-            *((&x9 as *const u64) as *const u8).add(6) ^
-            *((&xe as *const u64) as *const u8).add(7);
-
     }
 
-    let rk: usize = n << 1;
-    *(inv_expanded_key as *mut u64).add(rk + 0) = *(expanded_key as *const u64).add(rk + 0);
-    *(inv_expanded_key as *mut u64).add(rk + 1) = *(expanded_key as *const u64).add(rk + 1);
+    *(inv_expanded_key as *mut u64).add(n + 0) = *(expanded_key as *const u64).add(n + 0);
+    *(inv_expanded_key as *mut u64).add(n + 1) = *(expanded_key as *const u64).add(n + 1);
 
 }
 
-unsafe fn aes_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *mut u8, n: usize) {
+unsafe fn aes_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *mut u8, nk: usize) {
 
-    let sp1: *const u32     = SP_BOX_1.as_ptr() as *const u32;
-    let sp2: *const u32     = SP_BOX_2.as_ptr() as *const u32;
-    let sp3: *const u32     = SP_BOX_3.as_ptr() as *const u32;
-    let sp4: *const u32     = SP_BOX_4.as_ptr() as *const u32;
+    let sp1: *const u32 = SP_BOX_1.as_ptr() as *const u32;
+    let sp2: *const u32 = SP_BOX_2.as_ptr() as *const u32;
+    let sp3: *const u32 = SP_BOX_3.as_ptr() as *const u32;
+    let sp4: *const u32 = SP_BOX_4.as_ptr() as *const u32;
 
-    let mut state: [u8; 16] = [0; 16];
-    let st32: *mut u32      = state.as_ptr() as *mut u32;
+    // Nr
+    let nr: usize = nk + 6;
+
+    // state
+    let mut s: [u8; 16] = [0; 16];
+    let s32: *mut u32   = s.as_ptr() as *mut u32;
 
     // AddRoundKey
-    *st32.add(0) = *(block_in as *const u32).add(0) ^ *(expanded_key as *const u32).add(0);
-    *st32.add(1) = *(block_in as *const u32).add(1) ^ *(expanded_key as *const u32).add(1);
-    *st32.add(2) = *(block_in as *const u32).add(2) ^ *(expanded_key as *const u32).add(2);
-    *st32.add(3) = *(block_in as *const u32).add(3) ^ *(expanded_key as *const u32).add(3);
+    for i in 0..16 {
+        s[i] = *block_in.add(i) ^ *expanded_key.add(i);
+    }
 
-    for i in 1..n {
+    for i in 1..nr {
 
-        // SubBytes o ShiftRows o MixColumns
+        // SubBytes and ShiftRows and MixColumns
         let w0: u32 =
-            *sp1.add(state[ 0] as usize) ^ *sp2.add(state[ 5] as usize) ^
-            *sp3.add(state[10] as usize) ^ *sp4.add(state[15] as usize);
+            *sp1.add(s[ 0] as usize) ^ *sp2.add(s[ 5] as usize) ^
+            *sp3.add(s[10] as usize) ^ *sp4.add(s[15] as usize);
         let w1: u32 =
-            *sp1.add(state[ 4] as usize) ^ *sp2.add(state[ 9] as usize) ^
-            *sp3.add(state[14] as usize) ^ *sp4.add(state[ 3] as usize);
+            *sp1.add(s[ 4] as usize) ^ *sp2.add(s[ 9] as usize) ^
+            *sp3.add(s[14] as usize) ^ *sp4.add(s[ 3] as usize);
         let w2: u32 =
-            *sp1.add(state[ 8] as usize) ^ *sp2.add(state[13] as usize) ^
-            *sp3.add(state[ 2] as usize) ^ *sp4.add(state[ 7] as usize);
+            *sp1.add(s[ 8] as usize) ^ *sp2.add(s[13] as usize) ^
+            *sp3.add(s[ 2] as usize) ^ *sp4.add(s[ 7] as usize);
         let w3: u32 =
-            *sp1.add(state[12] as usize) ^ *sp2.add(state[ 1] as usize) ^
-            *sp3.add(state[ 6] as usize) ^ *sp4.add(state[11] as usize);
+            *sp1.add(s[12] as usize) ^ *sp2.add(s[ 1] as usize) ^
+            *sp3.add(s[ 6] as usize) ^ *sp4.add(s[11] as usize);
 
         // AddRoundKey
         let rk: usize = i << 2;
-        *st32.add(0) = w0 ^ *(expanded_key as *const u32).add(rk + 0);
-        *st32.add(1) = w1 ^ *(expanded_key as *const u32).add(rk + 1);
-        *st32.add(2) = w2 ^ *(expanded_key as *const u32).add(rk + 2);
-        *st32.add(3) = w3 ^ *(expanded_key as *const u32).add(rk + 3);
+        *s32.add(0) = w0 ^ *(expanded_key as *const u32).add(rk + 0);
+        *s32.add(1) = w1 ^ *(expanded_key as *const u32).add(rk + 1);
+        *s32.add(2) = w2 ^ *(expanded_key as *const u32).add(rk + 2);
+        *s32.add(3) = w3 ^ *(expanded_key as *const u32).add(rk + 3);
 
     }
 
-    // SubBytes o ShiftRows
-    state[0]  = S_BOX[state[0]  as usize];
-    state[1]  = S_BOX[state[1]  as usize];
-    state[2]  = S_BOX[state[2]  as usize];
-    state[3]  = S_BOX[state[3]  as usize];
-    state[4]  = S_BOX[state[4]  as usize];
-    state[5]  = S_BOX[state[5]  as usize];
-    state[6]  = S_BOX[state[6]  as usize];
-    state[7]  = S_BOX[state[7]  as usize];
-    state[8]  = S_BOX[state[8]  as usize];
-    state[9]  = S_BOX[state[9]  as usize];
-    state[10] = S_BOX[state[10] as usize];
-    state[11] = S_BOX[state[11] as usize];
-    state[12] = S_BOX[state[12] as usize];
-    state[13] = S_BOX[state[13] as usize];
-    state[14] = S_BOX[state[14] as usize];
-    state[15] = S_BOX[state[15] as usize];
-    let temp  = state[1];
-    state[1]  = state[5];
-    state[5]  = state[9];
-    state[9]  = state[13];
-    state[13] = temp;
-    let temp  = state[2];
-    state[2]  = state[10];
-    state[10] = temp;
-    let temp  = state[6];
-    state[6]  = state[14];
-    state[14] = temp;
-    let temp  = state[15];
-    state[15] = state[11];
-    state[11] = state[7];
-    state[7]  = state[3];
-    state[3]  = temp;
+    // ShiftRows
+    let t = s[1];
+    s[1]  = s[5];
+    s[5]  = s[9];
+    s[9]  = s[13];
+    s[13] = t;
+    let t = s[2];
+    s[2]  = s[10];
+    s[10] = t;
+    let t = s[6];
+    s[6]  = s[14];
+    s[14] = t;
+    let t = s[15];
+    s[15] = s[11];
+    s[11] = s[7];
+    s[7]  = s[3];
+    s[3]  = t;
 
-    // AddRoundKey
-    let rk: usize = n << 2;
-    *(block_out as *mut u32).add(0) = *st32.add(0) ^ *(expanded_key as *const u32).add(rk + 0);
-    *(block_out as *mut u32).add(1) = *st32.add(1) ^ *(expanded_key as *const u32).add(rk + 1);
-    *(block_out as *mut u32).add(2) = *st32.add(2) ^ *(expanded_key as *const u32).add(rk + 2);
-    *(block_out as *mut u32).add(3) = *st32.add(3) ^ *(expanded_key as *const u32).add(rk + 3);
+    // SubBytes then AddRoundKey
+    let rk: usize = nr << 4;
+    for i in 0..16 {
+        *block_out.add(i) = S_BOX[s[i] as usize] ^ *expanded_key.add(rk + i);
+    }
 
 }
 
 unsafe fn aes_eq_inv_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *mut u8,
-    n: usize) {
+    nk: usize) {
 
-    let sp1: *const u32     = INV_SP_BOX_1.as_ptr() as *const u32;
-    let sp2: *const u32     = INV_SP_BOX_2.as_ptr() as *const u32;
-    let sp3: *const u32     = INV_SP_BOX_3.as_ptr() as *const u32;
-    let sp4: *const u32     = INV_SP_BOX_4.as_ptr() as *const u32;
+    let sp1: *const u32 = INV_SP_BOX_1.as_ptr() as *const u32;
+    let sp2: *const u32 = INV_SP_BOX_2.as_ptr() as *const u32;
+    let sp3: *const u32 = INV_SP_BOX_3.as_ptr() as *const u32;
+    let sp4: *const u32 = INV_SP_BOX_4.as_ptr() as *const u32;
 
-    let mut state: [u8; 16] = [0; 16];
-    let st32: *mut u32      = state.as_ptr() as *mut u32;
+    // Nr
+    let nr: usize = nk + 6;
+
+    // state
+    let mut s: [u8; 16] = [0; 16];
+    let s32: *mut u32   = s.as_ptr() as *mut u32;
 
     // AddRoundKey
-    let rk: usize = n << 2;
-    *st32.add(0) = *(block_in as *const u32).add(0) ^ *(expanded_key as *const u32).add(rk + 0);
-    *st32.add(1) = *(block_in as *const u32).add(1) ^ *(expanded_key as *const u32).add(rk + 1);
-    *st32.add(2) = *(block_in as *const u32).add(2) ^ *(expanded_key as *const u32).add(rk + 2);
-    *st32.add(3) = *(block_in as *const u32).add(3) ^ *(expanded_key as *const u32).add(rk + 3);
+    let rk: usize = nr << 4;
+    for i in 0..16 {
+        s[i] = *block_in.add(i) ^ *expanded_key.add(rk + i);
+    }
 
-    for i in (1..n).rev() {
+    for i in (1..nr).rev() {
 
-        // InvShiftRows o InvSubBytes o InvMixColumns
+        // InvShiftRows and InvSubBytes and InvMixColumns
         let w0: u32 =
-            *sp1.add(state[ 0] as usize) ^ *sp2.add(state[13] as usize) ^
-            *sp3.add(state[10] as usize) ^ *sp4.add(state[ 7] as usize);
+            *sp1.add(s[ 0] as usize) ^ *sp2.add(s[13] as usize) ^
+            *sp3.add(s[10] as usize) ^ *sp4.add(s[ 7] as usize);
         let w1: u32 =
-            *sp1.add(state[ 4] as usize) ^ *sp2.add(state[ 1] as usize) ^
-            *sp3.add(state[14] as usize) ^ *sp4.add(state[11] as usize);
+            *sp1.add(s[ 4] as usize) ^ *sp2.add(s[ 1] as usize) ^
+            *sp3.add(s[14] as usize) ^ *sp4.add(s[11] as usize);
         let w2: u32 =
-            *sp1.add(state[ 8] as usize) ^ *sp2.add(state[ 5] as usize) ^
-            *sp3.add(state[ 2] as usize) ^ *sp4.add(state[15] as usize);
+            *sp1.add(s[ 8] as usize) ^ *sp2.add(s[ 5] as usize) ^
+            *sp3.add(s[ 2] as usize) ^ *sp4.add(s[15] as usize);
         let w3: u32 =
-            *sp1.add(state[12] as usize) ^ *sp2.add(state[ 9] as usize) ^
-            *sp3.add(state[ 6] as usize) ^ *sp4.add(state[ 3] as usize);
+            *sp1.add(s[12] as usize) ^ *sp2.add(s[ 9] as usize) ^
+            *sp3.add(s[ 6] as usize) ^ *sp4.add(s[ 3] as usize);
 
         // AddRoundKey
         let rk: usize = i << 2;
-        *st32.add(0) = w0 ^ *(expanded_key as *const u32).add(rk + 0);
-        *st32.add(1) = w1 ^ *(expanded_key as *const u32).add(rk + 1);
-        *st32.add(2) = w2 ^ *(expanded_key as *const u32).add(rk + 2);
-        *st32.add(3) = w3 ^ *(expanded_key as *const u32).add(rk + 3);
+        *s32.add(0) = w0 ^ *(expanded_key as *const u32).add(rk + 0);
+        *s32.add(1) = w1 ^ *(expanded_key as *const u32).add(rk + 1);
+        *s32.add(2) = w2 ^ *(expanded_key as *const u32).add(rk + 2);
+        *s32.add(3) = w3 ^ *(expanded_key as *const u32).add(rk + 3);
 
     }
 
-    // InvShiftRows o InvSubBytes
-    let temp  = state[1];
-    state[1]  = state[13];
-    state[13] = state[9];
-    state[9]  = state[5];
-    state[5]  = temp;
-    let temp  = state[2];
-    state[2]  = state[10];
-    state[10] = temp;
-    let temp  = state[6];
-    state[6]  = state[14];
-    state[14] = temp;
-    let temp  = state[3];
-    state[3]  = state[7];
-    state[7]  = state[11];
-    state[11] = state[15];
-    state[15] = temp;
-    state[0]  = INV_S_BOX[state[0]  as usize];
-    state[1]  = INV_S_BOX[state[1]  as usize];
-    state[2]  = INV_S_BOX[state[2]  as usize];
-    state[3]  = INV_S_BOX[state[3]  as usize];
-    state[4]  = INV_S_BOX[state[4]  as usize];
-    state[5]  = INV_S_BOX[state[5]  as usize];
-    state[6]  = INV_S_BOX[state[6]  as usize];
-    state[7]  = INV_S_BOX[state[7]  as usize];
-    state[8]  = INV_S_BOX[state[8]  as usize];
-    state[9]  = INV_S_BOX[state[9]  as usize];
-    state[10] = INV_S_BOX[state[10] as usize];
-    state[11] = INV_S_BOX[state[11] as usize];
-    state[12] = INV_S_BOX[state[12] as usize];
-    state[13] = INV_S_BOX[state[13] as usize];
-    state[14] = INV_S_BOX[state[14] as usize];
-    state[15] = INV_S_BOX[state[15] as usize];
+    // InvShiftRows
+    let t = s[1];
+    s[1]  = s[13];
+    s[13] = s[9];
+    s[9]  = s[5];
+    s[5]  = t;
+    let t = s[2];
+    s[2]  = s[10];
+    s[10] = t;
+    let t = s[6];
+    s[6]  = s[14];
+    s[14] = t;
+    let t = s[3];
+    s[3]  = s[7];
+    s[7]  = s[11];
+    s[11] = s[15];
+    s[15] = t;
 
-    // AddRoundKey
-    *(block_out as *mut u32).add(0) = *st32.add(0) ^ *(expanded_key as *const u32).add(0);
-    *(block_out as *mut u32).add(1) = *st32.add(1) ^ *(expanded_key as *const u32).add(1);
-    *(block_out as *mut u32).add(2) = *st32.add(2) ^ *(expanded_key as *const u32).add(2);
-    *(block_out as *mut u32).add(3) = *st32.add(3) ^ *(expanded_key as *const u32).add(3);
-
-}
-
-impl BlockCipher128 for Aes {
-
-    fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
-        unsafe {
-            aes_cipher(
-                self.w.as_ptr() as *const u8,
-                block_in.as_ptr() as *const u8,
-                block_out.as_ptr() as *mut u8,
-                self.n
-            );
-        }
-    }
-
-    fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
-        unsafe {
-            aes_eq_inv_cipher(
-                self.dw.as_ptr() as *const u8,
-                block_in.as_ptr() as *const u8,
-                block_out.as_ptr() as *mut u8,
-                self.n
-            );
-        }
-    }
-
-    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError> {
-
-        if block_in.len() < AES_BLOCK_SIZE {
-            return Some(CryptoError::new("the length of $block_in is too short"));
-        } else if block_out.len() < AES_BLOCK_SIZE {
-            return Some(CryptoError::new("the length of $block_out is too short"));
-        }
-
-        self.encrypt_unchecked(block_in, block_out);
-
-        return None;
-
-    }
-
-    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError> {
-
-        if block_in.len() < AES_BLOCK_SIZE {
-            return Some(CryptoError::new("the length of $block_in is too short"));
-        } else if block_out.len() < AES_BLOCK_SIZE {
-            return Some(CryptoError::new("the length of $block_out is too short"));
-        }
-
-        self.decrypt_unchecked(block_in, block_out);
-
-        return None;
-
-    }
-
-}
-
-impl Aes {
-
-    pub fn new(algo: AesAlgorithm, key: &[u8]) -> Result<Self, CryptoError> {
-
-        let n: usize = match algo {
-            AesAlgorithm::Aes128 => AES_128_NR,
-            AesAlgorithm::Aes192 => AES_192_NR,
-            AesAlgorithm::Aes256 => AES_256_NR
-        };
-
-        if key.len() < ((n - 6) << 2) {
-            return Err(CryptoError::new("key length is too short"));
-        }
-
-        let aes: Aes = Aes{
-            w:  [0x00; 240],
-            dw: [0x00; 240],
-            n:  n
-        };
-
-        unsafe {
-
-            aes_key_expansion(
-                key.as_ptr() as *const u8,
-                aes.w.as_ptr() as *mut u8,
-                aes.n
-            );
-
-            aes_expanded_key_inversion(
-                aes.w.as_ptr() as *const u8,
-                aes.dw.as_ptr() as *mut u8,
-                aes.n
-            );
-
-        }
-
-        return Ok(aes);
-
+    // InvSubBytes then AddRoundKey
+    for i in 0..16 {
+        *block_out.add(i) = INV_S_BOX[s[i] as usize] ^ *expanded_key.add(i);
     }
 
 }

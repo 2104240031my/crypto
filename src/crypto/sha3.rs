@@ -1,5 +1,6 @@
 use crate::crypto::CryptoError;
-use crate::crypto::hash::Hash;
+use crate::crypto::CryptoErrorCode;
+use crate::crypto::Hash;
 
 pub struct Sha3224 {
     s: Sha3State
@@ -15,6 +16,317 @@ pub struct Sha3384 {
 
 pub struct Sha3512 {
     s: Sha3State
+}
+
+pub const SHA3_224_MESSAGE_DIGEST_LEN: usize = 28;
+pub const SHA3_256_MESSAGE_DIGEST_LEN: usize = 32;
+pub const SHA3_384_MESSAGE_DIGEST_LEN: usize = 48;
+pub const SHA3_512_MESSAGE_DIGEST_LEN: usize = 64;
+
+impl Sha3224 {
+
+    pub fn new() -> Self {
+        return Self{ s:
+            Sha3State{
+                a: [0; 25],
+                buf: [0; 168],
+                buf_len: 0
+            }
+        };
+    }
+
+}
+
+impl Hash for Sha3224 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_224_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_digest_oneshot(&mut a, msg, SHA3_224_RATE);
+
+        for i in 0..4 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            if i >= 3 {
+                break;
+            }
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+        sha3_absorb(&mut self.s, msg, SHA3_224_RATE);
+        return None;
+    }
+
+    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_224_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_squeeze(&mut self.s, &mut a, SHA3_224_RATE);
+
+        for i in 0..4 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            if i >= 3 {
+                break;
+            }
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+}
+
+impl Sha3256 {
+
+    pub fn new() -> Self {
+        return Self{ s:
+            Sha3State{
+                a: [0; 25],
+                buf: [0; 168],
+                buf_len: 0
+            }
+        };
+    }
+
+}
+
+impl Hash for Sha3256 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_256_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_digest_oneshot(&mut a, msg, SHA3_256_RATE);
+
+        for i in 0..4 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+        sha3_absorb(&mut self.s, msg, SHA3_256_RATE);
+        return None;
+    }
+
+    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_256_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_squeeze(&mut self.s, &mut a, SHA3_256_RATE);
+
+        for i in 0..4 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+}
+
+impl Sha3384 {
+
+    pub fn new() -> Self {
+        return Self{ s:
+            Sha3State{
+                a: [0; 25],
+                buf: [0; 168],
+                buf_len: 0
+            }
+        };
+    }
+
+}
+
+impl Hash for Sha3384 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_384_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_digest_oneshot(&mut a, msg, SHA3_384_RATE);
+
+        for i in 0..6 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+        sha3_absorb(&mut self.s, msg, SHA3_384_RATE);
+        return None;
+    }
+
+    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_384_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_squeeze(&mut self.s, &mut a, SHA3_384_RATE);
+
+        for i in 0..6 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+}
+
+impl Sha3512 {
+
+    pub fn new() -> Self {
+        return Self{ s:
+            Sha3State{
+                a: [0; 25],
+                buf: [0; 168],
+                buf_len: 0
+            }
+        };
+    }
+
+}
+
+impl Hash for Sha3512 {
+
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_512_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_digest_oneshot(&mut a, msg, SHA3_512_RATE);
+
+        for i in 0..8 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+        sha3_absorb(&mut self.s, msg, SHA3_512_RATE);
+        return None;
+    }
+
+    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+
+        if md.len() < SHA3_512_MESSAGE_DIGEST_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: [u64; 25] = [0; 25];
+
+        sha3_squeeze(&mut self.s, &mut a, SHA3_512_RATE);
+
+        for i in 0..8 {
+            let b: usize = i << 3;
+            md[b + 0] = (a[i] >>  0) as u8;
+            md[b + 1] = (a[i] >>  8) as u8;
+            md[b + 2] = (a[i] >> 16) as u8;
+            md[b + 3] = (a[i] >> 24) as u8;
+            md[b + 4] = (a[i] >> 32) as u8;
+            md[b + 5] = (a[i] >> 40) as u8;
+            md[b + 6] = (a[i] >> 48) as u8;
+            md[b + 7] = (a[i] >> 56) as u8;
+        }
+
+        return None;
+
+    }
+
 }
 
 struct Sha3State {
@@ -39,10 +351,6 @@ const SHA3_512_RATE: usize = 72;
 
 fn rotl64(u: u64, r: usize) -> u64 {
     return (u << r) | (u >> ((64 - r) & 63));
-}
-
-fn sha3_reset(a: &mut [u64; 25]) {
-    *a = [0; 25];
 }
 
 fn sha3_block(a: &mut [u64; 25]) {
@@ -177,13 +485,14 @@ fn sha3_block(a: &mut [u64; 25]) {
 
 }
 
-fn sha3_digest_oneshot(msg: &[u8], md: &mut [u8], rate: usize) -> Option<CryptoError> {
+fn sha3_digest_oneshot(a: &mut [u64; 25], msg: &[u8], rate: usize) -> Option<CryptoError> {
 
-    let mut a: [u64; 25] = [0; 25];
-    let mut b: usize     = 0;
-    let mut i: usize     = 0;
-    let mut n: usize     = 0;
-    let r: usize = rate >> 3;
+    let mut b: usize = 0;
+    let r: usize     = rate >> 3;
+
+    for i in 0..25 {
+        a[i] = 0;
+    }
 
     while msg.len() - b >= rate {
 
@@ -201,12 +510,12 @@ fn sha3_digest_oneshot(msg: &[u8], md: &mut [u8], rate: usize) -> Option<CryptoE
             );
         }
 
-        sha3_block(&mut a);
+        sha3_block(a);
 
     }
 
-    i = 0;
-    n = 0;
+    let mut i: usize = 0;
+    let mut n: usize = 0;
 
     while b < msg.len() {
 
@@ -225,58 +534,88 @@ fn sha3_digest_oneshot(msg: &[u8], md: &mut [u8], rate: usize) -> Option<CryptoE
     a[i]     = a[i] ^ (0x06u64 << n);
     a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
 
-    sha3_block(&mut a);
+    sha3_block(a);
 
     return None;
 
 }
 
-fn sha3_absorb(state: &mut Sha3State, bytes: &[u8], rate: usize) {
+fn sha3_absorb(s: &mut Sha3State, msg: &[u8], rate: usize) {
 
-    /*
-    if bytes.len() < rate - state.buf_len {
-        state.buf[(state.buf_len)..(state.buf_len + bytes.len())].clone_from_slice(&bytes[..]);
-        state.buf_len = state.buf_len + bytes.len();
+    let mut w: [u32; 64] = [0; 64];
+    let mut b: usize     = if s.buf_len == 0 { 0 } else { rate - s.buf_len };
+    let mut n: usize     = msg.len();
+    let r: usize         = rate >> 3;
+
+    if n < rate - s.buf_len {
+        s.buf[(s.buf_len)..(s.buf_len + n)].clone_from_slice(&msg[..]);
+        s.buf_len = s.buf_len + n;
         return;
     }
 
-    let mut w: [u64; 80] = [0; 80];
-    let mut i: usize = if s.buf_len == 0 { 0 } else { rate - state.buf_len };
+    if b != 0 {
 
-    if i != 0 {
+        s.buf[(s.buf_len)..b].clone_from_slice(&msg[..b]);
 
-        state.buf[(state.buf_len)..i].clone_from_slice(&bytes[..i]);
+        for b in 0..r {
+            let i: usize = b << 3;
+            s.a[i] = s.a[i] ^ (
+                 (msg[b + 0] as u64)        |
+                ((msg[b + 1] as u64) <<  8) |
+                ((msg[b + 2] as u64) << 16) |
+                ((msg[b + 3] as u64) << 24) |
+                ((msg[b + 4] as u64) << 32) |
+                ((msg[b + 5] as u64) << 40) |
+                ((msg[b + 6] as u64) << 48) |
+                ((msg[b + 7] as u64) << 56)
+            );
+        }
 
-        // absorb
-
-        state.total_len = state.total_len + state.buf_len;
+        sha3_block(&mut s.a);
 
     }
 
-    for _ in (((bytes.len() - i) >> 7)..0).rev() {
+    while n - b >= rate {
 
-        // absorb
+        for i in 0..r {
+            s.a[i] = s.a[i] ^ (
+                 (msg[b + 0] as u64)        |
+                ((msg[b + 1] as u64) <<  8) |
+                ((msg[b + 2] as u64) << 16) |
+                ((msg[b + 3] as u64) << 24) |
+                ((msg[b + 4] as u64) << 32) |
+                ((msg[b + 5] as u64) << 40) |
+                ((msg[b + 6] as u64) << 48) |
+                ((msg[b + 7] as u64) << 56)
+            );
+        }
+
+        sha3_block(&mut s.a);
 
     }
 
-    if i < bytes.len() {
-        state.buf_len = bytes.len() - i;
-        state.buf[..(state.buf_len)].clone_from_slice(&bytes[i..(i + state.buf_len)]);
+    if b < n {
+        s.buf_len = n - b;
+        s.buf[..(s.buf_len)].clone_from_slice(&msg[b..(b + s.buf_len)]);
     } else {
-        state.buf_len = 0;
+        s.buf_len = 0;
     }
-    */
 
 }
 
-fn sha3_squeeze(state: &mut Sha2State64, out: &mut [u64]) {
+fn sha3_squeeze(s: &Sha3State, a: &mut [u64; 25], rate: usize) {
+
+    for i in 0..25 {
+        a[i] = 0;
+    }
 
     let mut i: usize = 0;
     let mut n: usize = 0;
+    let r: usize     = rate >> 3;
 
-    for b in 0..state.buf_len {
+    for b in 0..s.buf_len {
 
-        a[i] = a[i] ^ ((state.buf[b] as u64) << n);
+        a[i] = a[i] ^ ((s.buf[b] as u64) << n);
         n = n + 8;
 
         if n == 64 {
@@ -284,176 +623,11 @@ fn sha3_squeeze(state: &mut Sha2State64, out: &mut [u64]) {
             i = i + 1;
         }
 
-        b = b + 1;
-
     }
 
     a[i]     = a[i] ^ (0x06u64 << n);
     a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
 
-}
-
-impl Sha3224 {
-
-    pub fn new() -> Result<Self, CryptoError> {
-        return Ok(Self{ a: [0; 25]});
-    }
-
-}
-
-impl Hash for Sha3224 {
-
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
-
-        sha3_digest_oneshot(msg, md, SHA3_224_RATE);
-
-        let mut i: usize = 0;
-        loop {
-            let b: usize = i << 3;
-            md[b + 0] = (a[i] >>  0) as u8;
-            md[b + 1] = (a[i] >>  8) as u8;
-            md[b + 2] = (a[i] >> 16) as u8;
-            md[b + 3] = (a[i] >> 24) as u8;
-            if i >= 3 {
-                break;
-            }
-            md[b + 4] = (a[i] >> 32) as u8;
-            md[b + 5] = (a[i] >> 40) as u8;
-            md[b + 6] = (a[i] >> 48) as u8;
-            md[b + 7] = (a[i] >> 56) as u8;
-            i = i + 1;
-        }
-
-        return None;
-
-    }
-
-    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-}
-
-impl Sha3256 {
-
-    pub fn new() -> Result<Self, CryptoError> {
-        return Ok(Self{ a: [0; 25]});
-    }
-
-}
-
-impl Hash for Sha3256 {
-
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
-
-        sha3_digest_oneshot(msg, md, SHA3_256_RATE);
-
-        for i in 0..4 {
-            let b: usize = i << 3;
-            md[b + 0] = (a[i] >>  0) as u8;
-            md[b + 1] = (a[i] >>  8) as u8;
-            md[b + 2] = (a[i] >> 16) as u8;
-            md[b + 3] = (a[i] >> 24) as u8;
-            md[b + 4] = (a[i] >> 32) as u8;
-            md[b + 5] = (a[i] >> 40) as u8;
-            md[b + 6] = (a[i] >> 48) as u8;
-            md[b + 7] = (a[i] >> 56) as u8;
-        }
-
-        return None;
-
-    }
-
-    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-}
-
-impl Sha3384 {
-
-    pub fn new() -> Result<Self, CryptoError> {
-        return Ok(Self{ a: [0; 25]});
-    }
-
-}
-
-impl Hash for Sha3384 {
-
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
-
-        sha3_digest_oneshot(msg, md, SHA3_384_RATE);
-
-        for i in 0..6 {
-            let b: usize = i << 3;
-            md[b + 0] = (a[i] >>  0) as u8;
-            md[b + 1] = (a[i] >>  8) as u8;
-            md[b + 2] = (a[i] >> 16) as u8;
-            md[b + 3] = (a[i] >> 24) as u8;
-            md[b + 4] = (a[i] >> 32) as u8;
-            md[b + 5] = (a[i] >> 40) as u8;
-            md[b + 6] = (a[i] >> 48) as u8;
-            md[b + 7] = (a[i] >> 56) as u8;
-        }
-
-        return None;
-
-    }
-
-    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-}
-
-impl Sha3512 {
-
-    pub fn new() -> Result<Self, CryptoError> {
-        return Ok(Self{ a: [0; 25]});
-    }
-
-}
-
-impl Hash for Sha3512 {
-
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
-
-        sha3_digest_oneshot(msg, md, SHA3_512_RATE);
-
-        for i in 0..8 {
-            let b: usize = i << 3;
-            md[b + 0] = (a[i] >>  0) as u8;
-            md[b + 1] = (a[i] >>  8) as u8;
-            md[b + 2] = (a[i] >> 16) as u8;
-            md[b + 3] = (a[i] >> 24) as u8;
-            md[b + 4] = (a[i] >> 32) as u8;
-            md[b + 5] = (a[i] >> 40) as u8;
-            md[b + 6] = (a[i] >> 48) as u8;
-            md[b + 7] = (a[i] >> 56) as u8;
-        }
-
-        return None;
-
-    }
-
-    fn update(&mut self, bytes: &[u8]) -> Option<CryptoError> {
-        return None;
-    }
-
-    fn digest(&mut self, digest: &mut [u8]) -> Option<CryptoError> {
-        return None;
-    }
+    sha3_block(a);
 
 }

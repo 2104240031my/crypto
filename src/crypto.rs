@@ -22,12 +22,12 @@ pub trait Hash {
     fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError>;
 }
 
-pub trait Dh {
+pub trait DiffieHellman {
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError>;
     fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Option<CryptoError>;
 }
 
-pub trait Sign {
+pub trait DigitalSignature {
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError>;
     fn sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Option<CryptoError>;
     fn verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Option<CryptoError>;

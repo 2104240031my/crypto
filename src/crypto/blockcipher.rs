@@ -18,10 +18,7 @@ impl BlockCipher128Mode {
         }
 
         for i in (0..len).step_by(16) {
-            cipher.encrypt_unchecked(
-                &bytes_in[i..(i + 16)],
-                &mut bytes_out[i..(i + 16)]
-            );
+            cipher.encrypt_unchecked(&bytes_in[i..(i + 16)], &mut bytes_out[i..(i + 16)]);
         }
 
         return None;
@@ -41,10 +38,7 @@ impl BlockCipher128Mode {
         }
 
         for i in (0..len).step_by(16) {
-            cipher.decrypt_unchecked(
-                &bytes_in[i..(i + 16)],
-                &mut bytes_out[i..(i + 16)]
-            );
+            cipher.decrypt_unchecked(&bytes_in[i..(i + 16)], &mut bytes_out[i..(i + 16)]);
         }
 
         return None;
@@ -91,6 +85,7 @@ impl BlockCipher128Mode {
             out[i] = lhs[i] ^ rhs[i];
         }
     }
+
 /*
     fn gcm_encrypt_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], bytes_in: &[u8],
         bytes_out: &mut [u8], tag: &mut [u8]) -> Option<CryptoError> {

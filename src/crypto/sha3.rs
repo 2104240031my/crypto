@@ -488,7 +488,7 @@ fn sha3_block(a: &mut [u64; 25]) {
 fn sha3_digest_oneshot(a: &mut [u64; 25], msg: &[u8], rate: usize) -> Option<CryptoError> {
 
     let mut b: usize = 0;
-    let r: usize     = rate >> 3;
+    let r: usize = rate >> 3;
 
     for i in 0..25 {
         a[i] = 0;
@@ -542,10 +542,9 @@ fn sha3_digest_oneshot(a: &mut [u64; 25], msg: &[u8], rate: usize) -> Option<Cry
 
 fn sha3_absorb(s: &mut Sha3State, msg: &[u8], rate: usize) {
 
-    let mut w: [u32; 64] = [0; 64];
-    let mut b: usize     = if s.buf_len == 0 { 0 } else { rate - s.buf_len };
-    let mut n: usize     = msg.len();
-    let r: usize         = rate >> 3;
+    let b: usize = if s.buf_len == 0 { 0 } else { rate - s.buf_len };
+    let n: usize = msg.len();
+    let r: usize = rate >> 3;
 
     if n < rate - s.buf_len {
         s.buf[(s.buf_len)..(s.buf_len + n)].clone_from_slice(&msg[..]);
@@ -611,7 +610,7 @@ fn sha3_squeeze(s: &Sha3State, a: &mut [u64; 25], rate: usize) {
 
     let mut i: usize = 0;
     let mut n: usize = 0;
-    let r: usize     = rate >> 3;
+    let r: usize = rate >> 3;
 
     for b in 0..s.buf_len {
 

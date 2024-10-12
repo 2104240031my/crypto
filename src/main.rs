@@ -6,7 +6,8 @@ use crate::crypto::CryptoErrorCode;
 use crate::crypto::blockcipher::BlockCipher128Mode;
 use crate::crypto::BlockCipher;
 use crate::crypto::Hash;
-use crate::crypto::Dh;
+use crate::crypto::DiffieHellman;
+use crate::crypto::DigitalSignature;
 use crate::crypto::aes::Aes;
 use crate::crypto::aes::AesAlgorithm;
 use crate::crypto::sha2::Sha224;
@@ -286,11 +287,11 @@ fn test_x25519() {
     println!("  Result: ");
     print!("    Alice: "); printlnbytes(&out_alice_ss[..]);
     print!("    Bob  : "); printlnbytes(&out_bob_ss[..]);
-
 }
 
 fn test_ed25519() {
 
+    /*
     let privkey: [u8; 32] = [
         0x9d, 0x61, 0xb1, 0x9d, 0xef, 0xfd, 0x5a, 0x60, 0xba, 0x84, 0x4a, 0xf4, 0x92, 0xec, 0x2c, 0xc4,
         0x44, 0x49, 0xc5, 0x69, 0x7b, 0x32, 0x69, 0x19, 0x70, 0x3b, 0xac, 0x03, 0x1c, 0xae, 0x7f, 0x60
@@ -299,6 +300,7 @@ fn test_ed25519() {
     let mut sign: [u8; 32] = [0; 32];
 
     // Ed25519::sign(&privkey[..], &msg[..], &mut sign[..]);
+    */
 
 }
 

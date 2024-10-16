@@ -21,6 +21,7 @@ use crate::crypto::sha3::Sha3256;
 use crate::crypto::sha3::Sha3384;
 use crate::crypto::sha3::Sha3512;
 use crate::crypto::x25519::X25519;
+use crate::crypto::ed25519::Ed25519;
 
 fn main() {
 
@@ -76,6 +77,9 @@ fn main() {
                             printlnbytes(&out[..md_len]);
                         }
                     },
+                    "file" => {
+
+                    }
                     _ => {}
                 }
 
@@ -104,7 +108,7 @@ fn main() {
             test_sha2();
             test_sha3();
             test_x25519();
-            // test_ed25519();
+            test_ed25519();
             return;
         }
         _ => return
@@ -291,16 +295,26 @@ fn test_x25519() {
 
 fn test_ed25519() {
 
-    /*
-    let privkey: [u8; 32] = [
+    let priv_key: [u8; 32] = [
         0x9d, 0x61, 0xb1, 0x9d, 0xef, 0xfd, 0x5a, 0x60, 0xba, 0x84, 0x4a, 0xf4, 0x92, 0xec, 0x2c, 0xc4,
         0x44, 0x49, 0xc5, 0x69, 0x7b, 0x32, 0x69, 0x19, 0x70, 0x3b, 0xac, 0x03, 0x1c, 0xae, 0x7f, 0x60
     ];
-    let msg: [u8; 32] = [0; 32];
-    let mut sign: [u8; 32] = [0; 32];
+    let msg: [u8; 0] = [0; 0];
+    let mut sign: [u8; 64] = [0; 64];
+    let mut pub_key: [u8; 32] = [0; 32];
 
-    // Ed25519::sign(&privkey[..], &msg[..], &mut sign[..]);
-    */
+    Ed25519::compute_public_key(&priv_key, &mut pub_key[..]);
+    printlnbytes(&pub_key[..]);
+
+    Ed25519::sign(&priv_key[..], &msg[..], &mut sign[..]);
+    printlnbytes(&sign[..]);
+
+    let v: bool = Ed25519::verify(&pub_key[..], &msg[..], &sign[..]).unwrap();
+    if v {
+        println!("Ok!");
+    } else {
+        println!("ERR!");
+    }
 
 }
 

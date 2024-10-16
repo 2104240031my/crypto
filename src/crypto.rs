@@ -30,7 +30,7 @@ pub trait DiffieHellman {
 pub trait DigitalSignature {
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError>;
     fn sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Option<CryptoError>;
-    fn verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Option<CryptoError>;
+    fn verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
 }
 
 #[derive(Debug)]

@@ -57,6 +57,19 @@ impl Sha224 {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.s.h[0] = Sha224::H0_0;
+        self.s.h[1] = Sha224::H0_1;
+        self.s.h[2] = Sha224::H0_2;
+        self.s.h[3] = Sha224::H0_3;
+        self.s.h[4] = Sha224::H0_4;
+        self.s.h[5] = Sha224::H0_5;
+        self.s.h[6] = Sha224::H0_6;
+        self.s.h[7] = Sha224::H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+    }
+
 }
 
 impl Hash for Sha224 {
@@ -154,6 +167,19 @@ impl Sha256 {
                 total_len: 0
             }
         };
+    }
+
+    pub fn reset(&mut self) {
+        self.s.h[0] = Sha256::H0_0;
+        self.s.h[1] = Sha256::H0_1;
+        self.s.h[2] = Sha256::H0_2;
+        self.s.h[3] = Sha256::H0_3;
+        self.s.h[4] = Sha256::H0_4;
+        self.s.h[5] = Sha256::H0_5;
+        self.s.h[6] = Sha256::H0_6;
+        self.s.h[7] = Sha256::H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
     }
 
 }
@@ -254,6 +280,19 @@ impl Sha384 {
                 total_len: 0
             }
         };
+    }
+
+    pub fn reset(&mut self) {
+        self.s.h[0] = Sha384::H0_0;
+        self.s.h[1] = Sha384::H0_1;
+        self.s.h[2] = Sha384::H0_2;
+        self.s.h[3] = Sha384::H0_3;
+        self.s.h[4] = Sha384::H0_4;
+        self.s.h[5] = Sha384::H0_5;
+        self.s.h[6] = Sha384::H0_6;
+        self.s.h[7] = Sha384::H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
     }
 
 }
@@ -363,6 +402,19 @@ impl Sha512 {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.s.h[0] = Sha512::H0_0;
+        self.s.h[1] = Sha512::H0_1;
+        self.s.h[2] = Sha512::H0_2;
+        self.s.h[3] = Sha512::H0_3;
+        self.s.h[4] = Sha512::H0_4;
+        self.s.h[5] = Sha512::H0_5;
+        self.s.h[6] = Sha512::H0_6;
+        self.s.h[7] = Sha512::H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+    }
+
 }
 
 impl Hash for Sha512 {
@@ -468,6 +520,19 @@ impl Sha512224 {
                 total_len: 0
             }
         };
+    }
+
+    pub fn reset(&mut self) {
+        self.s.h[0] = Sha512224::H0_0;
+        self.s.h[1] = Sha512224::H0_1;
+        self.s.h[2] = Sha512224::H0_2;
+        self.s.h[3] = Sha512224::H0_3;
+        self.s.h[4] = Sha512224::H0_4;
+        self.s.h[5] = Sha512224::H0_5;
+        self.s.h[6] = Sha512224::H0_6;
+        self.s.h[7] = Sha512224::H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
     }
 
 }
@@ -585,6 +650,19 @@ impl Sha512256 {
                 total_len: 0
             }
         };
+    }
+
+    pub fn reset(&mut self) {
+        self.s.h[0] = Sha512256::H0_0;
+        self.s.h[1] = Sha512256::H0_1;
+        self.s.h[2] = Sha512256::H0_2;
+        self.s.h[3] = Sha512256::H0_3;
+        self.s.h[4] = Sha512256::H0_4;
+        self.s.h[5] = Sha512256::H0_5;
+        self.s.h[6] = Sha512256::H0_6;
+        self.s.h[7] = Sha512256::H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
     }
 
 }

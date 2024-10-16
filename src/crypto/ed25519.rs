@@ -1,10 +1,12 @@
 use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::DigitalSignature;
+use crate::crypto::Hash;
 use crate::crypto::ec25519::Ec25519Uint;
 use crate::crypto::ec25519::Edwards25519Point;
-use crate::crypto::ec25519::D;
 use crate::crypto::ec25519::B;
+use crate::crypto::ec25519::Q;
+use crate::crypto::sha2::Sha512;
 
 pub struct Ed25519 {}
 
@@ -15,22 +17,104 @@ pub const ED25519_SIGNATURE_LEN: usize   = 64;
 impl DigitalSignature for Ed25519 {
 
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError> {
+
+        if priv_key.len() < ED25519_PRIVATE_KEY_LEN || pub_key.len() < ED25519_PUBLIC_KEY_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut h: [u8; 64] = [0; 64];
+        if let Some(err) = Sha512::digest_oneshot(&priv_key[..32], &mut h[..]) {
+            return Some(err);
+        }
+
+        let s: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(&h[..32]).ok()?;
+
+        let mut a: Edwards25519Point = Edwards25519Point::new();
+        Edwards25519Point::scalar_mul(&mut a, &B, &s);
+        a.try_into_bytes(pub_key);
+
         return None;
+
     }
 
     fn sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Option<CryptoError> {
+
+        if priv_key.len() < ED25519_PRIVATE_KEY_LEN || signature.len() < ED25519_SIGNATURE_LEN {
+            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut p: Edwards25519Point = Edwards25519Point::new();
+        let mut sha512: Sha512 = Sha512::new();
+        let mut b: [u8; 64] = [0; 64];
+
+        if let Some(err) = Sha512::digest_oneshot(&priv_key[..32], &mut b[..]) {
+            return Some(err);
+        }
+
+        let s: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(&b[..32]).ok()?;
+
+        sha512.reset();
+        sha512.update(&b[32..]);
+        sha512.update(msg);
+        sha512.digest(&mut b[..]);
+        let r: Ec25519Uint = Ec25519Uint::try_from_sha512_digest(&b[..]).ok()?;
+
+        Edwards25519Point::scalar_mul(&mut p, &B, &r);
+        p.try_into_bytes(&mut signature[..32]);
+
+        Edwards25519Point::scalar_mul(&mut p, &B, &s);
+        p.try_into_bytes(&mut b[..32]);
+
+        sha512.reset();
+        sha512.update(&signature[..32]);
+        sha512.update(&b[..32]);
+        sha512.update(msg);
+        sha512.digest(&mut b[..]);
+        let mut k: Ec25519Uint = Ec25519Uint::try_from_sha512_digest(&b[..]).ok()?;
+        Ec25519Uint::gmul_assign_mod_order(&mut k, &s);
+        Ec25519Uint::gadd_assign_mod_order(&mut k, &r);
+
+        k.try_into_bytes(&mut signature[32..64]);
         return None;
+
     }
 
-    fn verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Option<CryptoError> {
-        return None;
+    fn verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError> {
+
+        let mut sha512: Sha512 = Sha512::new();
+        let mut b: [u8; 64] = [0; 64];
+
+        if pub_key.len() < ED25519_PUBLIC_KEY_LEN || signature.len() < ED25519_SIGNATURE_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        let mut a: Edwards25519Point = Edwards25519Point::try_from_bytes(&pub_key[..32])?;
+        let mut r: Edwards25519Point = Edwards25519Point::try_from_bytes(&signature[..32])?;
+        let s: Ec25519Uint = Ec25519Uint::try_from_bytes(&signature[32..])?;
+
+        if !Ec25519Uint::lt(&s, &Q) {
+            return Ok(false);
+        }
+
+        sha512.reset();
+        sha512.update(&signature[..32]);
+        sha512.update(&pub_key[..32]);
+        sha512.update(msg);
+        sha512.digest(&mut b[..]);
+        let mut k: Ec25519Uint = Ec25519Uint::try_from_sha512_digest(&b[..])?;
+        Edwards25519Point::scalar_mul_assign(&mut a, &k);
+        Edwards25519Point::add_assign(&mut a, &r);
+        Edwards25519Point::scalar_mul(&mut r, &B, &s);
+
+        return Ok(Edwards25519Point::eq(&r, &a));
+
     }
 
 }
 
 impl Ec25519Uint {
 
-    fn try_from_sha512_digest(md: &[u8]) -> Result<Self, CryptoError> {
+    pub fn try_from_sha512_digest(md: &[u8]) -> Result<Self, CryptoError> {
 
         if md.len() < 64 {
             return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));

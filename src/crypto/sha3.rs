@@ -35,6 +35,11 @@ impl Sha3224 {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+    }
+
 }
 
 impl Hash for Sha3224 {
@@ -116,6 +121,11 @@ impl Sha3256 {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+    }
+
 }
 
 impl Hash for Sha3256 {
@@ -191,6 +201,11 @@ impl Sha3384 {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+    }
+
 }
 
 impl Hash for Sha3384 {
@@ -264,6 +279,11 @@ impl Sha3512 {
                 buf_len: 0
             }
         };
+    }
+
+    pub fn reset(&mut self) {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
     }
 
 }

@@ -28,27 +28,21 @@ pub struct Sha512256 {
 
 impl Sha224 {
 
-    const H0_0: u32 = 0xc1059ed8;
-    const H0_1: u32 = 0x367cd507;
-    const H0_2: u32 = 0x3070dd17;
-    const H0_3: u32 = 0xf70e5939;
-    const H0_4: u32 = 0xffc00b31;
-    const H0_5: u32 = 0x68581511;
-    const H0_6: u32 = 0x64f98fa7;
-    const H0_7: u32 = 0xbefa4fa4;
+    pub const MESSAGE_DIGEST_LEN: usize = SHA224_MESSAGE_DIGEST_LEN;
+    pub const BLOCK_SIZE: usize         = SHA2_32_BLOCK_SIZE;
 
     pub fn new() -> Self {
         return Self{ s:
             Sha2State32{
                 h: [
-                    Sha224::H0_0,
-                    Sha224::H0_1,
-                    Sha224::H0_2,
-                    Sha224::H0_3,
-                    Sha224::H0_4,
-                    Sha224::H0_5,
-                    Sha224::H0_6,
-                    Sha224::H0_7
+                    SHA224_H0_0,
+                    SHA224_H0_1,
+                    SHA224_H0_2,
+                    SHA224_H0_3,
+                    SHA224_H0_4,
+                    SHA224_H0_5,
+                    SHA224_H0_6,
+                    SHA224_H0_7
                 ],
                 buf: [0; 128],
                 buf_len: 0,
@@ -58,14 +52,14 @@ impl Sha224 {
     }
 
     pub fn reset(&mut self) {
-        self.s.h[0] = Sha224::H0_0;
-        self.s.h[1] = Sha224::H0_1;
-        self.s.h[2] = Sha224::H0_2;
-        self.s.h[3] = Sha224::H0_3;
-        self.s.h[4] = Sha224::H0_4;
-        self.s.h[5] = Sha224::H0_5;
-        self.s.h[6] = Sha224::H0_6;
-        self.s.h[7] = Sha224::H0_7;
+        self.s.h[0] = SHA224_H0_0;
+        self.s.h[1] = SHA224_H0_1;
+        self.s.h[2] = SHA224_H0_2;
+        self.s.h[3] = SHA224_H0_3;
+        self.s.h[4] = SHA224_H0_4;
+        self.s.h[5] = SHA224_H0_5;
+        self.s.h[6] = SHA224_H0_6;
+        self.s.h[7] = SHA224_H0_7;
         self.s.buf_len = 0;
         self.s.total_len = 0;
     }
@@ -74,22 +68,22 @@ impl Sha224 {
 
 impl Hash for Sha224 {
 
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA224_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut s: Sha2State32 = Sha2State32{
             h: [
-                Sha224::H0_0,
-                Sha224::H0_1,
-                Sha224::H0_2,
-                Sha224::H0_3,
-                Sha224::H0_4,
-                Sha224::H0_5,
-                Sha224::H0_6,
-                Sha224::H0_7
+                SHA224_H0_0,
+                SHA224_H0_1,
+                SHA224_H0_2,
+                SHA224_H0_3,
+                SHA224_H0_4,
+                SHA224_H0_5,
+                SHA224_H0_6,
+                SHA224_H0_7
             ],
             buf: [0; 128],
             buf_len: 0,
@@ -106,19 +100,19 @@ impl Hash for Sha224 {
             md[d + 3] =  s.h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
         sha2_32_update(&mut self.s, msg);
-        return None;
+        return Ok(());
     }
 
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA224_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut h: [u32; 8] = [0; 8];
@@ -132,7 +126,7 @@ impl Hash for Sha224 {
             md[d + 3] =  h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
@@ -140,27 +134,21 @@ impl Hash for Sha224 {
 
 impl Sha256 {
 
-    const H0_0: u32 = 0x6a09e667;
-    const H0_1: u32 = 0xbb67ae85;
-    const H0_2: u32 = 0x3c6ef372;
-    const H0_3: u32 = 0xa54ff53a;
-    const H0_4: u32 = 0x510e527f;
-    const H0_5: u32 = 0x9b05688c;
-    const H0_6: u32 = 0x1f83d9ab;
-    const H0_7: u32 = 0x5be0cd19;
+    pub const MESSAGE_DIGEST_LEN: usize = SHA256_MESSAGE_DIGEST_LEN;
+    pub const BLOCK_SIZE: usize         = SHA2_32_BLOCK_SIZE;
 
     pub fn new() -> Self {
         return Self{ s:
             Sha2State32{
                 h: [
-                    Sha256::H0_0,
-                    Sha256::H0_1,
-                    Sha256::H0_2,
-                    Sha256::H0_3,
-                    Sha256::H0_4,
-                    Sha256::H0_5,
-                    Sha256::H0_6,
-                    Sha256::H0_7
+                    SHA256_H0_0,
+                    SHA256_H0_1,
+                    SHA256_H0_2,
+                    SHA256_H0_3,
+                    SHA256_H0_4,
+                    SHA256_H0_5,
+                    SHA256_H0_6,
+                    SHA256_H0_7
                 ],
                 buf: [0; 128],
                 buf_len: 0,
@@ -170,14 +158,14 @@ impl Sha256 {
     }
 
     pub fn reset(&mut self) {
-        self.s.h[0] = Sha256::H0_0;
-        self.s.h[1] = Sha256::H0_1;
-        self.s.h[2] = Sha256::H0_2;
-        self.s.h[3] = Sha256::H0_3;
-        self.s.h[4] = Sha256::H0_4;
-        self.s.h[5] = Sha256::H0_5;
-        self.s.h[6] = Sha256::H0_6;
-        self.s.h[7] = Sha256::H0_7;
+        self.s.h[0] = SHA256_H0_0;
+        self.s.h[1] = SHA256_H0_1;
+        self.s.h[2] = SHA256_H0_2;
+        self.s.h[3] = SHA256_H0_3;
+        self.s.h[4] = SHA256_H0_4;
+        self.s.h[5] = SHA256_H0_5;
+        self.s.h[6] = SHA256_H0_6;
+        self.s.h[7] = SHA256_H0_7;
         self.s.buf_len = 0;
         self.s.total_len = 0;
     }
@@ -186,22 +174,22 @@ impl Sha256 {
 
 impl Hash for Sha256 {
 
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA256_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut s: Sha2State32 = Sha2State32{
             h: [
-                Sha256::H0_0,
-                Sha256::H0_1,
-                Sha256::H0_2,
-                Sha256::H0_3,
-                Sha256::H0_4,
-                Sha256::H0_5,
-                Sha256::H0_6,
-                Sha256::H0_7
+                SHA256_H0_0,
+                SHA256_H0_1,
+                SHA256_H0_2,
+                SHA256_H0_3,
+                SHA256_H0_4,
+                SHA256_H0_5,
+                SHA256_H0_6,
+                SHA256_H0_7
             ],
             buf: [0; 128],
             buf_len: 0,
@@ -218,20 +206,20 @@ impl Hash for Sha256 {
             md[d + 3] =  s.h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
 
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
         sha2_32_update(&mut self.s, msg);
-        return None;
+        return Ok(());
     }
 
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA256_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut h: [u32; 8] = [0; 8];
@@ -245,7 +233,7 @@ impl Hash for Sha256 {
             md[d + 3] =  h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
@@ -253,27 +241,21 @@ impl Hash for Sha256 {
 
 impl Sha384 {
 
-    const H0_0: u64 = 0xcbbb9d5dc1059ed8;
-    const H0_1: u64 = 0x629a292a367cd507;
-    const H0_2: u64 = 0x9159015a3070dd17;
-    const H0_3: u64 = 0x152fecd8f70e5939;
-    const H0_4: u64 = 0x67332667ffc00b31;
-    const H0_5: u64 = 0x8eb44a8768581511;
-    const H0_6: u64 = 0xdb0c2e0d64f98fa7;
-    const H0_7: u64 = 0x47b5481dbefa4fa4;
+    pub const MESSAGE_DIGEST_LEN: usize = SHA384_MESSAGE_DIGEST_LEN;
+    pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
         return Self{ s:
             Sha2State64{
                 h: [
-                    Sha384::H0_0,
-                    Sha384::H0_1,
-                    Sha384::H0_2,
-                    Sha384::H0_3,
-                    Sha384::H0_4,
-                    Sha384::H0_5,
-                    Sha384::H0_6,
-                    Sha384::H0_7
+                    SHA384_H0_0,
+                    SHA384_H0_1,
+                    SHA384_H0_2,
+                    SHA384_H0_3,
+                    SHA384_H0_4,
+                    SHA384_H0_5,
+                    SHA384_H0_6,
+                    SHA384_H0_7
                 ],
                 buf: [0; 256],
                 buf_len: 0,
@@ -283,14 +265,14 @@ impl Sha384 {
     }
 
     pub fn reset(&mut self) {
-        self.s.h[0] = Sha384::H0_0;
-        self.s.h[1] = Sha384::H0_1;
-        self.s.h[2] = Sha384::H0_2;
-        self.s.h[3] = Sha384::H0_3;
-        self.s.h[4] = Sha384::H0_4;
-        self.s.h[5] = Sha384::H0_5;
-        self.s.h[6] = Sha384::H0_6;
-        self.s.h[7] = Sha384::H0_7;
+        self.s.h[0] = SHA384_H0_0;
+        self.s.h[1] = SHA384_H0_1;
+        self.s.h[2] = SHA384_H0_2;
+        self.s.h[3] = SHA384_H0_3;
+        self.s.h[4] = SHA384_H0_4;
+        self.s.h[5] = SHA384_H0_5;
+        self.s.h[6] = SHA384_H0_6;
+        self.s.h[7] = SHA384_H0_7;
         self.s.buf_len = 0;
         self.s.total_len = 0;
     }
@@ -299,22 +281,22 @@ impl Sha384 {
 
 impl Hash for Sha384 {
 
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA384_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA384_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut s: Sha2State64 = Sha2State64{
             h: [
-                Sha384::H0_0,
-                Sha384::H0_1,
-                Sha384::H0_2,
-                Sha384::H0_3,
-                Sha384::H0_4,
-                Sha384::H0_5,
-                Sha384::H0_6,
-                Sha384::H0_7
+                SHA384_H0_0,
+                SHA384_H0_1,
+                SHA384_H0_2,
+                SHA384_H0_3,
+                SHA384_H0_4,
+                SHA384_H0_5,
+                SHA384_H0_6,
+                SHA384_H0_7
             ],
             buf: [0; 256],
             buf_len: 0,
@@ -335,19 +317,19 @@ impl Hash for Sha384 {
             md[d + 7] =  s.h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return None;
+        return Ok(());
     }
 
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA384_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA384_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -365,7 +347,7 @@ impl Hash for Sha384 {
             md[d + 7] =  h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
@@ -373,27 +355,21 @@ impl Hash for Sha384 {
 
 impl Sha512 {
 
-    const H0_0: u64 = 0x6a09e667f3bcc908;
-    const H0_1: u64 = 0xbb67ae8584caa73b;
-    const H0_2: u64 = 0x3c6ef372fe94f82b;
-    const H0_3: u64 = 0xa54ff53a5f1d36f1;
-    const H0_4: u64 = 0x510e527fade682d1;
-    const H0_5: u64 = 0x9b05688c2b3e6c1f;
-    const H0_6: u64 = 0x1f83d9abfb41bd6b;
-    const H0_7: u64 = 0x5be0cd19137e2179;
+    pub const MESSAGE_DIGEST_LEN: usize = SHA512_MESSAGE_DIGEST_LEN;
+    pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
         return Self{ s:
             Sha2State64{
                 h: [
-                    Sha512::H0_0,
-                    Sha512::H0_1,
-                    Sha512::H0_2,
-                    Sha512::H0_3,
-                    Sha512::H0_4,
-                    Sha512::H0_5,
-                    Sha512::H0_6,
-                    Sha512::H0_7
+                    SHA512_H0_0,
+                    SHA512_H0_1,
+                    SHA512_H0_2,
+                    SHA512_H0_3,
+                    SHA512_H0_4,
+                    SHA512_H0_5,
+                    SHA512_H0_6,
+                    SHA512_H0_7
                 ],
                 buf: [0; 256],
                 buf_len: 0,
@@ -403,14 +379,14 @@ impl Sha512 {
     }
 
     pub fn reset(&mut self) {
-        self.s.h[0] = Sha512::H0_0;
-        self.s.h[1] = Sha512::H0_1;
-        self.s.h[2] = Sha512::H0_2;
-        self.s.h[3] = Sha512::H0_3;
-        self.s.h[4] = Sha512::H0_4;
-        self.s.h[5] = Sha512::H0_5;
-        self.s.h[6] = Sha512::H0_6;
-        self.s.h[7] = Sha512::H0_7;
+        self.s.h[0] = SHA512_H0_0;
+        self.s.h[1] = SHA512_H0_1;
+        self.s.h[2] = SHA512_H0_2;
+        self.s.h[3] = SHA512_H0_3;
+        self.s.h[4] = SHA512_H0_4;
+        self.s.h[5] = SHA512_H0_5;
+        self.s.h[6] = SHA512_H0_6;
+        self.s.h[7] = SHA512_H0_7;
         self.s.buf_len = 0;
         self.s.total_len = 0;
     }
@@ -419,22 +395,22 @@ impl Sha512 {
 
 impl Hash for Sha512 {
 
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA512_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut s: Sha2State64 = Sha2State64{
             h: [
-                Sha512::H0_0,
-                Sha512::H0_1,
-                Sha512::H0_2,
-                Sha512::H0_3,
-                Sha512::H0_4,
-                Sha512::H0_5,
-                Sha512::H0_6,
-                Sha512::H0_7
+                SHA512_H0_0,
+                SHA512_H0_1,
+                SHA512_H0_2,
+                SHA512_H0_3,
+                SHA512_H0_4,
+                SHA512_H0_5,
+                SHA512_H0_6,
+                SHA512_H0_7
             ],
             buf: [0; 256],
             buf_len: 0,
@@ -455,19 +431,19 @@ impl Hash for Sha512 {
             md[d + 7] =  s.h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return None;
+        return Ok(());
     }
 
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA512_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -485,7 +461,7 @@ impl Hash for Sha512 {
             md[d + 7] =  h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
@@ -493,27 +469,21 @@ impl Hash for Sha512 {
 
 impl Sha512224 {
 
-    const H0_0: u64 = 0x8c3d37c819544da2;
-    const H0_1: u64 = 0x73e1996689dcd4d6;
-    const H0_2: u64 = 0x1dfab7ae32ff9c82;
-    const H0_3: u64 = 0x679dd514582f9fcf;
-    const H0_4: u64 = 0x0f6d2b697bd44da8;
-    const H0_5: u64 = 0x77e36f7304c48942;
-    const H0_6: u64 = 0x3f9d85a86a1d36c8;
-    const H0_7: u64 = 0x1112e6ad91d692a1;
+    pub const MESSAGE_DIGEST_LEN: usize = SHA512224_MESSAGE_DIGEST_LEN;
+    pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
         return Self{ s:
             Sha2State64{
                 h: [
-                    Sha512224::H0_0,
-                    Sha512224::H0_1,
-                    Sha512224::H0_2,
-                    Sha512224::H0_3,
-                    Sha512224::H0_4,
-                    Sha512224::H0_5,
-                    Sha512224::H0_6,
-                    Sha512224::H0_7
+                    SHA512224_H0_0,
+                    SHA512224_H0_1,
+                    SHA512224_H0_2,
+                    SHA512224_H0_3,
+                    SHA512224_H0_4,
+                    SHA512224_H0_5,
+                    SHA512224_H0_6,
+                    SHA512224_H0_7
                 ],
                 buf: [0; 256],
                 buf_len: 0,
@@ -523,14 +493,14 @@ impl Sha512224 {
     }
 
     pub fn reset(&mut self) {
-        self.s.h[0] = Sha512224::H0_0;
-        self.s.h[1] = Sha512224::H0_1;
-        self.s.h[2] = Sha512224::H0_2;
-        self.s.h[3] = Sha512224::H0_3;
-        self.s.h[4] = Sha512224::H0_4;
-        self.s.h[5] = Sha512224::H0_5;
-        self.s.h[6] = Sha512224::H0_6;
-        self.s.h[7] = Sha512224::H0_7;
+        self.s.h[0] = SHA512224_H0_0;
+        self.s.h[1] = SHA512224_H0_1;
+        self.s.h[2] = SHA512224_H0_2;
+        self.s.h[3] = SHA512224_H0_3;
+        self.s.h[4] = SHA512224_H0_4;
+        self.s.h[5] = SHA512224_H0_5;
+        self.s.h[6] = SHA512224_H0_6;
+        self.s.h[7] = SHA512224_H0_7;
         self.s.buf_len = 0;
         self.s.total_len = 0;
     }
@@ -539,22 +509,22 @@ impl Sha512224 {
 
 impl Hash for Sha512224 {
 
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512224_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA512224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut s: Sha2State64 = Sha2State64{
             h: [
-                Sha512224::H0_0,
-                Sha512224::H0_1,
-                Sha512224::H0_2,
-                Sha512224::H0_3,
-                Sha512224::H0_4,
-                Sha512224::H0_5,
-                Sha512224::H0_6,
-                Sha512224::H0_7
+                SHA512224_H0_0,
+                SHA512224_H0_1,
+                SHA512224_H0_2,
+                SHA512224_H0_3,
+                SHA512224_H0_4,
+                SHA512224_H0_5,
+                SHA512224_H0_6,
+                SHA512224_H0_7
             ],
             buf: [0; 256],
             buf_len: 0,
@@ -580,19 +550,19 @@ impl Hash for Sha512224 {
             i = i + 1;
         }
 
-        return None;
+        return Ok(());
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return None;
+        return Ok(());
     }
 
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512224_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA512224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -615,7 +585,7 @@ impl Hash for Sha512224 {
             i = i + 1;
         }
 
-        return None;
+        return Ok(());
 
     }
 
@@ -623,27 +593,21 @@ impl Hash for Sha512224 {
 
 impl Sha512256 {
 
-    const H0_0: u64 = 0x22312194fc2bf72c;
-    const H0_1: u64 = 0x9f555fa3c84c64c2;
-    const H0_2: u64 = 0x2393b86b6f53b151;
-    const H0_3: u64 = 0x963877195940eabd;
-    const H0_4: u64 = 0x96283ee2a88effe3;
-    const H0_5: u64 = 0xbe5e1e2553863992;
-    const H0_6: u64 = 0x2b0199fc2c85b8aa;
-    const H0_7: u64 = 0x0eb72ddc81c52ca2;
+    pub const MESSAGE_DIGEST_LEN: usize = SHA512256_MESSAGE_DIGEST_LEN;
+    pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
         return Self{ s:
             Sha2State64{
                 h: [
-                    Sha512256::H0_0,
-                    Sha512256::H0_1,
-                    Sha512256::H0_2,
-                    Sha512256::H0_3,
-                    Sha512256::H0_4,
-                    Sha512256::H0_5,
-                    Sha512256::H0_6,
-                    Sha512256::H0_7
+                    SHA512256_H0_0,
+                    SHA512256_H0_1,
+                    SHA512256_H0_2,
+                    SHA512256_H0_3,
+                    SHA512256_H0_4,
+                    SHA512256_H0_5,
+                    SHA512256_H0_6,
+                    SHA512256_H0_7
                 ],
                 buf: [0; 256],
                 buf_len: 0,
@@ -653,14 +617,14 @@ impl Sha512256 {
     }
 
     pub fn reset(&mut self) {
-        self.s.h[0] = Sha512256::H0_0;
-        self.s.h[1] = Sha512256::H0_1;
-        self.s.h[2] = Sha512256::H0_2;
-        self.s.h[3] = Sha512256::H0_3;
-        self.s.h[4] = Sha512256::H0_4;
-        self.s.h[5] = Sha512256::H0_5;
-        self.s.h[6] = Sha512256::H0_6;
-        self.s.h[7] = Sha512256::H0_7;
+        self.s.h[0] = SHA512256_H0_0;
+        self.s.h[1] = SHA512256_H0_1;
+        self.s.h[2] = SHA512256_H0_2;
+        self.s.h[3] = SHA512256_H0_3;
+        self.s.h[4] = SHA512256_H0_4;
+        self.s.h[5] = SHA512256_H0_5;
+        self.s.h[6] = SHA512256_H0_6;
+        self.s.h[7] = SHA512256_H0_7;
         self.s.buf_len = 0;
         self.s.total_len = 0;
     }
@@ -669,22 +633,22 @@ impl Sha512256 {
 
 impl Hash for Sha512256 {
 
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError> {
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512256_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA512256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut s: Sha2State64 = Sha2State64{
             h: [
-                Sha512256::H0_0,
-                Sha512256::H0_1,
-                Sha512256::H0_2,
-                Sha512256::H0_3,
-                Sha512256::H0_4,
-                Sha512256::H0_5,
-                Sha512256::H0_6,
-                Sha512256::H0_7
+                SHA512256_H0_0,
+                SHA512256_H0_1,
+                SHA512256_H0_2,
+                SHA512256_H0_3,
+                SHA512256_H0_4,
+                SHA512256_H0_5,
+                SHA512256_H0_6,
+                SHA512256_H0_7
             ],
             buf: [0; 256],
             buf_len: 0,
@@ -705,19 +669,19 @@ impl Hash for Sha512256 {
             md[d + 7] =  s.h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return None;
+        return Ok(());
     }
 
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError> {
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512256_DIGEST_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() < SHA512256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -735,7 +699,7 @@ impl Hash for Sha512256 {
             md[d + 7] =  h[i]        as u8;
         }
 
-        return None;
+        return Ok(());
 
     }
 
@@ -775,15 +739,69 @@ static K512: [u64; 80] = [
     0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
 ];
 
-const SHA224_DIGEST_LEN: usize = 28;
-const SHA256_DIGEST_LEN: usize = 32;
-const SHA384_DIGEST_LEN: usize = 48;
-const SHA512_DIGEST_LEN: usize = 64;
-const SHA512224_DIGEST_LEN: usize = 28;
-const SHA512256_DIGEST_LEN: usize = 32;
+const SHA224_H0_0: u32 = 0xc1059ed8;
+const SHA224_H0_1: u32 = 0x367cd507;
+const SHA224_H0_2: u32 = 0x3070dd17;
+const SHA224_H0_3: u32 = 0xf70e5939;
+const SHA224_H0_4: u32 = 0xffc00b31;
+const SHA224_H0_5: u32 = 0x68581511;
+const SHA224_H0_6: u32 = 0x64f98fa7;
+const SHA224_H0_7: u32 = 0xbefa4fa4;
 
-const SHA2_32_BLOCK_LEN: usize = 64;
-const SHA2_64_BLOCK_LEN: usize = 128;
+const SHA256_H0_0: u32 = 0x6a09e667;
+const SHA256_H0_1: u32 = 0xbb67ae85;
+const SHA256_H0_2: u32 = 0x3c6ef372;
+const SHA256_H0_3: u32 = 0xa54ff53a;
+const SHA256_H0_4: u32 = 0x510e527f;
+const SHA256_H0_5: u32 = 0x9b05688c;
+const SHA256_H0_6: u32 = 0x1f83d9ab;
+const SHA256_H0_7: u32 = 0x5be0cd19;
+
+const SHA384_H0_0: u64 = 0xcbbb9d5dc1059ed8;
+const SHA384_H0_1: u64 = 0x629a292a367cd507;
+const SHA384_H0_2: u64 = 0x9159015a3070dd17;
+const SHA384_H0_3: u64 = 0x152fecd8f70e5939;
+const SHA384_H0_4: u64 = 0x67332667ffc00b31;
+const SHA384_H0_5: u64 = 0x8eb44a8768581511;
+const SHA384_H0_6: u64 = 0xdb0c2e0d64f98fa7;
+const SHA384_H0_7: u64 = 0x47b5481dbefa4fa4;
+
+const SHA512_H0_0: u64 = 0x6a09e667f3bcc908;
+const SHA512_H0_1: u64 = 0xbb67ae8584caa73b;
+const SHA512_H0_2: u64 = 0x3c6ef372fe94f82b;
+const SHA512_H0_3: u64 = 0xa54ff53a5f1d36f1;
+const SHA512_H0_4: u64 = 0x510e527fade682d1;
+const SHA512_H0_5: u64 = 0x9b05688c2b3e6c1f;
+const SHA512_H0_6: u64 = 0x1f83d9abfb41bd6b;
+const SHA512_H0_7: u64 = 0x5be0cd19137e2179;
+
+const SHA512224_H0_0: u64 = 0x8c3d37c819544da2;
+const SHA512224_H0_1: u64 = 0x73e1996689dcd4d6;
+const SHA512224_H0_2: u64 = 0x1dfab7ae32ff9c82;
+const SHA512224_H0_3: u64 = 0x679dd514582f9fcf;
+const SHA512224_H0_4: u64 = 0x0f6d2b697bd44da8;
+const SHA512224_H0_5: u64 = 0x77e36f7304c48942;
+const SHA512224_H0_6: u64 = 0x3f9d85a86a1d36c8;
+const SHA512224_H0_7: u64 = 0x1112e6ad91d692a1;
+
+const SHA512256_H0_0: u64 = 0x22312194fc2bf72c;
+const SHA512256_H0_1: u64 = 0x9f555fa3c84c64c2;
+const SHA512256_H0_2: u64 = 0x2393b86b6f53b151;
+const SHA512256_H0_3: u64 = 0x963877195940eabd;
+const SHA512256_H0_4: u64 = 0x96283ee2a88effe3;
+const SHA512256_H0_5: u64 = 0xbe5e1e2553863992;
+const SHA512256_H0_6: u64 = 0x2b0199fc2c85b8aa;
+const SHA512256_H0_7: u64 = 0x0eb72ddc81c52ca2;
+
+const SHA224_MESSAGE_DIGEST_LEN: usize    = 28;
+const SHA256_MESSAGE_DIGEST_LEN: usize    = 32;
+const SHA384_MESSAGE_DIGEST_LEN: usize    = 48;
+const SHA512_MESSAGE_DIGEST_LEN: usize    = 64;
+const SHA512224_MESSAGE_DIGEST_LEN: usize = 28;
+const SHA512256_MESSAGE_DIGEST_LEN: usize = 32;
+
+const SHA2_32_BLOCK_SIZE: usize = 64;
+const SHA2_64_BLOCK_SIZE: usize = 128;
 
 struct Sha2State32 {
     h: [u32; 8],
@@ -802,9 +820,10 @@ struct Sha2State64 {
 fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
 
     let mut w: [u32; 64] = [0; 64];
-    let mut i: usize     = 0;
+    let mut i: usize = 0;
+    let l: usize = msg.len();
 
-    for _ in ((msg.len() >> 6)..0).rev() {
+    for _ in 0..(l >> 6) {
 
         for t in 0..16 {
             w[t] =
@@ -861,15 +880,15 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
     }
 
     let n: usize = {
-        let n: usize = 64 - (msg.len() & 63);
+        let n: usize = 64 - (l & 63);
         let n: usize = n + (if n < 9 { 64 } else { 0 });
         n + ((64 - (n & 63)) & 63)
     };
 
-    s.buf[..(msg.len() - i)].clone_from_slice(&msg[i..(msg.len())]);
-    s.buf[msg.len() - i] = 0x80;
+    s.buf[..(l - i)].copy_from_slice(&msg[i..l]);
+    s.buf[l - i] = 0x80;
 
-    let bit_len: u64 = (msg.len() as u64) << 3;
+    let bit_len: u64 = (l as u64) << 3;
     s.buf[n - 8] = (bit_len >> 56) as u8;
     s.buf[n - 7] = (bit_len >> 48) as u8;
     s.buf[n - 6] = (bit_len >> 40) as u8;
@@ -941,18 +960,19 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
 
 fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
 
-    if msg.len() < SHA2_32_BLOCK_LEN - s.buf_len {
-        s.buf[(s.buf_len)..(s.buf_len + msg.len())].clone_from_slice(&msg[..]);
-        s.buf_len = s.buf_len + msg.len();
+    let mut w: [u32; 64] = [0; 64];
+    let mut i: usize = if s.buf_len == 0 { 0 } else { SHA2_32_BLOCK_SIZE - s.buf_len };
+    let l: usize = msg.len();
+
+    if l < SHA2_32_BLOCK_SIZE - s.buf_len {
+        s.buf[s.buf_len..(s.buf_len + l)].copy_from_slice(&msg[..]);
+        s.buf_len = s.buf_len + l;
         return;
     }
 
-    let mut w: [u32; 64] = [0; 64];
-    let mut i: usize = if s.buf_len == 0 { 0 } else { SHA2_32_BLOCK_LEN - s.buf_len };
-
     if i != 0 {
 
-        s.buf[(s.buf_len)..i].clone_from_slice(&msg[..i]);
+        s.buf[s.buf_len..(s.buf_len + i)].copy_from_slice(&msg[..i]);
 
         for t in 0..16 {
             let j = i << 2;
@@ -1010,7 +1030,7 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
 
     }
 
-    for _ in (((msg.len() - i) >> 6)..0).rev() {
+    for _ in 0..((l - i) >> 6) {
 
         for t in 0..16 {
             w[t] =
@@ -1066,12 +1086,14 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
 
     }
 
-    if i < msg.len() {
-        s.buf_len = msg.len() - i;
-        s.buf[..(s.buf_len)].clone_from_slice(&msg[i..(i + s.buf_len)]);
+    if i < l {
+        s.buf_len = l - i;
+        s.buf[..s.buf_len].copy_from_slice(&msg[i..(i + s.buf_len)]);
     } else {
         s.buf_len = 0;
     }
+
+    s.total_len = s.total_len + i;
 
 }
 
@@ -1109,7 +1131,7 @@ fn sha2_32_digest(s: &mut Sha2State32, out: &mut [u32]) {
     s.buf[n - 1] =  bit_len        as u8;
 
     let mut w: [u32; 64] = [0; 64];
-    let mut i: usize     = 0;
+    let mut i: usize = 0;
 
     for _ in 0..(n >> 6) {
 
@@ -1173,8 +1195,9 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
 
     let mut w: [u64; 80] = [0; 80];
     let mut i: usize = 0;
+    let l: usize = msg.len();
 
-    for _ in ((msg.len() >> 7)..0).rev() {
+    for _ in 0..(l >> 7) {
 
         for t in 0..16 {
             w[t] =
@@ -1235,15 +1258,15 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
     }
 
     let n: usize = {
-        let n: usize = 128 - (msg.len() & 127);
+        let n: usize = 128 - (l & 127);
         let n: usize = n + (if n < 17 { 128 } else { 0 });
         n + ((128 - (n & 127)) & 127)
     };
 
-    s.buf[..(msg.len() - i)].clone_from_slice(&msg[i..(msg.len())]);
-    s.buf[msg.len() - i] = 0x80;
+    s.buf[..(l - i)].copy_from_slice(&msg[i..l]);
+    s.buf[l - i] = 0x80;
 
-    let bit_len: u64 = (msg.len() as u64) << 3;
+    let bit_len: u64 = (l as u64) << 3;
     s.buf[n - 8] = (bit_len >> 56) as u8;
     s.buf[n - 7] = (bit_len >> 48) as u8;
     s.buf[n - 6] = (bit_len >> 40) as u8;
@@ -1319,18 +1342,19 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
 
 fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
 
-    if msg.len() < SHA2_64_BLOCK_LEN - s.buf_len {
-        s.buf[(s.buf_len)..(s.buf_len + msg.len())].clone_from_slice(&msg[..]);
-        s.buf_len = s.buf_len + msg.len();
+    let mut w: [u64; 80] = [0; 80];
+    let mut i: usize = if s.buf_len == 0 { 0 } else { SHA2_64_BLOCK_SIZE - s.buf_len };
+    let l: usize = msg.len();
+
+    if l < SHA2_64_BLOCK_SIZE - s.buf_len {
+        s.buf[s.buf_len..(s.buf_len + l)].copy_from_slice(&msg[..]);
+        s.buf_len = s.buf_len + l;
         return;
     }
 
-    let mut w: [u64; 80] = [0; 80];
-    let mut i: usize = if s.buf_len == 0 { 0 } else { SHA2_64_BLOCK_LEN - s.buf_len };
-
     if i != 0 {
 
-        s.buf[(s.buf_len)..i].clone_from_slice(&msg[..i]);
+        s.buf[s.buf_len..(s.buf_len + i)].copy_from_slice(&msg[..i]);
 
         for t in 0..16 {
             let j = i << 3;
@@ -1392,7 +1416,7 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
 
     }
 
-    for _ in (((msg.len() - i) >> 7)..0).rev() {
+    for _ in 0..((l - i) >> 7) {
 
         for t in 0..16 {
             w[t] =
@@ -1452,12 +1476,14 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
 
     }
 
-    if i < msg.len() {
-        s.buf_len = msg.len() - i;
-        s.buf[..(s.buf_len)].clone_from_slice(&msg[i..(i + s.buf_len)]);
+    if i < l {
+        s.buf_len = l - i;
+        s.buf[..s.buf_len].copy_from_slice(&msg[i..(i + s.buf_len)]);
     } else {
         s.buf_len = 0;
     }
+
+    s.total_len = s.total_len + i;
 
 }
 
@@ -1495,7 +1521,7 @@ fn sha2_64_digest(s: &mut Sha2State64, out: &mut [u64]) {
     s.buf[n - 1] =  bit_len        as u8;
 
     let mut w: [u64; 80] = [0; 80];
-    let mut i: usize     = 0;
+    let mut i: usize = 0;
 
     for _ in 0..(n >> 7) {
 

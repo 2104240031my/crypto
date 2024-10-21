@@ -1,36 +1,85 @@
+#[allow(dead_code)]
 pub mod aes;
-pub mod blockcipher;
+
+#[allow(dead_code)]
+pub mod block_cipher_mode;
+
+#[allow(dead_code)]
 pub mod sha2;
+
+#[allow(dead_code)]
 pub mod sha3;
+
+#[allow(dead_code)]
+pub mod hmac_sha2;
+
+#[allow(dead_code)]
+pub mod hmac_sha3;
+
+#[allow(dead_code)]
 pub mod x25519;
+
+#[allow(dead_code)]
 pub mod ed25519;
+
+#[allow(dead_code)]
 mod ec25519;
 
 use std::error::Error;
 use std::fmt::Display;
 
 pub trait BlockCipher {
+    fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError>;
+    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
+    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
     fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
-    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError>;
-    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError>;
+}
+
+pub trait BlockCipher128: BlockCipher {
+    const BLOCK_SIZE: usize;
 }
 
 pub trait Hash {
-    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Option<CryptoError>;
-    fn update(&mut self, msg: &[u8]) -> Option<CryptoError>;
-    fn digest(&mut self, md: &mut [u8]) -> Option<CryptoError>;
+    fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError>;
+    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError>;
+    fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+pub trait Mac {
+    fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError>;
+    // fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError>;
+    // fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError>;
+    // fn compute(&mut self, md: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub trait DiffieHellman {
-    fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError>;
-    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Option<CryptoError>;
+    fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
+    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub trait DigitalSignature {
-    fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError>;
-    fn sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Option<CryptoError>;
-    fn verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
+    fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
+    fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
+    fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
+    fn rekey(&mut self, priv_key: &[u8]) -> Result<(), CryptoError>;
+    fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError>;
+    fn sign(&self, msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
+    fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
+}
+
+pub trait DigitalSignatureSigner {
+    fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
+    fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
+    fn rekey(&mut self, priv_key: &[u8]) -> Result<(), CryptoError>;
+    fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError>;
+    fn sign(&self, msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+pub trait DigitalSignatureVerifier {
+    fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
+    fn rekey(&mut self, pub_key: &[u8]) -> Result<(), CryptoError>;
+    fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
 }
 
 #[derive(Debug)]

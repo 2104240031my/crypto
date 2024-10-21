@@ -1,6 +1,7 @@
 use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::BlockCipher;
+use crate::crypto::BlockCipher128;
 
 pub enum AesAlgorithm {
     Aes128,
@@ -9,23 +10,88 @@ pub enum AesAlgorithm {
 }
 
 pub struct Aes {
-    pub w: [u8; 240],  // expanded key for Cipher
+    ew: [u8; 240], // expanded key for Cipher
     dw: [u8; 240], // expanded key for EqInvCipher
     nk: usize      // Nk (and Nr can also be derived from this value)
 }
 
-pub const AES_128_KEY_LEN: usize = 16;
-pub const AES_192_KEY_LEN: usize = 24;
-pub const AES_256_KEY_LEN: usize = 32;
+impl Aes {
 
-pub const AES_BLOCK_SIZE: usize  = 16;
+    pub fn new(algo: AesAlgorithm, key: &[u8]) -> Result<Self, CryptoError> {
+
+        let nk: usize = match algo {
+            AesAlgorithm::Aes128 => AES_128_NK,
+            AesAlgorithm::Aes192 => AES_192_NK,
+            AesAlgorithm::Aes256 => AES_256_NK
+        };
+
+        let mut v: Self = Self{
+            ew: [0x00; 240],
+            dw: [0x00; 240],
+            nk: nk
+        };
+
+        v.rekey(key);
+        return Ok(v);
+
+    }
+
+}
 
 impl BlockCipher for Aes {
+
+    fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError> {
+
+        if key.len() < (self.nk << 2) {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        unsafe {
+
+            aes_key_expansion(
+                key.as_ptr() as *const u8,
+                self.ew.as_ptr() as *mut u8,
+                self.nk
+            );
+
+            aes_expanded_key_inversion(
+                self.ew.as_ptr() as *const u8,
+                self.dw.as_ptr() as *mut u8,
+                self.nk
+            );
+
+        }
+
+        return Ok(());
+
+    }
+
+    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
+
+        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        self.encrypt_unchecked(block_in, block_out);
+        return Ok(());
+
+    }
+
+    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
+
+        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        self.decrypt_unchecked(block_in, block_out);
+        return Ok(());
+
+    }
 
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
         unsafe {
             aes_cipher(
-                self.w.as_ptr() as *const u8,
+                self.ew.as_ptr() as *const u8,
                 block_in.as_ptr() as *const u8,
                 block_out.as_ptr() as *mut u8,
                 self.nk
@@ -44,70 +110,10 @@ impl BlockCipher for Aes {
         }
     }
 
-    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError> {
-
-        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
-        }
-
-        self.encrypt_unchecked(block_in, block_out);
-        return None;
-
-    }
-
-    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Option<CryptoError> {
-
-        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
-        }
-
-        self.decrypt_unchecked(block_in, block_out);
-        return None;
-
-    }
-
 }
 
-impl Aes {
-
-    pub fn new(algo: AesAlgorithm, key: &[u8]) -> Result<Self, CryptoError> {
-
-        let nk: usize = match algo {
-            AesAlgorithm::Aes128 => AES_128_NK,
-            AesAlgorithm::Aes192 => AES_192_NK,
-            AesAlgorithm::Aes256 => AES_256_NK
-        };
-
-        if key.len() < (nk << 2) {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
-        }
-
-        let aes: Aes = Aes{
-            w:  [0x00; 240],
-            dw: [0x00; 240],
-            nk: nk
-        };
-
-        unsafe {
-
-            aes_key_expansion(
-                key.as_ptr() as *const u8,
-                aes.w.as_ptr() as *mut u8,
-                aes.nk
-            );
-
-            aes_expanded_key_inversion(
-                aes.w.as_ptr() as *const u8,
-                aes.dw.as_ptr() as *mut u8,
-                aes.nk
-            );
-
-        }
-
-        return Ok(aes);
-
-    }
-
+impl BlockCipher128 for Aes {
+    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
 }
 
 static S_BOX: [u8; 256] = [
@@ -688,6 +694,12 @@ static RCON: [u8; 15] = [
     0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d
 ];
 
+const AES_BLOCK_SIZE: usize = 16;
+
+const AES_128_KEY_LEN: usize = 16;
+const AES_192_KEY_LEN: usize = 24;
+const AES_256_KEY_LEN: usize = 32;
+
 const AES_128_NK: usize = 4;
 const AES_192_NK: usize = 6;
 const AES_256_NK: usize = 8;
@@ -705,15 +717,15 @@ fn double_on_gf(a: u64) -> u64 {
     return ((a & 0x7f7f7f7f7f7f7f7f) << 1) ^ (b >> 3) ^ (b >> 4) ^ (b >> 6) ^ (b >> 7);
 }
 
-unsafe fn aes_key_expansion(key: *const u8, expanded_key: *mut u8, nk: usize) {
+unsafe fn aes_key_expansion(key: *const u8, exp_key: *mut u8, nk: usize) {
 
     for i in 0..(nk << 4) {
-        *expanded_key.add(i) = *key.add(i);
+        *exp_key.add(i) = *key.add(i);
     }
 
     for i in nk..((nk + 6) << 2) {
 
-        let t32: u32    = *(expanded_key as *mut u32).add(i - 1);
+        let t32: u32    = *(exp_key as *mut u32).add(i - 1);
         let t8: *mut u8 = (&t32 as *const u32) as *mut u8;
 
         if i % nk == 0 {
@@ -736,19 +748,19 @@ unsafe fn aes_key_expansion(key: *const u8, expanded_key: *mut u8, nk: usize) {
 
         }
 
-        *(expanded_key as *mut u32).add(i) = *(expanded_key as *mut u32).add(i - nk) ^ t32;
+        *(exp_key as *mut u32).add(i) = *(exp_key as *mut u32).add(i - nk) ^ t32;
 
     }
 
 }
 
-unsafe fn aes_expanded_key_inversion(expanded_key: *const u8, inv_expanded_key: *mut u8,
+unsafe fn aes_expanded_key_inversion(exp_key: *const u8, inv_exp_key: *mut u8,
     nk: usize) {
 
     let n: usize = (nk + 6) << 1;
 
-    *(inv_expanded_key as *mut u64).add(0) = *(expanded_key as *const u64).add(0);
-    *(inv_expanded_key as *mut u64).add(1) = *(expanded_key as *const u64).add(1);
+    *(inv_exp_key as *mut u64).add(0) = *(exp_key as *const u64).add(0);
+    *(inv_exp_key as *mut u64).add(1) = *(exp_key as *const u64).add(1);
 
     for i in 2..n {
 
@@ -756,7 +768,7 @@ unsafe fn aes_expanded_key_inversion(expanded_key: *const u8, inv_expanded_key: 
 
         let rk: usize = i << 3;
 
-        let x1: u64 = *(expanded_key as *const u64).add(i);
+        let x1: u64 = *(exp_key as *const u64).add(i);
         let x2: u64 = double_on_gf(x1);
         let x4: u64 = double_on_gf(x2);
         let x8: u64 = double_on_gf(x4);
@@ -765,42 +777,42 @@ unsafe fn aes_expanded_key_inversion(expanded_key: *const u8, inv_expanded_key: 
         let xd: u64 = x8 ^ x4 ^ x1;
         let xe: u64 = x8 ^ x4 ^ x2;
 
-        *inv_expanded_key.add(rk + 0) =
+        *inv_exp_key.add(rk + 0) =
             *((&xe as *const u64) as *const u8).add(0) ^
             *((&xb as *const u64) as *const u8).add(1) ^
             *((&xd as *const u64) as *const u8).add(2) ^
             *((&x9 as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 1) =
+        *inv_exp_key.add(rk + 1) =
             *((&x9 as *const u64) as *const u8).add(0) ^
             *((&xe as *const u64) as *const u8).add(1) ^
             *((&xb as *const u64) as *const u8).add(2) ^
             *((&xd as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 2) =
+        *inv_exp_key.add(rk + 2) =
             *((&xd as *const u64) as *const u8).add(0) ^
             *((&x9 as *const u64) as *const u8).add(1) ^
             *((&xe as *const u64) as *const u8).add(2) ^
             *((&xb as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 3) =
+        *inv_exp_key.add(rk + 3) =
             *((&xb as *const u64) as *const u8).add(0) ^
             *((&xd as *const u64) as *const u8).add(1) ^
             *((&x9 as *const u64) as *const u8).add(2) ^
             *((&xe as *const u64) as *const u8).add(3);
-        *inv_expanded_key.add(rk + 4) =
+        *inv_exp_key.add(rk + 4) =
             *((&xe as *const u64) as *const u8).add(4) ^
             *((&xb as *const u64) as *const u8).add(5) ^
             *((&xd as *const u64) as *const u8).add(6) ^
             *((&x9 as *const u64) as *const u8).add(7);
-        *inv_expanded_key.add(rk + 5) =
+        *inv_exp_key.add(rk + 5) =
             *((&x9 as *const u64) as *const u8).add(4) ^
             *((&xe as *const u64) as *const u8).add(5) ^
             *((&xb as *const u64) as *const u8).add(6) ^
             *((&xd as *const u64) as *const u8).add(7);
-        *inv_expanded_key.add(rk + 6) =
+        *inv_exp_key.add(rk + 6) =
             *((&xd as *const u64) as *const u8).add(4) ^
             *((&x9 as *const u64) as *const u8).add(5) ^
             *((&xe as *const u64) as *const u8).add(6) ^
             *((&xb as *const u64) as *const u8).add(7);
-        *inv_expanded_key.add(rk + 7) =
+        *inv_exp_key.add(rk + 7) =
             *((&xb as *const u64) as *const u8).add(4) ^
             *((&xd as *const u64) as *const u8).add(5) ^
             *((&x9 as *const u64) as *const u8).add(6) ^
@@ -808,12 +820,12 @@ unsafe fn aes_expanded_key_inversion(expanded_key: *const u8, inv_expanded_key: 
 
     }
 
-    *(inv_expanded_key as *mut u64).add(n + 0) = *(expanded_key as *const u64).add(n + 0);
-    *(inv_expanded_key as *mut u64).add(n + 1) = *(expanded_key as *const u64).add(n + 1);
+    *(inv_exp_key as *mut u64).add(n + 0) = *(exp_key as *const u64).add(n + 0);
+    *(inv_exp_key as *mut u64).add(n + 1) = *(exp_key as *const u64).add(n + 1);
 
 }
 
-unsafe fn aes_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *mut u8, nk: usize) {
+unsafe fn aes_cipher(exp_key: *const u8, block_in: *const u8, block_out: *mut u8, nk: usize) {
 
     let sp1: *const u32 = SP_BOX_1.as_ptr() as *const u32;
     let sp2: *const u32 = SP_BOX_2.as_ptr() as *const u32;
@@ -829,7 +841,7 @@ unsafe fn aes_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *m
 
     // AddRoundKey
     for i in 0..16 {
-        s[i] = *block_in.add(i) ^ *expanded_key.add(i);
+        s[i] = *block_in.add(i) ^ *exp_key.add(i);
     }
 
     for i in 1..nr {
@@ -850,10 +862,10 @@ unsafe fn aes_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *m
 
         // AddRoundKey
         let rk: usize = i << 2;
-        *s32.add(0) = w0 ^ *(expanded_key as *const u32).add(rk + 0);
-        *s32.add(1) = w1 ^ *(expanded_key as *const u32).add(rk + 1);
-        *s32.add(2) = w2 ^ *(expanded_key as *const u32).add(rk + 2);
-        *s32.add(3) = w3 ^ *(expanded_key as *const u32).add(rk + 3);
+        *s32.add(0) = w0 ^ *(exp_key as *const u32).add(rk + 0);
+        *s32.add(1) = w1 ^ *(exp_key as *const u32).add(rk + 1);
+        *s32.add(2) = w2 ^ *(exp_key as *const u32).add(rk + 2);
+        *s32.add(3) = w3 ^ *(exp_key as *const u32).add(rk + 3);
 
     }
 
@@ -878,12 +890,12 @@ unsafe fn aes_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *m
     // SubBytes then AddRoundKey
     let rk: usize = nr << 4;
     for i in 0..16 {
-        *block_out.add(i) = S_BOX[s[i] as usize] ^ *expanded_key.add(rk + i);
+        *block_out.add(i) = S_BOX[s[i] as usize] ^ *exp_key.add(rk + i);
     }
 
 }
 
-unsafe fn aes_eq_inv_cipher(expanded_key: *const u8, block_in: *const u8, block_out: *mut u8,
+unsafe fn aes_eq_inv_cipher(exp_key: *const u8, block_in: *const u8, block_out: *mut u8,
     nk: usize) {
 
     let sp1: *const u32 = INV_SP_BOX_1.as_ptr() as *const u32;
@@ -901,7 +913,7 @@ unsafe fn aes_eq_inv_cipher(expanded_key: *const u8, block_in: *const u8, block_
     // AddRoundKey
     let rk: usize = nr << 4;
     for i in 0..16 {
-        s[i] = *block_in.add(i) ^ *expanded_key.add(rk + i);
+        s[i] = *block_in.add(i) ^ *exp_key.add(rk + i);
     }
 
     for i in (1..nr).rev() {
@@ -922,10 +934,10 @@ unsafe fn aes_eq_inv_cipher(expanded_key: *const u8, block_in: *const u8, block_
 
         // AddRoundKey
         let rk: usize = i << 2;
-        *s32.add(0) = w0 ^ *(expanded_key as *const u32).add(rk + 0);
-        *s32.add(1) = w1 ^ *(expanded_key as *const u32).add(rk + 1);
-        *s32.add(2) = w2 ^ *(expanded_key as *const u32).add(rk + 2);
-        *s32.add(3) = w3 ^ *(expanded_key as *const u32).add(rk + 3);
+        *s32.add(0) = w0 ^ *(exp_key as *const u32).add(rk + 0);
+        *s32.add(1) = w1 ^ *(exp_key as *const u32).add(rk + 1);
+        *s32.add(2) = w2 ^ *(exp_key as *const u32).add(rk + 2);
+        *s32.add(3) = w3 ^ *(exp_key as *const u32).add(rk + 3);
 
     }
 
@@ -949,7 +961,7 @@ unsafe fn aes_eq_inv_cipher(expanded_key: *const u8, block_in: *const u8, block_
 
     // InvSubBytes then AddRoundKey
     for i in 0..16 {
-        *block_out.add(i) = INV_S_BOX[s[i] as usize] ^ *expanded_key.add(i);
+        *block_out.add(i) = INV_S_BOX[s[i] as usize] ^ *exp_key.add(i);
     }
 
 }

@@ -7,45 +7,51 @@ use crate::crypto::ec25519::U;
 
 pub struct X25519 {}
 
-pub const X25519_PRIVATE_KEY_LEN: usize   = 32;
-pub const X25519_PUBLIC_KEY_LEN: usize    = 32;
-pub const X25519_SHARED_SECRET_LEN: usize = 32;
+impl X25519 {
+    pub const PRIVATE_KEY_LEN: usize   = X25519_PRIVATE_KEY_LEN;
+    pub const PUBLIC_KEY_LEN: usize    = X25519_PUBLIC_KEY_LEN;
+    pub const SHARED_SECRET_LEN: usize = X25519_SHARED_SECRET_LEN;
+}
 
 impl DiffieHellman for X25519 {
 
-    fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Option<CryptoError> {
+    fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 
         if priv_key.len() < X25519_PRIVATE_KEY_LEN || pub_key.len() < X25519_PUBLIC_KEY_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
-        let k: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(priv_key).ok()?;
+        let k: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(priv_key)?;
         let mut v: Ec25519Uint = Ec25519Uint::new();
         x25519(&k, &U, &mut v);
         v.try_into_bytes(pub_key)?;
 
-        return None;
+        return Ok(());
 
     }
 
-    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Option<CryptoError> {
+    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Result<(), CryptoError> {
 
         if priv_key.len() < X25519_PRIVATE_KEY_LEN || peer_pub_key.len() < X25519_PUBLIC_KEY_LEN ||
             shared_secret.len() < X25519_SHARED_SECRET_LEN {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
 
-        let k: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(priv_key).ok()?;
-        let u: Ec25519Uint = Ec25519Uint::try_from_bytes_as_u_coordinate(peer_pub_key).ok()?;
+        let k: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(priv_key)?;
+        let u: Ec25519Uint = Ec25519Uint::try_from_bytes_as_u_coordinate(peer_pub_key)?;
         let mut v: Ec25519Uint = Ec25519Uint::new();
         x25519(&k, &u, &mut v);
         v.try_into_bytes(shared_secret)?;
 
-        return None;
+        return Ok(());
 
     }
 
 }
+
+const X25519_PRIVATE_KEY_LEN: usize   = 32;
+const X25519_PUBLIC_KEY_LEN: usize    = 32;
+const X25519_SHARED_SECRET_LEN: usize = 32;
 
 fn x25519(k: &Ec25519Uint, u: &Ec25519Uint, v: &mut Ec25519Uint) {
 

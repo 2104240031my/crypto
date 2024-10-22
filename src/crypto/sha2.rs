@@ -51,19 +51,6 @@ impl Sha224 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.h[0] = SHA224_H0_0;
-        self.s.h[1] = SHA224_H0_1;
-        self.s.h[2] = SHA224_H0_2;
-        self.s.h[3] = SHA224_H0_3;
-        self.s.h[4] = SHA224_H0_4;
-        self.s.h[5] = SHA224_H0_5;
-        self.s.h[6] = SHA224_H0_6;
-        self.s.h[7] = SHA224_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
-    }
-
 }
 
 impl Hash for Sha224 {
@@ -104,9 +91,23 @@ impl Hash for Sha224 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.h[0] = SHA224_H0_0;
+        self.s.h[1] = SHA224_H0_1;
+        self.s.h[2] = SHA224_H0_2;
+        self.s.h[3] = SHA224_H0_3;
+        self.s.h[4] = SHA224_H0_4;
+        self.s.h[5] = SHA224_H0_5;
+        self.s.h[6] = SHA224_H0_6;
+        self.s.h[7] = SHA224_H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha2_32_update(&mut self.s, msg);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -157,19 +158,6 @@ impl Sha256 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.h[0] = SHA256_H0_0;
-        self.s.h[1] = SHA256_H0_1;
-        self.s.h[2] = SHA256_H0_2;
-        self.s.h[3] = SHA256_H0_3;
-        self.s.h[4] = SHA256_H0_4;
-        self.s.h[5] = SHA256_H0_5;
-        self.s.h[6] = SHA256_H0_6;
-        self.s.h[7] = SHA256_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
-    }
-
 }
 
 impl Hash for Sha256 {
@@ -210,10 +198,23 @@ impl Hash for Sha256 {
 
     }
 
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.h[0] = SHA256_H0_0;
+        self.s.h[1] = SHA256_H0_1;
+        self.s.h[2] = SHA256_H0_2;
+        self.s.h[3] = SHA256_H0_3;
+        self.s.h[4] = SHA256_H0_4;
+        self.s.h[5] = SHA256_H0_5;
+        self.s.h[6] = SHA256_H0_6;
+        self.s.h[7] = SHA256_H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+        return Ok(self);
+    }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha2_32_update(&mut self.s, msg);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -264,19 +265,6 @@ impl Sha384 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.h[0] = SHA384_H0_0;
-        self.s.h[1] = SHA384_H0_1;
-        self.s.h[2] = SHA384_H0_2;
-        self.s.h[3] = SHA384_H0_3;
-        self.s.h[4] = SHA384_H0_4;
-        self.s.h[5] = SHA384_H0_5;
-        self.s.h[6] = SHA384_H0_6;
-        self.s.h[7] = SHA384_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
-    }
-
 }
 
 impl Hash for Sha384 {
@@ -321,9 +309,23 @@ impl Hash for Sha384 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.h[0] = SHA384_H0_0;
+        self.s.h[1] = SHA384_H0_1;
+        self.s.h[2] = SHA384_H0_2;
+        self.s.h[3] = SHA384_H0_3;
+        self.s.h[4] = SHA384_H0_4;
+        self.s.h[5] = SHA384_H0_5;
+        self.s.h[6] = SHA384_H0_6;
+        self.s.h[7] = SHA384_H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -378,19 +380,6 @@ impl Sha512 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.h[0] = SHA512_H0_0;
-        self.s.h[1] = SHA512_H0_1;
-        self.s.h[2] = SHA512_H0_2;
-        self.s.h[3] = SHA512_H0_3;
-        self.s.h[4] = SHA512_H0_4;
-        self.s.h[5] = SHA512_H0_5;
-        self.s.h[6] = SHA512_H0_6;
-        self.s.h[7] = SHA512_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
-    }
-
 }
 
 impl Hash for Sha512 {
@@ -435,9 +424,23 @@ impl Hash for Sha512 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.h[0] = SHA512_H0_0;
+        self.s.h[1] = SHA512_H0_1;
+        self.s.h[2] = SHA512_H0_2;
+        self.s.h[3] = SHA512_H0_3;
+        self.s.h[4] = SHA512_H0_4;
+        self.s.h[5] = SHA512_H0_5;
+        self.s.h[6] = SHA512_H0_6;
+        self.s.h[7] = SHA512_H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -492,19 +495,6 @@ impl Sha512224 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.h[0] = SHA512224_H0_0;
-        self.s.h[1] = SHA512224_H0_1;
-        self.s.h[2] = SHA512224_H0_2;
-        self.s.h[3] = SHA512224_H0_3;
-        self.s.h[4] = SHA512224_H0_4;
-        self.s.h[5] = SHA512224_H0_5;
-        self.s.h[6] = SHA512224_H0_6;
-        self.s.h[7] = SHA512224_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
-    }
-
 }
 
 impl Hash for Sha512224 {
@@ -554,9 +544,23 @@ impl Hash for Sha512224 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.h[0] = SHA512224_H0_0;
+        self.s.h[1] = SHA512224_H0_1;
+        self.s.h[2] = SHA512224_H0_2;
+        self.s.h[3] = SHA512224_H0_3;
+        self.s.h[4] = SHA512224_H0_4;
+        self.s.h[5] = SHA512224_H0_5;
+        self.s.h[6] = SHA512224_H0_6;
+        self.s.h[7] = SHA512224_H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -616,19 +620,6 @@ impl Sha512256 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.h[0] = SHA512256_H0_0;
-        self.s.h[1] = SHA512256_H0_1;
-        self.s.h[2] = SHA512256_H0_2;
-        self.s.h[3] = SHA512256_H0_3;
-        self.s.h[4] = SHA512256_H0_4;
-        self.s.h[5] = SHA512256_H0_5;
-        self.s.h[6] = SHA512256_H0_6;
-        self.s.h[7] = SHA512256_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
-    }
-
 }
 
 impl Hash for Sha512256 {
@@ -673,9 +664,23 @@ impl Hash for Sha512256 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.h[0] = SHA512256_H0_0;
+        self.s.h[1] = SHA512256_H0_1;
+        self.s.h[2] = SHA512256_H0_2;
+        self.s.h[3] = SHA512256_H0_3;
+        self.s.h[4] = SHA512256_H0_4;
+        self.s.h[5] = SHA512256_H0_5;
+        self.s.h[6] = SHA512256_H0_6;
+        self.s.h[7] = SHA512256_H0_7;
+        self.s.buf_len = 0;
+        self.s.total_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha2_64_update(&mut self.s, msg);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -974,13 +979,14 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
 
         s.buf[s.buf_len..(s.buf_len + i)].copy_from_slice(&msg[..i]);
 
+        let mut j: usize = 0;
         for t in 0..16 {
-            let j = i << 2;
             w[t] =
                 ((s.buf[j + 0] as u32) << 24) |
                 ((s.buf[j + 1] as u32) << 16) |
                 ((s.buf[j + 2] as u32) <<  8) |
                  (s.buf[j + 3] as u32);
+            j = j + 4;
         }
 
         for t in 16..64 {
@@ -1356,8 +1362,8 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
 
         s.buf[s.buf_len..(s.buf_len + i)].copy_from_slice(&msg[..i]);
 
+        let mut j: usize = 0;
         for t in 0..16 {
-            let j = i << 3;
             w[t] =
                 ((s.buf[j + 0] as u64) << 56) |
                 ((s.buf[j + 1] as u64) << 48) |
@@ -1367,6 +1373,7 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
                 ((s.buf[j + 5] as u64) << 16) |
                 ((s.buf[j + 6] as u64) <<  8) |
                  (s.buf[j + 7] as u64);
+            j = j + 8;
         }
 
         for t in 16..80 {

@@ -25,6 +25,8 @@ pub mod ed25519;
 #[allow(dead_code)]
 mod ec25519;
 
+use std::marker::Copy;
+use std::clone::Clone;
 use std::error::Error;
 use std::fmt::Display;
 
@@ -42,15 +44,17 @@ pub trait BlockCipher128: BlockCipher {
 
 pub trait Hash {
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError>;
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError>;
+    fn reset(&mut self) -> Result<&mut Self, CryptoError>;
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError>;
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub trait Mac {
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError>;
-    // fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError>;
-    // fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError>;
-    // fn compute(&mut self, md: &mut [u8]) -> Result<(), CryptoError>;
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
+    fn reset(&mut self) -> Result<&mut Self, CryptoError>;
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError>;
+    fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub trait DiffieHellman {
@@ -82,7 +86,7 @@ pub trait DigitalSignatureVerifier {
     fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum CryptoErrorCode {
 
     // general
@@ -123,6 +127,10 @@ impl CryptoError {
         return Self{
             err_code: err_code,
         };
+    }
+
+    pub fn err_code(&self) -> CryptoErrorCode {
+        return self.err_code;
     }
 
 }

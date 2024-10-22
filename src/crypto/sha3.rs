@@ -33,11 +33,6 @@ impl Sha3224 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
-    }
-
 }
 
 impl Hash for Sha3224 {
@@ -71,9 +66,15 @@ impl Hash for Sha3224 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha3_absorb(&mut self.s, msg, SHA3_224_RATE);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -122,11 +123,6 @@ impl Sha3256 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
-    }
-
 }
 
 impl Hash for Sha3256 {
@@ -157,9 +153,15 @@ impl Hash for Sha3256 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha3_absorb(&mut self.s, msg, SHA3_256_RATE);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -205,11 +207,6 @@ impl Sha3384 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
-    }
-
 }
 
 impl Hash for Sha3384 {
@@ -240,9 +237,15 @@ impl Hash for Sha3384 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha3_absorb(&mut self.s, msg, SHA3_384_RATE);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
@@ -288,11 +291,6 @@ impl Sha3512 {
         };
     }
 
-    pub fn reset(&mut self) {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
-    }
-
 }
 
 impl Hash for Sha3512 {
@@ -323,9 +321,15 @@ impl Hash for Sha3512 {
 
     }
 
-    fn update(&mut self, msg: &[u8]) -> Result<(), CryptoError> {
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.s.a = [0; 25];
+        self.s.buf_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
         sha3_absorb(&mut self.s, msg, SHA3_512_RATE);
-        return Ok(());
+        return Ok(self);
     }
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {

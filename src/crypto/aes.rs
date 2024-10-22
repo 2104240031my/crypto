@@ -31,7 +31,7 @@ impl Aes {
             nk: nk
         };
 
-        v.rekey(key);
+        v.rekey(key)?;
         return Ok(v);
 
     }
@@ -723,7 +723,7 @@ unsafe fn aes_key_expansion(key: *const u8, exp_key: *mut u8, nk: usize) {
         *exp_key.add(i) = *key.add(i);
     }
 
-    for i in nk..((nk + 6) << 2) {
+    for i in nk..((nk + 7) << 2) {
 
         let t32: u32    = *(exp_key as *mut u32).add(i - 1);
         let t8: *mut u8 = (&t32 as *const u32) as *mut u8;

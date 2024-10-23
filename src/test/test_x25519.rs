@@ -1,39 +1,57 @@
 use crate::crypto::DiffieHellman;
 use crate::crypto::x25519::X25519;
 use crate::test::{
+    DEBUG_PRINT_X25519,
     printbytesln,
     eqbytes
 };
 
-fn test_x25519_inner_a(s: &[u8], u: &[u8], d: &[u8]) {
+pub fn test_x25519() -> usize {
+    let mut err: usize = 0;
+    err = err + test_x25519_1();
+    err = err + test_x25519_2();
+    err = err + test_x25519_3();
+    err = err + test_x25519_ecdh();
+    return err;
+}
+
+fn test_x25519_inner_a(s: &[u8], u: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 32] = [0; 32];
 
     X25519::compute_shared_secret(s, u, &mut out[..]).unwrap();
 
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing X25519 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_X25519 {
+        print!("[!Err]: testing X25519 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        return 1;
     }
+
+    return 0;
 
 }
 
-fn test_x25519_inner_b(s: &[u8], d: &[u8]) {
+fn test_x25519_inner_b(s: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 32] = [0; 32];
 
     X25519::compute_public_key(s, &mut out[..]).unwrap();
 
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing X25519 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_X25519 {
+        print!("[!Err]: testing X25519 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        return 1;
     }
+
+    return 0;
 
 }
 
-fn test_x25519_1() {
+fn test_x25519_1() -> usize {
     let s: [u8; 32] = [
         0xa5, 0x46, 0xe3, 0x6b, 0xf0, 0x52, 0x7c, 0x9d, 0x3b, 0x16, 0x15, 0x4b, 0x82, 0x46, 0x5e, 0xdd,
         0x62, 0x14, 0x4c, 0x0a, 0xc1, 0xfc, 0x5a, 0x18, 0x50, 0x6a, 0x22, 0x44, 0xba, 0x44, 0x9a, 0xc4
@@ -46,10 +64,10 @@ fn test_x25519_1() {
         0xc3, 0xda, 0x55, 0x37, 0x9d, 0xe9, 0xc6, 0x90, 0x8e, 0x94, 0xea, 0x4d, 0xf2, 0x8d, 0x08, 0x4f,
         0x32, 0xec, 0xcf, 0x03, 0x49, 0x1c, 0x71, 0xf7, 0x54, 0xb4, 0x07, 0x55, 0x77, 0xa2, 0x85, 0x52
     ];
-    test_x25519_inner_a(&s[..], &u[..], &d[..]);
+    return test_x25519_inner_a(&s[..], &u[..], &d[..]);
 }
 
-fn test_x25519_2() {
+fn test_x25519_2() -> usize {
     let s: [u8; 32] = [
         0x4b, 0x66, 0xe9, 0xd4, 0xd1, 0xb4, 0x67, 0x3c, 0x5a, 0xd2, 0x26, 0x91, 0x95, 0x7d, 0x6a, 0xf5,
         0xc1, 0x1b, 0x64, 0x21, 0xe0, 0xea, 0x01, 0xd4, 0x2c, 0xa4, 0x16, 0x9e, 0x79, 0x18, 0xba, 0x0d
@@ -62,10 +80,10 @@ fn test_x25519_2() {
         0x95, 0xcb, 0xde, 0x94, 0x76, 0xe8, 0x90, 0x7d, 0x7a, 0xad, 0xe4, 0x5c, 0xb4, 0xb8, 0x73, 0xf8,
         0x8b, 0x59, 0x5a, 0x68, 0x79, 0x9f, 0xa1, 0x52, 0xe6, 0xf8, 0xf7, 0x64, 0x7a, 0xac, 0x79, 0x57
     ];
-    test_x25519_inner_a(&s[..], &u[..], &d[..]);
+    return test_x25519_inner_a(&s[..], &u[..], &d[..]);
 }
 
-fn test_x25519_3() {
+fn test_x25519_3() -> usize {
     let s: [u8; 32] = [
         0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -74,10 +92,10 @@ fn test_x25519_3() {
         0x42, 0x2c, 0x8e, 0x7a, 0x62, 0x27, 0xd7, 0xbc, 0xa1, 0x35, 0x0b, 0x3e, 0x2b, 0xb7, 0x27, 0x9f,
         0x78, 0x97, 0xb8, 0x7b, 0xb6, 0x85, 0x4b, 0x78, 0x3c, 0x60, 0xe8, 0x03, 0x11, 0xae, 0x30, 0x79
     ];
-    test_x25519_inner_b(&s[..], &d[..]);
+    return test_x25519_inner_b(&s[..], &d[..]);
 }
 
-fn test_x25519_ecdh() {
+fn test_x25519_ecdh() -> usize {
 
     let alice_privkey: [u8; 32] = [
         0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d, 0x3c, 0x16, 0xc1, 0x72, 0x51, 0xb2, 0x66, 0x45,
@@ -110,46 +128,51 @@ fn test_x25519_ecdh() {
     let mut out_alice_ss: [u8; 32] = [0; 32];
     let mut out_bob_ss: [u8; 32] = [0; 32];
 
-    // println!("Alice ECDH private key: ");
+    let mut err: usize = 0;
+
+    // print!("Alice ECDH private key: ");
     // printbytesln(&alice_privkey[..]);
 
-    // println!("Bob ECDH private key: ");
+    // print!("Bob ECDH private key: ");
     // printbytesln(&bob_privkey[..]);
 
     X25519::compute_public_key(&alice_privkey[..], &mut out_alice_pubkey[..]).unwrap();
 
-    if !eqbytes(&alice_pubkey[..], &out_alice_pubkey[..]) {
-        println!("Err: testing X25519 is failed.");
-        println!("Alice ECDH public key: ");
-        print!("  Test-V: "); printbytesln(&alice_pubkey[..]);
-        print!("  Result: "); printbytesln(&out_alice_pubkey[..]);
+    if !eqbytes(&alice_pubkey[..], &out_alice_pubkey[..]) || DEBUG_PRINT_X25519 {
+        print!("[!Err]: testing X25519 is FAILED.\n");
+        print!("Alice ECDH public key:\n");
+        print!(" - Test-Vec => "); printbytesln(&alice_pubkey[..]);
+        print!(" - Exec-Res => "); printbytesln(&out_alice_pubkey[..]);
+        println!();
+        err = err + 1;
     }
 
     X25519::compute_public_key(&bob_privkey[..], &mut out_bob_pubkey[..]).unwrap();
-    if !eqbytes(&bob_pubkey[..], &out_bob_pubkey[..]) {
-        println!("Err: testing X25519 is failed.");
-        println!("Bob ECDH public key: ");
-        print!("  Test-V: "); printbytesln(&bob_pubkey[..]);
-        print!("  Result: "); printbytesln(&out_bob_pubkey[..]);
+    if !eqbytes(&bob_pubkey[..], &out_bob_pubkey[..]) || DEBUG_PRINT_X25519 {
+        print!("[!Err]: testing X25519 is FAILED.\n");
+        print!("Bob ECDH public key:\n");
+        print!(" - Test-Vec => "); printbytesln(&bob_pubkey[..]);
+        print!(" - Exec-Res => "); printbytesln(&out_bob_pubkey[..]);
+        println!();
+        err = err + 1;
     }
 
     X25519::compute_shared_secret(&alice_privkey[..], &out_bob_pubkey[..], &mut out_alice_ss[..]).unwrap();
     X25519::compute_shared_secret(&bob_privkey[..], &out_alice_pubkey[..], &mut out_bob_ss[..]).unwrap();
 
-    if !eqbytes(&shared_secret[..], &out_alice_ss[..]) || !eqbytes(&shared_secret[..], &out_bob_ss[..]) {
-        println!("Err: testing X25519 is failed.");
-        println!("Shared Secret: ");
-        print!("  Test-V: ");  printbytesln(&shared_secret[..]);
-        println!("  Result: ");
-        print!("    Alice: "); printbytesln(&out_alice_ss[..]);
-        print!("    Bob  : "); printbytesln(&out_bob_ss[..]);
+    if !eqbytes(&shared_secret[..], &out_alice_ss[..]) || !eqbytes(&shared_secret[..], &out_bob_ss[..]) ||
+        DEBUG_PRINT_X25519 {
+        print!("[!Err]: testing X25519 is FAILED.\n");
+        print!("Shared Secret:\n");
+        print!(" - Test-Vec => "); printbytesln(&shared_secret[..]);
+        print!(" - Exec-Res => {{\n");
+        print!("       Alice: "); printbytesln(&out_alice_ss[..]);
+        print!("       Bob  : "); printbytesln(&out_bob_ss[..]);
+        print!("   }}\n");
+        println!();
+        err = err + 2;
     }
 
-}
+    return err;
 
-pub fn test_x25519() {
-    test_x25519_1();
-    test_x25519_2();
-    test_x25519_3();
-    test_x25519_ecdh();
 }

@@ -88,6 +88,28 @@ impl BlockCipher for Aes {
 
     }
 
+    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+
+        if block.len() < AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        self.encrypt_and_overwrite_unchecked(block);
+        return Ok(());
+
+    }
+
+    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+
+        if block.len() < AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        }
+
+        self.decrypt_and_overwrite_unchecked(block);
+        return Ok(());
+
+    }
+
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
         unsafe {
             aes_cipher(
@@ -105,6 +127,28 @@ impl BlockCipher for Aes {
                 self.dw.as_ptr() as *const u8,
                 block_in.as_ptr() as *const u8,
                 block_out.as_ptr() as *mut u8,
+                self.nk
+            );
+        }
+    }
+
+    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
+        unsafe {
+            aes_cipher(
+                self.ew.as_ptr() as *const u8,
+                block.as_ptr() as *const u8,
+                block.as_ptr() as *mut u8,
+                self.nk
+            );
+        }
+    }
+
+    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
+        unsafe {
+            aes_eq_inv_cipher(
+                self.dw.as_ptr() as *const u8,
+                block.as_ptr() as *const u8,
+                block.as_ptr() as *mut u8,
                 self.nk
             );
         }
@@ -754,8 +798,7 @@ unsafe fn aes_key_expansion(key: *const u8, exp_key: *mut u8, nk: usize) {
 
 }
 
-unsafe fn aes_expanded_key_inversion(exp_key: *const u8, inv_exp_key: *mut u8,
-    nk: usize) {
+unsafe fn aes_expanded_key_inversion(exp_key: *const u8, inv_exp_key: *mut u8, nk: usize) {
 
     let n: usize = (nk + 6) << 1;
 
@@ -870,22 +913,22 @@ unsafe fn aes_cipher(exp_key: *const u8, block_in: *const u8, block_out: *mut u8
     }
 
     // ShiftRows
-    let t = s[1];
-    s[1]  = s[5];
-    s[5]  = s[9];
-    s[9]  = s[13];
-    s[13] = t;
-    let t = s[2];
-    s[2]  = s[10];
-    s[10] = t;
-    let t = s[6];
-    s[6]  = s[14];
-    s[14] = t;
-    let t = s[15];
-    s[15] = s[11];
-    s[11] = s[7];
-    s[7]  = s[3];
-    s[3]  = t;
+    let t: u8 = s[1];
+    s[1]      = s[5];
+    s[5]      = s[9];
+    s[9]      = s[13];
+    s[13]     = t;
+    let t: u8 = s[2];
+    s[2]      = s[10];
+    s[10]     = t;
+    let t: u8 = s[6];
+    s[6]      = s[14];
+    s[14]     = t;
+    let t: u8 = s[15];
+    s[15]     = s[11];
+    s[11]     = s[7];
+    s[7]      = s[3];
+    s[3]      = t;
 
     // SubBytes then AddRoundKey
     let rk: usize = nr << 4;
@@ -942,22 +985,22 @@ unsafe fn aes_eq_inv_cipher(exp_key: *const u8, block_in: *const u8, block_out: 
     }
 
     // InvShiftRows
-    let t = s[1];
-    s[1]  = s[13];
-    s[13] = s[9];
-    s[9]  = s[5];
-    s[5]  = t;
-    let t = s[2];
-    s[2]  = s[10];
-    s[10] = t;
-    let t = s[6];
-    s[6]  = s[14];
-    s[14] = t;
-    let t = s[3];
-    s[3]  = s[7];
-    s[7]  = s[11];
-    s[11] = s[15];
-    s[15] = t;
+    let t: u8 = s[1];
+    s[1]      = s[13];
+    s[13]     = s[9];
+    s[9]      = s[5];
+    s[5]      = t;
+    let t: u8 = s[2];
+    s[2]      = s[10];
+    s[10]     = t;
+    let t: u8 = s[6];
+    s[6]      = s[14];
+    s[14]     = t;
+    let t: u8 = s[3];
+    s[3]      = s[7];
+    s[7]      = s[11];
+    s[11]     = s[15];
+    s[15]     = t;
 
     // InvSubBytes then AddRoundKey
     for i in 0..16 {

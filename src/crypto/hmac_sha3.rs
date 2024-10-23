@@ -41,7 +41,7 @@ impl HmacSha3224 {
             outer: [0; Sha3224::BLOCK_SIZE + Sha3224::MESSAGE_DIGEST_LEN],
             s: Sha3224::new()
         };
-        v.rekey(key)?;
+        v.rekey(key)?.reset()?;
         return Ok(v);
     }
 
@@ -103,7 +103,7 @@ impl HmacSha3256 {
             outer: [0; Sha3256::BLOCK_SIZE + Sha3256::MESSAGE_DIGEST_LEN],
             s: Sha3256::new()
         };
-        v.rekey(key)?;
+        v.rekey(key)?.reset()?;
         return Ok(v);
     }
 
@@ -165,7 +165,7 @@ impl HmacSha3384 {
             outer: [0; Sha3384::BLOCK_SIZE + Sha3384::MESSAGE_DIGEST_LEN],
             s: Sha3384::new()
         };
-        v.rekey(key)?;
+        v.rekey(key)?.reset()?;
         return Ok(v);
     }
 
@@ -227,7 +227,7 @@ impl HmacSha3512 {
             outer: [0; Sha3512::BLOCK_SIZE + Sha3512::MESSAGE_DIGEST_LEN],
             s: Sha3512::new()
         };
-        v.rekey(key)?;
+        v.rekey(key)?.reset()?;
         return Ok(v);
     }
 

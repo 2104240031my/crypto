@@ -1,112 +1,28 @@
+mod cmd;
+
 #[allow(dead_code)]
 mod crypto;
-mod test;
 
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::Hash;
-use crate::crypto::sha2::Sha224;
-use crate::crypto::sha2::Sha256;
-use crate::crypto::sha2::Sha384;
-use crate::crypto::sha2::Sha512;
-use crate::crypto::sha2::Sha512224;
-use crate::crypto::sha2::Sha512256;
-use crate::crypto::sha3::Sha3224;
-use crate::crypto::sha3::Sha3256;
-use crate::crypto::sha3::Sha3384;
-use crate::crypto::sha3::Sha3512;
+#[allow(dead_code)]
+mod test;
 
 fn main() {
 
     let args: Vec<String> = std::env::args().collect();
 
     if args.len() < 2 {
-        println!("crypto command usage:");
-        println!("    crypto [sub-command] ...");
-        println!("");
-        println!("list of sub-command is shown below:");
-        println!(" - cipher");
-        println!(" - hash");
-        println!(" - help");
+        cmd::println_cmd_usage();
         return;
     }
 
     match args[1].as_str() {
-        "hash" => {
+        "hash" => cmd::cmd_hash::cmd_hash((&args[1..]).to_vec()),
+        "help" => cmd::println_cmd_usage(),
 
-            let mut flag: bool = false;
+        #[cfg(debug_assertions)]
+        "test" => test::test(),
 
-            if args.len() < 5 {
-
-                println!("!Err: crypto hash commands takes at least 3 arguments.");
-
-            } else {
-
-                let (hash, md_len): (
-                    fn (b: &[u8], d: &mut [u8]) -> Result<(), CryptoError>,
-                    usize
-                ) = match args[2].as_str() {
-                    "sha-224"     => (Sha224::digest_oneshot, 28),
-                    "sha-256"     => (Sha256::digest_oneshot, 32),
-                    "sha-384"     => (Sha384::digest_oneshot, 48),
-                    "sha-512"     => (Sha512::digest_oneshot, 64),
-                    "sha-512/224" => (Sha512224::digest_oneshot, 28),
-                    "sha-512/256" => (Sha512256::digest_oneshot, 32),
-                    "sha3-224"    => (Sha3224::digest_oneshot, 28),
-                    "sha3-256"    => (Sha3256::digest_oneshot, 32),
-                    "sha3-384"    => (Sha3384::digest_oneshot, 48),
-                    "sha3-512"    => (Sha3512::digest_oneshot, 64),
-                    _             => (|_b: &[u8], _d: &mut [u8]| -> Result<(), CryptoError> {
-                        return Err(CryptoError::new(CryptoErrorCode::UnsupportedAlgorithm));
-                    }, 0)
-                };
-
-                match args[3].as_str() {
-                    "str" => {
-                        let mut out: [u8; 128] = [0; 128];
-                        if let Ok(_) = hash(args[4].as_bytes(), &mut out[..]) {
-                            flag = true;
-                            printbytesln(&out[..md_len]);
-                        }
-                    },
-                    "file" => {
-
-                    }
-                    _ => {}
-                }
-
-            }
-
-            if !flag {
-                println!("crypto hash command usage:");
-                println!("    crypto hash [algorithm] [\"str\"|\"file\"] [in-data (string or file-path)] ...");
-                println!("");
-                println!("supported algorithms are shown below:");
-                println!(" - sha-224");
-                println!(" - sha-256");
-                println!(" - sha-384");
-                println!(" - sha-512");
-                println!(" - sha-512/224");
-                println!(" - sha-512/256");
-                println!(" - sha3-224");
-                println!(" - sha3-256");
-                println!(" - sha3-384");
-                println!(" - sha3-512");
-            }
-
-        },
-        "test" => {
-            test::test();
-            return;
-        }
-        _ => return
+        _      => println!("[!Err]: there is no such command."),
     }
 
-}
-
-fn printbytesln(bytes: &[u8]) {
-    for i in 0..bytes.len() {
-        print!("{:02x}", bytes[i]);
-    }
-    println!();
 }

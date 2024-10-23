@@ -1,19 +1,22 @@
 use crate::crypto::Mac;
-use crate::crypto::hmac_sha3_3::HmacSha3256;
+use crate::crypto::hmac_sha3::HmacSha3224;
+use crate::crypto::hmac_sha3::HmacSha3256;
+use crate::crypto::hmac_sha3::HmacSha3384;
+use crate::crypto::hmac_sha3::HmacSha3512;
 use crate::test::{
+    DEBUG_PRINT_HMAC_SHA3,
     printbytesln,
     eqbytes
 };
 
-use crate::crypto::Mac;
-use crate::crypto::hmac_sha3_2::HmacSha224;
-use crate::crypto::hmac_sha3_2::HmacSha256;
-use crate::crypto::hmac_sha3_2::HmacSha384;
-use crate::crypto::hmac_sha3_2::HmacSha512;
-use crate::test::{
-    printbytesln,
-    eqbytes
-};
+pub fn test_hmac_sha3() -> usize {
+    let mut err: usize = 0;
+    err = err + test_hmac_sha3_224();
+    err = err + test_hmac_sha3_256();
+    err = err + test_hmac_sha3_384();
+    err = err + test_hmac_sha3_512();
+    return err;
+}
 
 static K: [u8; 172] = [
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
@@ -26,19 +29,21 @@ static K: [u8; 172] = [
     0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F,
     0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F,
     0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9F,
-    0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAE, 0xAF,
-    0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7, 0xB8, 0xB9, 0xBA, 0xBB
+    0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB
 ];
 
-fn test_hmac_sha3_224_inner(k: &[u8], m: &[u8], d: &[u8]) {
+fn test_hmac_sha3_224_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 28] = [0; 28];
+    let mut err: usize = 0;
 
     HmacSha3224::compute_oneshot(k, m, &mut out[..]).unwrap();
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-224 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-224 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
 
     let mut hmac = HmacSha3224::new(k).unwrap();
@@ -48,23 +53,30 @@ fn test_hmac_sha3_224_inner(k: &[u8], m: &[u8], d: &[u8]) {
     }
     hmac.compute(&mut out[..28]).unwrap();
 
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-224 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-224 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
+
+    return err;
 
 }
 
-fn test_hmac_sha3_256_inner(k: &[u8], m: &[u8], d: &[u8]) {
+fn test_hmac_sha3_256_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 32] = [0; 32];
+    let mut err: usize = 0;
 
     HmacSha3256::compute_oneshot(k, m, &mut out[..]).unwrap();
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-256 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-256 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
 
     let mut hmac = HmacSha3256::new(k).unwrap();
@@ -74,23 +86,30 @@ fn test_hmac_sha3_256_inner(k: &[u8], m: &[u8], d: &[u8]) {
     }
     hmac.compute(&mut out[..32]).unwrap();
 
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-256 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-256 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
+
+    return err;
 
 }
 
-fn test_hmac_sha3_384_inner(k: &[u8], m: &[u8], d: &[u8]) {
+fn test_hmac_sha3_384_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 48] = [0; 48];
+    let mut err: usize = 0;
 
     HmacSha3384::compute_oneshot(k, m, &mut out[..]).unwrap();
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-384 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-384 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
 
     let mut hmac = HmacSha3384::new(k).unwrap();
@@ -100,23 +119,30 @@ fn test_hmac_sha3_384_inner(k: &[u8], m: &[u8], d: &[u8]) {
     }
     hmac.compute(&mut out[..48]).unwrap();
 
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-384 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-384 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
+
+    return err;
 
 }
 
-fn test_hmac_sha3_512_inner(k: &[u8], m: &[u8], d: &[u8]) {
+fn test_hmac_sha3_512_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 64] = [0; 64];
+    let mut err: usize = 0;
 
     HmacSha3512::compute_oneshot(k, m, &mut out[..]).unwrap();
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-512 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-512 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
 
     let mut hmac = HmacSha3512::new(k).unwrap();
@@ -126,114 +152,127 @@ fn test_hmac_sha3_512_inner(k: &[u8], m: &[u8], d: &[u8]) {
     }
     hmac.compute(&mut out[..64]).unwrap();
 
-    if !eqbytes(d, &out[..]) {
-        println!("Err: testing HMAC-SHA3-512 is failed.");
-        printbytesln(&d[..]);
-        printbytesln(&out[..]);
+    if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
+        print!("[!Err]: testing HMAC-SHA3-512 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
     }
 
+    return err;
+
 }
 
-fn test_hmac_sha3_224() {
+fn test_hmac_sha3_224() -> usize {
+
+    let mut err: usize = 0;
 
     let d1: [u8; 28] = [
-        332cfd59 347fdb8e 576e7726 0be4aba2
-        d6dc5311 7b3bfb52 c6d18c04
+        0x33, 0x2c, 0xfd, 0x59, 0x34, 0x7f, 0xdb, 0x8e, 0x57, 0x6e, 0x77, 0x26, 0x0b, 0xe4, 0xab, 0xa2,
+        0xd6, 0xdc, 0x53, 0x11, 0x7b, 0x3b, 0xfb, 0x52, 0xc6, 0xd1, 0x8c, 0x04
     ];
-    test_hmac_sha3_224_inner(&K[..28], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
+    err = err + test_hmac_sha3_224_inner(&K[..28], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
 
     let d2: [u8; 28] = [
-        d8b733bc f66c644a 12323d56 4e24dcf3
-        fc75f231 f3b67968 359100c7
+        0xd8, 0xb7, 0x33, 0xbc, 0xf6, 0x6c, 0x64, 0x4a, 0x12, 0x32, 0x3d, 0x56, 0x4e, 0x24, 0xdc, 0xf3,
+        0xfc, 0x75, 0xf2, 0x31, 0xf3, 0xb6, 0x79, 0x68, 0x35, 0x91, 0x00, 0xc7
     ];
-    test_hmac_sha3_224_inner(&K[..144], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
+    err = err + test_hmac_sha3_224_inner(&K[..144], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
 
     let d3: [u8; 28] = [
-        078695ee cc227c63 6ad31d06 3a15dd05
-        a7e819a6 6ec6d8de 1e193e59
+        0x07, 0x86, 0x95, 0xee, 0xcc, 0x22, 0x7c, 0x63, 0x6a, 0xd3, 0x1d, 0x06, 0x3a, 0x15, 0xdd, 0x05,
+        0xa7, 0xe8, 0x19, 0xa6, 0x6e, 0xc6, 0xd8, 0xde, 0x1e, 0x19, 0x3e, 0x59
     ];
-    test_hmac_sha3_224_inner(&K[..172], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+    err = err + test_hmac_sha3_224_inner(&K[..172], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+
+    return err;
 
 }
 
-fn test_hmac_sha3_256() {
+fn test_hmac_sha3_256() -> usize {
+
+    let mut err: usize = 0;
 
     let d1: [u8; 32] = [
-        4fe8e202 c4f058e8 dddc23d8 c34e4673
-        43e23555 e24fc2f0 25d598f5 58f67205
+        0x4f, 0xe8, 0xe2, 0x02, 0xc4, 0xf0, 0x58, 0xe8, 0xdd, 0xdc, 0x23, 0xd8, 0xc3, 0x4e, 0x46, 0x73,
+        0x43, 0xe2, 0x35, 0x55, 0xe2, 0x4f, 0xc2, 0xf0, 0x25, 0xd5, 0x98, 0xf5, 0x58, 0xf6, 0x72, 0x05
     ];
-    test_hmac_sha3_256_inner(&K[..32], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
+    err = err + test_hmac_sha3_256_inner(&K[..32], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
 
     let d2: [u8; 32] = [
-        68b94e2e 538a9be4 103bebb5 aa016d47
-        961d4d1a a9060613 13b557f8 af2c3faa
+        0x68, 0xb9, 0x4e, 0x2e, 0x53, 0x8a, 0x9b, 0xe4, 0x10, 0x3b, 0xeb, 0xb5, 0xaa, 0x01, 0x6d, 0x47,
+        0x96, 0x1d, 0x4d, 0x1a, 0xa9, 0x06, 0x06, 0x13, 0x13, 0xb5, 0x57, 0xf8, 0xaf, 0x2c, 0x3f, 0xaa
     ];
-    test_hmac_sha3_256_inner(&K[..136], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
+    err = err + test_hmac_sha3_256_inner(&K[..136], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
 
     let d3: [u8; 32] = [
-        9bcf2c23 8e235c3c e88404e8 13bd2f3a
-        97185ac6 f238c63d 6229a00b 07974258
+        0x9b, 0xcf, 0x2c, 0x23, 0x8e, 0x23, 0x5c, 0x3c, 0xe8, 0x84, 0x04, 0xe8, 0x13, 0xbd, 0x2f, 0x3a,
+        0x97, 0x18, 0x5a, 0xc6, 0xf2, 0x38, 0xc6, 0x3d, 0x62, 0x29, 0xa0, 0x0b, 0x07, 0x97, 0x42, 0x58
     ];
-    test_hmac_sha3_256_inner(&K[..168], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+    err = err + test_hmac_sha3_256_inner(&K[..168], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+
+    return err;
 
 }
 
-fn test_hmac_sha3_384() {
+fn test_hmac_sha3_384() -> usize {
+
+    let mut err: usize = 0;
 
     let d1: [u8; 48] = [
-        d588a3c5 1f3f2d90 6e8298c1 199aa8ff
-        62962181 27f6b38a 90b6afe2 c5617725
-        bc99987f 79b22a55 7b6520db 710b7f42
+        0xd5, 0x88, 0xa3, 0xc5, 0x1f, 0x3f, 0x2d, 0x90, 0x6e, 0x82, 0x98, 0xc1, 0x19, 0x9a, 0xa8, 0xff,
+        0x62, 0x96, 0x21, 0x81, 0x27, 0xf6, 0xb3, 0x8a, 0x90, 0xb6, 0xaf, 0xe2, 0xc5, 0x61, 0x77, 0x25,
+        0xbc, 0x99, 0x98, 0x7f, 0x79, 0xb2, 0x2a, 0x55, 0x7b, 0x65, 0x20, 0xdb, 0x71, 0x0b, 0x7f, 0x42
     ];
-    test_hmac_sha3_384_inner(&K[..48], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
+    err = err + test_hmac_sha3_384_inner(&K[..48], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
 
     let d2: [u8; 48] = [
-        a27d24b5 92e8c8cb f6d4ce6f c5bf62d8
-        fc98bf2d 486640d9 eb8099e2 4047837f
-        5f3bffbe 92dcce90 b4ed5b1e 7e44fa90
+        0xa2, 0x7d, 0x24, 0xb5, 0x92, 0xe8, 0xc8, 0xcb, 0xf6, 0xd4, 0xce, 0x6f, 0xc5, 0xbf, 0x62, 0xd8,
+        0xfc, 0x98, 0xbf, 0x2d, 0x48, 0x66, 0x40, 0xd9, 0xeb, 0x80, 0x99, 0xe2, 0x40, 0x47, 0x83, 0x7f,
+        0x5f, 0x3b, 0xff, 0xbe, 0x92, 0xdc, 0xce, 0x90, 0xb4, 0xed, 0x5b, 0x1e, 0x7e, 0x44, 0xfa, 0x90
     ];
-    test_hmac_sha3_384_inner(&K[..104], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
+    err = err + test_hmac_sha3_384_inner(&K[..104], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
 
     let d3: [u8; 48] = [
-        e5ae4c73 9f455279 368ebf36 d4f5354c
-        95aa184c 899d3870 e460ebc2 88ef1f94
-        70053f73 f7c6da2a 71bcaec3 8ce7d6ac
+        0xe5, 0xae, 0x4c, 0x73, 0x9f, 0x45, 0x52, 0x79, 0x36, 0x8e, 0xbf, 0x36, 0xd4, 0xf5, 0x35, 0x4c,
+        0x95, 0xaa, 0x18, 0x4c, 0x89, 0x9d, 0x38, 0x70, 0xe4, 0x60, 0xeb, 0xc2, 0x88, 0xef, 0x1f, 0x94,
+        0x70, 0x05, 0x3f, 0x73, 0xf7, 0xc6, 0xda, 0x2a, 0x71, 0xbc, 0xae, 0xc3, 0x8c, 0xe7, 0xd6, 0xac
     ];
-    test_hmac_sha3_384_inner(&K[..152], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+    err = err + test_hmac_sha3_384_inner(&K[..152], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+
+    return err;
 
 }
 
-fn test_hmac_sha3_512() {
+fn test_hmac_sha3_512() -> usize {
+
+    let mut err: usize = 0;
 
     let d1: [u8; 64] = [
-        4efd629d 6c71bf86 162658f2 9943b1c3
-        08ce27cd fa6db0d9 c3ce8176 3f9cbce5
-        f7ebe986 8031db1a 8f8eb7b6 b95e5c5e
-        3f657a89 96c86a2f 6527e307 f0213196
+        0x4e, 0xfd, 0x62, 0x9d, 0x6c, 0x71, 0xbf, 0x86, 0x16, 0x26, 0x58, 0xf2, 0x99, 0x43, 0xb1, 0xc3,
+        0x08, 0xce, 0x27, 0xcd, 0xfa, 0x6d, 0xb0, 0xd9, 0xc3, 0xce, 0x81, 0x76, 0x3f, 0x9c, 0xbc, 0xe5,
+        0xf7, 0xeb, 0xe9, 0x86, 0x80, 0x31, 0xdb, 0x1a, 0x8f, 0x8e, 0xb7, 0xb6, 0xb9, 0x5e, 0x5c, 0x5e,
+        0x3f, 0x65, 0x7a, 0x89, 0x96, 0xc8, 0x6a, 0x2f, 0x65, 0x27, 0xe3, 0x07, 0xf0, 0x21, 0x31, 0x96
     ];
-    test_hmac_sha3_512_inner(&K[..64], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
+    err = err + test_hmac_sha3_512_inner(&K[..64], "Sample message for keylen<blocklen".as_bytes(), &d1[..]);
 
     let d2: [u8; 64] = [
-        544e257e a2a3e5ea 19a590e6 a24b724c
-        e6327757 723fe275 1b75bf00 7d80f6b3
-        60744bf1 b7a88ea5 85f9765b 47911976
-        d3191cf8 3c039f5f fab0d29c c9d9b6da
+        0x54, 0x4e, 0x25, 0x7e, 0xa2, 0xa3, 0xe5, 0xea, 0x19, 0xa5, 0x90, 0xe6, 0xa2, 0x4b, 0x72, 0x4c,
+        0xe6, 0x32, 0x77, 0x57, 0x72, 0x3f, 0xe2, 0x75, 0x1b, 0x75, 0xbf, 0x00, 0x7d, 0x80, 0xf6, 0xb3,
+        0x60, 0x74, 0x4b, 0xf1, 0xb7, 0xa8, 0x8e, 0xa5, 0x85, 0xf9, 0x76, 0x5b, 0x47, 0x91, 0x19, 0x76,
+        0xd3, 0x19, 0x1c, 0xf8, 0x3c, 0x03, 0x9f, 0x5f, 0xfa, 0xb0, 0xd2, 0x9c, 0xc9, 0xd9, 0xb6, 0xda
     ];
-    test_hmac_sha3_512_inner(&K[..72], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
+    err = err + test_hmac_sha3_512_inner(&K[..72], "Sample message for keylen=blocklen".as_bytes(), &d2[..]);
 
     let d3: [u8; 64] = [
-        5f464f5e 5b7848e3 885e49b2 c385f069
-        4985d0e3 8966242d c4a5fe3f ea4b37d4
-        6b65cece d5dcf594 38dd840b ab22269f
-        0ba7febd b9fcf746 02a35666 b2a32915
+        0x5f, 0x46, 0x4f, 0x5e, 0x5b, 0x78, 0x48, 0xe3, 0x88, 0x5e, 0x49, 0xb2, 0xc3, 0x85, 0xf0, 0x69,
+        0x49, 0x85, 0xd0, 0xe3, 0x89, 0x66, 0x24, 0x2d, 0xc4, 0xa5, 0xfe, 0x3f, 0xea, 0x4b, 0x37, 0xd4,
+        0x6b, 0x65, 0xce, 0xce, 0xd5, 0xdc, 0xf5, 0x94, 0x38, 0xdd, 0x84, 0x0b, 0xab, 0x22, 0x26, 0x9f,
+        0x0b, 0xa7, 0xfe, 0xbd, 0xb9, 0xfc, 0xf7, 0x46, 0x02, 0xa3, 0x56, 0x66, 0xb2, 0xa3, 0x29, 0x15
     ];
-    test_hmac_sha3_512_inner(&K[..136], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
+    err = err + test_hmac_sha3_512_inner(&K[..136], "Sample message for keylen>blocklen".as_bytes(), &d3[..]);
 
-}
+    return err;
 
-pub fn test_hmac_sha3_2() {
-    test_hmac_sha3_3_224();
-    test_hmac_sha3_3_256();
-    test_hmac_sha3_3_384();
-    test_hmac_sha3_3_512();
 }

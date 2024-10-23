@@ -3,59 +3,101 @@ use crate::crypto::CryptoErrorCode;
 use crate::crypto::BlockCipher;
 use crate::crypto::BlockCipher128;
 
-pub trait Ecb {
-    fn ecb_encrypt_blocks(cipher: &impl BlockCipher, plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_decrypt_blocks(cipher: &impl BlockCipher, ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait Ecb128: Ecb {
+    fn ecb_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn ecb_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Cbc {
-    fn cbc_encrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_decrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait Cbc128: Cbc {
+    fn cbc_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
+        plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cbc_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
+        ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait CbcCts {
-    fn cbc_cts_encrypt(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_decrypt(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait CbcCts128: CbcCts {
+    fn cbc_cts_encrypt(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cbc_cts_decrypt(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Cfb {
-    fn cfb_encrypt(cipher: &impl BlockCipher, sftreg: &[u8], plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_decrypt(cipher: &impl BlockCipher, sftreg: &[u8], ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait Cfb128Fb1: Cfb {
+    fn cfb_encrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cfb_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Ofb {
-    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher, sftreg: &[u8], intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait Cfb128Fb8: Cfb {
+    fn cfb_encrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cfb_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Ctr {
-    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher, ctrblk: &[u8], intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait Cfb128Fb128: Cfb {
+    fn cfb_encrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cfb_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Ccm {
-    fn ccm_encrypt_and_generate(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
-    fn ccm_decrypt_and_verify(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
+#[allow(private_bounds)]
+pub trait Ofb128: Ofb {
+    fn ofb_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Gcm {
-    fn gcm_encrypt_and_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
-    fn gcm_decrypt_and_verify(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
+#[allow(private_bounds)]
+pub trait Ctr128: Ctr {
+    fn ctr_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), ctrblk: &mut [u8],
+        ctrsize: usize, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
-pub trait Cmac {
-    fn cmac_generate(cipher: &impl BlockCipher, msg: &[u8], cmac: &mut [u8]) -> Result<(), CryptoError>;
+#[allow(private_bounds)]
+pub trait Ccm128: Ccm {
+    fn ccm_encrypt_and_generate(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8],
+        ad: &[u8], plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
+    fn ccm_decrypt_and_verify(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8],
+        ad: &[u8], ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
+}
+
+#[allow(private_bounds)]
+pub trait Gcm128: Gcm {
+    fn gcm_encrypt_and_generate(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
+        aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
+    fn gcm_decrypt_and_verify(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], aad: &[u8],
+        ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
+}
+
+#[allow(private_bounds)]
+pub trait Cmac128: Cmac {
+    fn cmac_generate(cipher: &(impl BlockCipher + BlockCipher128), msg: &[u8],
+        cmac: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub struct BlockCipherMode128 {}
+
 impl Ecb for BlockCipherMode128 {
 
-    fn ecb_encrypt_blocks(cipher: &impl BlockCipher, plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError> {
+    fn ecb_encrypt_blocks(cipher: &impl BlockCipher, plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = plaintext.len();
 
         if len > ciphertext.len() {
             return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         } else if len & 15 != 0 {
-            return Err(CryptoError::new(CryptoErrorCode::IllegalArgument));
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIsNotMultipleOfBlockSize));
         }
 
         for i in (0..len).step_by(16) {
@@ -66,14 +108,15 @@ impl Ecb for BlockCipherMode128 {
 
     }
 
-    fn ecb_decrypt_blocks(cipher: &impl BlockCipher, ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError> {
+    fn ecb_decrypt_blocks(cipher: &impl BlockCipher, ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = ciphertext.len();
 
         if len > plaintext.len() {
             return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         } else if len & 15 != 0 {
-            return Err(CryptoError::new(CryptoErrorCode::IllegalArgument));
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIsNotMultipleOfBlockSize));
         }
 
         for i in (0..len).step_by(16) {
@@ -86,48 +129,124 @@ impl Ecb for BlockCipherMode128 {
 
 }
 
-/*
+impl Ecb128 for BlockCipherMode128 {
 
-    pub fn ctr(cipher: &(impl BlockCipher + BlockCipher128), counter_block: &mut [u8], counter_size: usize,
-        bytes_in: &[u8], bytes_out: &mut [u8]) -> Option<CryptoError> {
+    fn ecb_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError> {
+        return <Self as Ecb>::ecb_encrypt_blocks(cipher, plaintext, ciphertext);
+    }
 
-        if bytes_in.len() > bytes_out.len() || counter_block.len() < 16 {
-            return Some(CryptoError::new(CryptoErrorCode::BufferTooShort));
+    fn ecb_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError> {
+        return <Self as Ecb>::ecb_decrypt_blocks(cipher, ciphertext, plaintext);
+    }
+
+}
+
+impl Ofb for BlockCipherMode128 {
+
+    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], intext: &[u8],
+        outtext: &mut [u8]) -> Result<(), CryptoError> {
+
+        let len: usize = intext.len();
+        let n: usize = len & usize::MAX.wrapping_shl(4);
+
+        if len > outtext.len() || sftreg.len() < 16 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
         }
-
-        let mut b: [u8; 16] = [0; 16];
-        let n: usize = (bytes_in.len() & 15) << 4;
 
         for i in (0..n).step_by(16) {
-            cipher.encrypt_unchecked(&counter_block[..], &mut b[..]);
-            Self::xor(&bytes_in[i..], &b[..], &mut bytes_out[i..], 16);
-            Self::increment_counter_block_by_one(counter_block, counter_size);
+            cipher.encrypt_and_overwrite_unchecked(sftreg);
+            xor(&intext[i..], sftreg, &mut outtext[i..], 16);
         }
 
-        if n != bytes_in.len() {
-            cipher.encrypt_unchecked(&counter_block[..], &mut b[..]);
-            Self::xor(&bytes_in[n..], &b[..], &mut bytes_out[n..], bytes_in.len() - n);
-            Self::increment_counter_block_by_one(counter_block, counter_size);
+        if n != len {
+            cipher.encrypt_and_overwrite_unchecked(sftreg);
+            xor(&intext[n..], sftreg, &mut outtext[n..], len - n);
         }
 
-        return None;
+        return Ok(());
 
     }
 
-    fn increment_counter_block_by_one(counter_block: &mut [u8], counter_size: usize) {
-        let mut a: usize = 1;
-        for i in (counter_size..16).rev() {
-            a = a + (counter_block[i] as usize);
-            counter_block[i] = a as u8;
-            a = a >> 8;
-        }
+}
+
+impl Ofb128 for BlockCipherMode128 {
+
+    fn ofb_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
+        intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
+        return <Self as Ofb>::ofb_encrypt_or_decrypt(cipher, sftreg, intext, outtext);
     }
 
-    fn xor(lhs: &[u8], rhs: &[u8], out: &mut [u8], len: usize) {
-        for i in 0..len {
-            out[i] = lhs[i] ^ rhs[i];
+}
+
+impl Ctr for BlockCipherMode128 {
+
+    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher, ctrblk: &mut [u8], ctrsize: usize,
+        intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
+
+        let mut b: [u8; 16] = [0; 16];
+        let len: usize = intext.len();
+        let n: usize = len & usize::MAX.wrapping_shl(4);
+
+        if len > outtext.len() || ctrblk.len() < 16 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        } else if ctrsize > 16 {
+            return Err(CryptoError::new(CryptoErrorCode::IllegalArgument));
+        } else if ctrsize < 8 {
+            if ((n >> 4) + (if n != len { 1 } else { 0 })) > (1 << (ctrsize << 3)) {
+                return Err(CryptoError::new(CryptoErrorCode::CounterOverwrapped));
+            }
         }
+
+        for i in (0..n).step_by(16) {
+            cipher.encrypt_unchecked(&ctrblk[..], &mut b[..]);
+            xor(&intext[i..], &b[..], &mut outtext[i..], 16);
+            increment_counter_block(ctrblk, ctrsize);
+        }
+
+        if n != len {
+            cipher.encrypt_unchecked(&ctrblk[..], &mut b[..]);
+            xor(&intext[n..], &b[..], &mut outtext[n..], len - n);
+            increment_counter_block(ctrblk, ctrsize);
+        }
+
+        return Ok(());
+
     }
+
+}
+
+impl Ctr128 for BlockCipherMode128 {
+
+    fn ctr_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), ctrblk: &mut [u8],
+        ctrsize: usize, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
+        return <Self as Ctr>::ctr_encrypt_or_decrypt(cipher, ctrblk, ctrsize, intext, outtext);
+    }
+
+}
+
+fn increment_counter_block(ctrblk: &mut [u8], ctrsize: usize) {
+    let mut a: usize = 1;
+    for i in ((ctrsize & 15)..16).rev() {
+        a = a + (ctrblk[i] as usize);
+        ctrblk[i] = a as u8;
+        a = a >> 8;
+    }
+}
+
+fn xor(lhs: &[u8], rhs: &[u8], res: &mut [u8], len: usize) {
+    for i in 0..len {
+        res[i] = lhs[i] ^ rhs[i];
+    }
+}
+
+/*
+
+
+
+
+
 
     fn gcm_encrypt_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], bytes_in: &[u8],
         bytes_out: &mut [u8], tag: &mut [u8]) -> Option<CryptoError> {
@@ -342,3 +461,61 @@ impl Block128 {
 
 }
     */
+
+
+trait Ecb {
+    fn ecb_encrypt_blocks(cipher: &impl BlockCipher, plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn ecb_decrypt_blocks(cipher: &impl BlockCipher, ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+trait Cbc {
+    fn cbc_encrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cbc_decrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+trait CbcCts {
+    fn cbc_cts_encrypt(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cbc_cts_decrypt(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+trait Cfb {
+    fn cfb_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
+        ciphertext: &mut [u8]) -> Result<(), CryptoError>;
+    fn cfb_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
+        plaintext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+trait Ofb {
+    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], intext: &[u8],
+        outtext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+trait Ctr {
+    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher, ctrblk: &mut [u8], ctrsize: usize,
+        intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+trait Ccm {
+    fn ccm_encrypt_and_generate(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8],
+        plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
+    fn ccm_decrypt_and_verify(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8],
+        ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
+}
+
+trait Gcm {
+    fn gcm_encrypt_and_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
+    fn gcm_decrypt_and_verify(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
+}
+
+trait Cmac {
+    fn cmac_generate(cipher: &impl BlockCipher, msg: &[u8],
+        cmac: &mut [u8]) -> Result<(), CryptoError>;
+}

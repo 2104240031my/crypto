@@ -25,17 +25,21 @@ pub mod ed25519;
 #[allow(dead_code)]
 mod ec25519;
 
-use std::marker::Copy;
 use std::clone::Clone;
 use std::error::Error;
 use std::fmt::Display;
+use std::marker::Copy;
 
 pub trait BlockCipher {
     fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError>;
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
     fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
+    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
+    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
     fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
+    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]);
+    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]);
 }
 
 pub trait BlockCipher128: BlockCipher {
@@ -96,29 +100,15 @@ pub enum CryptoErrorCode {
     // specific
     UnsupportedAlgorithm,
     BufferTooShort,
-    VerifFailed,
+    BufferLengthIsNotMultipleOfBlockSize,
+    CounterOverwrapped,
+    VerificationFailed
 
 }
 
 #[derive(Debug)]
 pub struct CryptoError {
     err_code: CryptoErrorCode
-}
-
-impl Error for CryptoError {}
-
-impl Display for CryptoError {
-
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "[crypto error]: {}", match &self.err_code {
-            CryptoErrorCode::Unknown              => "unknown",
-            CryptoErrorCode::IllegalArgument      => "illegal argument",
-            CryptoErrorCode::UnsupportedAlgorithm => "unsupported algorithm",
-            CryptoErrorCode::BufferTooShort       => "buffer too short",
-            CryptoErrorCode::VerifFailed          => "verif failed",
-        })
-    }
-
 }
 
 impl CryptoError {
@@ -134,3 +124,21 @@ impl CryptoError {
     }
 
 }
+
+impl Display for CryptoError {
+
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        return write!(f, "CryptoError: {}", match &self.err_code {
+            CryptoErrorCode::Unknown                              => "unknown",
+            CryptoErrorCode::IllegalArgument                      => "illegal argument",
+            CryptoErrorCode::UnsupportedAlgorithm                 => "unsupported algorithm",
+            CryptoErrorCode::BufferTooShort                       => "buffer too short",
+            CryptoErrorCode::BufferLengthIsNotMultipleOfBlockSize => "buffer length is not multiple of block size",
+            CryptoErrorCode::CounterOverwrapped                   => "counter overwrapped",
+            CryptoErrorCode::VerificationFailed                   => "verification failed"
+        });
+    }
+
+}
+
+impl Error for CryptoError {}

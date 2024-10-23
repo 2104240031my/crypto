@@ -234,7 +234,7 @@ fn ed25519_verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, 
     let s: Ec25519Uint = Ec25519Uint::try_from_bytes(&signature[32..])?;
 
     if !Ec25519Uint::lt(&s, &Q) {
-        return Err(CryptoError::new(CryptoErrorCode::VerifFailed));
+        return Err(CryptoError::new(CryptoErrorCode::VerificationFailed));
     }
 
     sha512.reset()?.update(&signature[..32])?.update(&pub_key[..32])?.update(msg)?.digest(&mut b[..])?;
@@ -246,7 +246,7 @@ fn ed25519_verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, 
     return if Edwards25519Point::eq(&r, &a) {
         Ok(true)
     } else {
-        Err(CryptoError::new(CryptoErrorCode::VerifFailed))
+        Err(CryptoError::new(CryptoErrorCode::VerificationFailed))
     };
 
 }

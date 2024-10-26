@@ -78,10 +78,15 @@ fn print_test_result_msg(err: usize, mod_name_text: &str) -> usize {
 }
 
 #[cfg(debug_assertions)]
-pub fn printbytesln(bytes: &[u8]) {
+pub fn printbytes(bytes: &[u8]) {
     for i in 0..bytes.len() {
         print!("{:02x}", bytes[i]);
     }
+}
+
+#[cfg(debug_assertions)]
+pub fn printbytesln(bytes: &[u8]) {
+    printbytes(bytes);
     println!();
 }
 

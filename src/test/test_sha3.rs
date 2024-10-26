@@ -28,7 +28,7 @@ fn test_sha3_224_inner(m: &[u8], d: &[u8]) -> usize {
     Sha3224::digest_oneshot(m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-224 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -43,7 +43,7 @@ fn test_sha3_224_inner(m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-224 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -61,7 +61,7 @@ fn test_sha3_256_inner(m: &[u8], d: &[u8]) -> usize {
     Sha3256::digest_oneshot(m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-256 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -76,7 +76,7 @@ fn test_sha3_256_inner(m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-256 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -94,7 +94,7 @@ fn test_sha3_384_inner(m: &[u8], d: &[u8]) -> usize {
     Sha3384::digest_oneshot(m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-384 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -109,7 +109,7 @@ fn test_sha3_384_inner(m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-384 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -127,7 +127,7 @@ fn test_sha3_512_inner(m: &[u8], d: &[u8]) -> usize {
     Sha3512::digest_oneshot(m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-512 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -142,7 +142,7 @@ fn test_sha3_512_inner(m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_SHA3 {
         print!("[!Err]: testing SHA3-512 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;

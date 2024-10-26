@@ -23,7 +23,7 @@ fn test_x25519_inner_a(s: &[u8], u: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_X25519 {
         print!("[!Err]: testing X25519 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         return 1;
@@ -41,7 +41,7 @@ fn test_x25519_inner_b(s: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_X25519 {
         print!("[!Err]: testing X25519 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         return 1;

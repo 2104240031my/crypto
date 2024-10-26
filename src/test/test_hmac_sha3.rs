@@ -40,7 +40,7 @@ fn test_hmac_sha3_224_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     HmacSha3224::compute_oneshot(k, m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-224 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -55,7 +55,7 @@ fn test_hmac_sha3_224_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-224 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -73,7 +73,7 @@ fn test_hmac_sha3_256_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     HmacSha3256::compute_oneshot(k, m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-256 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -88,7 +88,7 @@ fn test_hmac_sha3_256_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-256 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -106,7 +106,7 @@ fn test_hmac_sha3_384_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     HmacSha3384::compute_oneshot(k, m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-384 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -121,7 +121,7 @@ fn test_hmac_sha3_384_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-384 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -139,7 +139,7 @@ fn test_hmac_sha3_512_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     HmacSha3512::compute_oneshot(k, m, &mut out[..]).unwrap();
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-512 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;
@@ -154,7 +154,7 @@ fn test_hmac_sha3_512_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA3 {
         print!("[!Err]: testing HMAC-SHA3-512 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&d[..]);
+        print!(" - Test-Vec => "); printbytesln(d);
         print!(" - Exec-Res => "); printbytesln(&out[..]);
         println!();
         err = err + 1;

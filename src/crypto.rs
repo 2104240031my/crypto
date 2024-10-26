@@ -23,7 +23,7 @@ pub mod x25519;
 pub mod ed25519;
 
 #[allow(dead_code)]
-mod ec25519;
+mod curve_over_fp25519;
 
 use std::clone::Clone;
 use std::error::Error;

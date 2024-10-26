@@ -2,6 +2,8 @@ use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::BlockCipher;
 use crate::crypto::BlockCipher128;
+use std::clone::Clone;
+use std::marker::Copy;
 
 pub enum AesAlgorithm {
     Aes128,
@@ -14,6 +16,13 @@ pub struct Aes {
     dw: [u8; 240], // expanded key for EqInvCipher
     nk: usize      // Nk (and Nr can also be derived from this value)
 }
+
+impl Clone for AesAlgorithm {
+    fn clone(&self) -> AesAlgorithm {
+        return *self;
+    }
+}
+impl Copy for AesAlgorithm {}
 
 impl Aes {
 

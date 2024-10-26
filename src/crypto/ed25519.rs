@@ -4,10 +4,10 @@ use crate::crypto::DigitalSignature;
 use crate::crypto::DigitalSignatureSigner;
 use crate::crypto::DigitalSignatureVerifier;
 use crate::crypto::Hash;
-use crate::crypto::ec25519::Ec25519Uint;
-use crate::crypto::ec25519::Edwards25519Point;
-use crate::crypto::ec25519::B;
-use crate::crypto::ec25519::Q;
+use crate::crypto::curve_over_fp25519::Fp25519Uint;
+use crate::crypto::curve_over_fp25519::Edwards25519Point;
+use crate::crypto::curve_over_fp25519::B;
+use crate::crypto::curve_over_fp25519::Q;
 use crate::crypto::sha2::Sha512;
 
 pub struct Ed25519 {
@@ -186,7 +186,7 @@ fn ed25519_compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(),
 
     let mut h: [u8; 64] = [0; 64];
     Sha512::digest_oneshot(&priv_key[..32], &mut h[..])?;
-    let s: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(&h[..32])?;
+    let s: Fp25519Uint = Fp25519Uint::try_from_bytes_as_scalar(&h[..32])?;
 
     let mut a: Edwards25519Point = Edwards25519Point::new();
     Edwards25519Point::scalar_mul(&mut a, &B, &s);
@@ -203,10 +203,10 @@ fn ed25519_sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(),
     let mut b: [u8; 64] = [0; 64];
 
     Sha512::digest_oneshot(&priv_key[..32], &mut b[..])?;
-    let s: Ec25519Uint = Ec25519Uint::try_from_bytes_as_scalar(&b[..32])?;
+    let s: Fp25519Uint = Fp25519Uint::try_from_bytes_as_scalar(&b[..32])?;
 
     sha512.reset()?.update(&b[32..])?.update(msg)?.digest(&mut b[..])?;
-    let r: Ec25519Uint = Ec25519Uint::try_from_sha512_digest(&b[..])?;
+    let r: Fp25519Uint = Fp25519Uint::try_from_sha512_digest(&b[..])?;
 
     Edwards25519Point::scalar_mul(&mut p, &B, &r);
     p.try_into_bytes(&mut signature[..32])?;
@@ -215,9 +215,9 @@ fn ed25519_sign(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(),
     p.try_into_bytes(&mut b[..32])?;
 
     sha512.reset()?.update(&signature[..32])?.update(&b[..32])?.update(msg)?.digest(&mut b[..])?;
-    let mut k: Ec25519Uint = Ec25519Uint::try_from_sha512_digest(&b[..])?;
-    Ec25519Uint::gmul_assign_mod_order(&mut k, &s);
-    Ec25519Uint::gadd_assign_mod_order(&mut k, &r);
+    let mut k: Fp25519Uint = Fp25519Uint::try_from_sha512_digest(&b[..])?;
+    Fp25519Uint::gmul_assign_mod_order(&mut k, &s);
+    Fp25519Uint::gadd_assign_mod_order(&mut k, &r);
 
     k.try_into_bytes(&mut signature[32..64])?;
     return Ok(());
@@ -231,14 +231,14 @@ fn ed25519_verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, 
 
     let mut a: Edwards25519Point = Edwards25519Point::try_from_bytes(&pub_key[..32])?;
     let mut r: Edwards25519Point = Edwards25519Point::try_from_bytes(&signature[..32])?;
-    let s: Ec25519Uint = Ec25519Uint::try_from_bytes(&signature[32..])?;
+    let s: Fp25519Uint = Fp25519Uint::try_from_bytes(&signature[32..])?;
 
-    if !Ec25519Uint::lt(&s, &Q) {
+    if !Fp25519Uint::lt(&s, &Q) {
         return Err(CryptoError::new(CryptoErrorCode::VerificationFailed));
     }
 
     sha512.reset()?.update(&signature[..32])?.update(&pub_key[..32])?.update(msg)?.digest(&mut b[..])?;
-    let k: Ec25519Uint = Ec25519Uint::try_from_sha512_digest(&b[..])?;
+    let k: Fp25519Uint = Fp25519Uint::try_from_sha512_digest(&b[..])?;
     Edwards25519Point::scalar_mul_assign(&mut a, &k);
     Edwards25519Point::add_assign(&mut a, &r);
     Edwards25519Point::scalar_mul(&mut r, &B, &s);
@@ -251,7 +251,7 @@ fn ed25519_verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, 
 
 }
 
-impl Ec25519Uint {
+impl Fp25519Uint {
 
     fn try_from_sha512_digest(md: &[u8]) -> Result<Self, CryptoError> {
 

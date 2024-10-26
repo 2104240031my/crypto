@@ -24,18 +24,18 @@ fn test_ed25519_inner(k: &[u8], a: &[u8], m: &[u8], s: &[u8]) -> usize {
     let mut err: usize = 0;
 
     Ed25519::compute_public_key_oneshot(k, &mut out1[..]).unwrap();
-    if !eqbytes(&a[..], &out1[..]) || DEBUG_PRINT_ED25519 {
+    if !eqbytes(a, &out1[..]) || DEBUG_PRINT_ED25519 {
         print!("[!Err]: testing Ed25519 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&a[..]);
+        print!(" - Test-Vec => "); printbytesln(a);
         print!(" - Exec-Res => "); printbytesln(&out1[..]);
         println!();
         err = err + 1;
     }
 
     Ed25519::sign_oneshot(k, m, &mut out2[..]).unwrap();
-    if !eqbytes(&s[..], &out2[..]) || DEBUG_PRINT_ED25519 {
+    if !eqbytes(s, &out2[..]) || DEBUG_PRINT_ED25519 {
         print!("[!Err]: testing Ed5519 is FAILED.\n");
-        print!(" - Test-Vec => "); printbytesln(&s[..]);
+        print!(" - Test-Vec => "); printbytesln(s);
         print!(" - Exec-Res => "); printbytesln(&out2[..]);
         println!();
         err = err + 1;
@@ -57,6 +57,7 @@ fn test_ed25519_inner(k: &[u8], a: &[u8], m: &[u8], s: &[u8]) -> usize {
         print!("[!Err]: testing Ed5519 is FAILED.\n");
         print!(" - Verification FAILED.\n");
         println!();
+        err = err + 1;
     }
 
     return err;

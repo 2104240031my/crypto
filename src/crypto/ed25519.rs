@@ -57,9 +57,9 @@ impl DigitalSignature for Ed25519 {
         return Ed25519Verifier::verify_oneshot(pub_key, msg, signature);
     }
 
-    fn rekey(&mut self, priv_key: &[u8]) -> Result<(), CryptoError> {
-        self.s.rekey(priv_key)?;
-        return self.s.compute_public_key(&mut self.v.pub_key[..]);
+    fn rekey(&mut self, priv_key: &[u8]) -> Result<&mut Self, CryptoError> {
+        self.s.rekey(priv_key)?.compute_public_key(&mut self.v.pub_key[..])?;
+        return Ok(self);
     }
 
     fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError> {
@@ -95,8 +95,8 @@ impl DigitalSignatureSigner for Ed25519Signer {
 
     fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 
-        if priv_key.len() < ED25519_PRIVATE_KEY_LEN || pub_key.len() < ED25519_PUBLIC_KEY_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if priv_key.len() != ED25519_PRIVATE_KEY_LEN || pub_key.len() != ED25519_PUBLIC_KEY_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         return ed25519_compute_public_key(priv_key, pub_key);
@@ -105,22 +105,22 @@ impl DigitalSignatureSigner for Ed25519Signer {
 
     fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError> {
 
-        if priv_key.len() < ED25519_PRIVATE_KEY_LEN || signature.len() < ED25519_SIGNATURE_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if priv_key.len() != ED25519_PRIVATE_KEY_LEN || signature.len() != ED25519_SIGNATURE_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         return ed25519_sign(priv_key, msg, signature);
 
     }
 
-    fn rekey(&mut self, priv_key: &[u8]) -> Result<(), CryptoError> {
+    fn rekey(&mut self, priv_key: &[u8]) -> Result<&mut Self, CryptoError> {
 
-        if priv_key.len() < ED25519_PRIVATE_KEY_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if priv_key.len() != ED25519_PRIVATE_KEY_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.priv_key.copy_from_slice(&priv_key[..32]);
-        return Ok(());
+        return Ok(self);
 
     }
 
@@ -153,22 +153,22 @@ impl DigitalSignatureVerifier for Ed25519Verifier {
 
     fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError> {
 
-        if pub_key.len() < ED25519_PUBLIC_KEY_LEN || signature.len() < ED25519_SIGNATURE_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if pub_key.len() != ED25519_PUBLIC_KEY_LEN || signature.len() != ED25519_SIGNATURE_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         return ed25519_verify(pub_key, msg, signature);
 
     }
 
-    fn rekey(&mut self, pub_key: &[u8]) -> Result<(), CryptoError> {
+    fn rekey(&mut self, pub_key: &[u8]) -> Result<&mut Self, CryptoError> {
 
-        if pub_key.len() < ED25519_PUBLIC_KEY_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if pub_key.len() != ED25519_PUBLIC_KEY_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.pub_key.copy_from_slice(&pub_key[..32]);
-        return Ok(());
+        return Ok(self);
 
     }
 
@@ -253,29 +253,29 @@ fn ed25519_verify(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, 
 
 impl Fp25519Uint {
 
-    fn try_from_sha512_digest(md: &[u8]) -> Result<Self, CryptoError> {
+    fn try_from_sha512_digest(d: &[u8]) -> Result<Self, CryptoError> {
 
-        if md.len() < 64 {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if d.len() != 64 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let buf: [u32; 16] = [
-            u32::from_le_bytes(md[60..64].try_into().unwrap()),
-            u32::from_le_bytes(md[56..60].try_into().unwrap()),
-            u32::from_le_bytes(md[52..56].try_into().unwrap()),
-            u32::from_le_bytes(md[48..52].try_into().unwrap()),
-            u32::from_le_bytes(md[44..48].try_into().unwrap()),
-            u32::from_le_bytes(md[40..44].try_into().unwrap()),
-            u32::from_le_bytes(md[36..40].try_into().unwrap()),
-            u32::from_le_bytes(md[32..36].try_into().unwrap()),
-            u32::from_le_bytes(md[28..32].try_into().unwrap()),
-            u32::from_le_bytes(md[24..28].try_into().unwrap()),
-            u32::from_le_bytes(md[20..24].try_into().unwrap()),
-            u32::from_le_bytes(md[16..20].try_into().unwrap()),
-            u32::from_le_bytes(md[12..16].try_into().unwrap()),
-            u32::from_le_bytes(md[ 8..12].try_into().unwrap()),
-            u32::from_le_bytes(md[ 4.. 8].try_into().unwrap()),
-            u32::from_le_bytes(md[ 0.. 4].try_into().unwrap())
+            ((d[63] as u32) << 24) | ((d[62] as u32) << 16) | ((d[61] as u32) << 8) | (d[60] as u32),
+            ((d[59] as u32) << 24) | ((d[58] as u32) << 16) | ((d[57] as u32) << 8) | (d[56] as u32),
+            ((d[55] as u32) << 24) | ((d[54] as u32) << 16) | ((d[53] as u32) << 8) | (d[52] as u32),
+            ((d[51] as u32) << 24) | ((d[50] as u32) << 16) | ((d[49] as u32) << 8) | (d[48] as u32),
+            ((d[47] as u32) << 24) | ((d[46] as u32) << 16) | ((d[45] as u32) << 8) | (d[44] as u32),
+            ((d[43] as u32) << 24) | ((d[42] as u32) << 16) | ((d[41] as u32) << 8) | (d[40] as u32),
+            ((d[39] as u32) << 24) | ((d[38] as u32) << 16) | ((d[37] as u32) << 8) | (d[36] as u32),
+            ((d[35] as u32) << 24) | ((d[34] as u32) << 16) | ((d[33] as u32) << 8) | (d[32] as u32),
+            ((d[31] as u32) << 24) | ((d[30] as u32) << 16) | ((d[29] as u32) << 8) | (d[28] as u32),
+            ((d[27] as u32) << 24) | ((d[26] as u32) << 16) | ((d[25] as u32) << 8) | (d[24] as u32),
+            ((d[23] as u32) << 24) | ((d[22] as u32) << 16) | ((d[21] as u32) << 8) | (d[20] as u32),
+            ((d[19] as u32) << 24) | ((d[18] as u32) << 16) | ((d[17] as u32) << 8) | (d[16] as u32),
+            ((d[15] as u32) << 24) | ((d[14] as u32) << 16) | ((d[13] as u32) << 8) | (d[12] as u32),
+            ((d[11] as u32) << 24) | ((d[10] as u32) << 16) | ((d[ 9] as u32) << 8) | (d[ 8] as u32),
+            ((d[ 7] as u32) << 24) | ((d[ 6] as u32) << 16) | ((d[ 5] as u32) << 8) | (d[ 4] as u32),
+            ((d[ 3] as u32) << 24) | ((d[ 2] as u32) << 16) | ((d[ 1] as u32) << 8) | (d[ 0] as u32)
         ];
 
         let mut v: Self = Self::new();

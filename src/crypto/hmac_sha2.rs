@@ -56,7 +56,7 @@ impl Mac for HmacSha224 {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
         if key.len() > Sha224::BLOCK_SIZE {
-            Sha224::digest_oneshot(key, &mut self.inner[..])?;
+            Sha224::digest_oneshot(key, &mut self.inner[..Sha224::MESSAGE_DIGEST_LEN])?;
         } else {
             self.inner[..key.len()].copy_from_slice(key);
         }
@@ -82,8 +82,8 @@ impl Mac for HmacSha224 {
 
     fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
 
-        if mac.len() < HMAC_SHA224_MAC_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if mac.len() != HMAC_SHA224_MAC_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.s.digest(&mut self.outer[Sha224::BLOCK_SIZE..])?;
@@ -118,7 +118,7 @@ impl Mac for HmacSha256 {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
         if key.len() > Sha256::BLOCK_SIZE {
-            Sha256::digest_oneshot(key, &mut self.inner[..])?;
+            Sha256::digest_oneshot(key, &mut self.inner[..Sha256::MESSAGE_DIGEST_LEN])?;
         } else {
             self.inner[..key.len()].copy_from_slice(key);
         }
@@ -144,8 +144,8 @@ impl Mac for HmacSha256 {
 
     fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
 
-        if mac.len() < HMAC_SHA256_MAC_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if mac.len() != HMAC_SHA256_MAC_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.s.digest(&mut self.outer[Sha256::BLOCK_SIZE..])?;
@@ -180,7 +180,7 @@ impl Mac for HmacSha384 {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
         if key.len() > Sha384::BLOCK_SIZE {
-            Sha384::digest_oneshot(key, &mut self.inner[..])?;
+            Sha384::digest_oneshot(key, &mut self.inner[..Sha384::MESSAGE_DIGEST_LEN])?;
         } else {
             self.inner[..key.len()].copy_from_slice(key);
         }
@@ -206,8 +206,8 @@ impl Mac for HmacSha384 {
 
     fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
 
-        if mac.len() < HMAC_SHA384_MAC_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if mac.len() != HMAC_SHA384_MAC_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.s.digest(&mut self.outer[Sha384::BLOCK_SIZE..])?;
@@ -242,7 +242,7 @@ impl Mac for HmacSha512 {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
         if key.len() > Sha512::BLOCK_SIZE {
-            Sha512::digest_oneshot(key, &mut self.inner[..])?;
+            Sha512::digest_oneshot(key, &mut self.inner[..Sha512::MESSAGE_DIGEST_LEN])?;
         } else {
             self.inner[..key.len()].copy_from_slice(key);
         }
@@ -268,8 +268,8 @@ impl Mac for HmacSha512 {
 
     fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
 
-        if mac.len() < HMAC_SHA512_MAC_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if mac.len() != HMAC_SHA512_MAC_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.s.digest(&mut self.outer[Sha512::BLOCK_SIZE..])?;

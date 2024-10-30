@@ -57,8 +57,8 @@ impl Hash for Sha224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA224_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut s: Sha2State32 = Sha2State32{
@@ -112,8 +112,8 @@ impl Hash for Sha224 {
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA224_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut h: [u32; 8] = [0; 8];
@@ -164,8 +164,8 @@ impl Hash for Sha256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA256_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut s: Sha2State32 = Sha2State32{
@@ -219,8 +219,8 @@ impl Hash for Sha256 {
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA256_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut h: [u32; 8] = [0; 8];
@@ -271,8 +271,8 @@ impl Hash for Sha384 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA384_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA384_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut s: Sha2State64 = Sha2State64{
@@ -330,8 +330,8 @@ impl Hash for Sha384 {
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA384_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA384_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -386,8 +386,8 @@ impl Hash for Sha512 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA512_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut s: Sha2State64 = Sha2State64{
@@ -445,8 +445,8 @@ impl Hash for Sha512 {
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA512_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -501,8 +501,8 @@ impl Hash for Sha512224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512224_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA512224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut s: Sha2State64 = Sha2State64{
@@ -565,8 +565,8 @@ impl Hash for Sha512224 {
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512224_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA512224_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut h: [u64; 8] = [0; 8];
@@ -626,8 +626,8 @@ impl Hash for Sha512256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512256_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA512256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut s: Sha2State64 = Sha2State64{
@@ -685,8 +685,8 @@ impl Hash for Sha512256 {
 
     fn digest(&mut self, md: &mut [u8]) -> Result<(), CryptoError> {
 
-        if md.len() < SHA512256_MESSAGE_DIGEST_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if md.len() != SHA512256_MESSAGE_DIGEST_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let mut h: [u64; 8] = [0; 8];

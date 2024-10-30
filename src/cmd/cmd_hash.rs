@@ -10,31 +10,25 @@ use crate::crypto::sha3::Sha3224;
 use crate::crypto::sha3::Sha3256;
 use crate::crypto::sha3::Sha3384;
 use crate::crypto::sha3::Sha3512;
-use crate::cmd::BUFFER_SIZE;
+use crate::cmd::ArgType;
+use crate::cmd::SuffixedArg;
+use crate::cmd::BUF_SIZE;
 use crate::cmd::printbytesln;
 use std::fs::File;
 use std::io::Read;
 
-pub fn cmd_hash(args: Vec<String>) {
+pub fn cmd_main(args: Vec<String>) {
 
-    if args.len() < 3 {
-        println!("[!Err]: hash sub-command takes at least 2 arguments.\n");
+    if args.len() == 1 || (args.len() == 2 && args[1] == "help") {
         println_subcmd_usage();
         return;
-    }
-
-    let algo: String = args[1].clone();
-    let in_data: String = args[2].clone();
-
-    if in_data.len() < 2 {
-        println!("[!Err]: invalid data format.");
+    } else if args.len() < 3 {
+        println!("[!Err]: hash sub-command takes at least 2 arguments.\n");
+        println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto hash help\".");
         return;
     }
 
-    let in_fmt: &str = &in_data[(in_data.len() - 2)..in_data.len()];
-    let in_content: &str = &in_data[..(in_data.len() - 2)];
-
-    let (mut ctx, md_len): (HashState, usize) = match algo.as_str() {
+    let (mut ctx, md_len): (HashState, usize) = match args[1].as_str() {
         "sha-224"     => (HashState::Sha224(Sha224::new()), Sha224::MESSAGE_DIGEST_LEN),
         "sha-256"     => (HashState::Sha256(Sha256::new()), Sha256::MESSAGE_DIGEST_LEN),
         "sha-384"     => (HashState::Sha384(Sha384::new()), Sha384::MESSAGE_DIGEST_LEN),
@@ -46,30 +40,38 @@ pub fn cmd_hash(args: Vec<String>) {
         "sha3-384"    => (HashState::Sha3384(Sha3384::new()), Sha3384::MESSAGE_DIGEST_LEN),
         "sha3-512"    => (HashState::Sha3512(Sha3512::new()), Sha3512::MESSAGE_DIGEST_LEN),
         _             => {
-            println!("[!Err]: unsupported algorithm.\n");
-            println_subcmd_usage();
+            println!("[!Err]: unsupported algorithm.");
+            println!("[Info]: if you want to know which hash algorithms are supported, run \"crypto hash help\".");
             return;
         }
     };
 
-    let mut md: [u8; 128] = [0; 128];
+    let (in_fmt, in_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[2].as_str()) {
+        Ok(v)  => v,
+        Err(e) => {
+            println!("{}", e);
+            return;
+        }
+    };
+
+    let mut md: [u8; 64] = [0; 64];
     match in_fmt {
 
-        // hash the string
-        ".s" => {
-
-            if let Ok(_) = ctx.update(in_content.as_bytes()).unwrap().digest(&mut md[..]) {
-                printbytesln(&md[..md_len]);
-            }
-
+        ArgType::Hexadecimal => {
+            let msg: Vec<u8> = SuffixedArg::hexdec_to_bytes(in_src).unwrap();
+            ctx.update(&msg).unwrap();
         },
 
-        // hash the file
-        ".f" => {
+        ArgType::String      => {
+            let msg: Vec<u8> = SuffixedArg::str_to_bytes(in_src).unwrap();
+            ctx.update(&msg).unwrap();
+        },
 
-            let mut buf: [u8; BUFFER_SIZE] = [0; BUFFER_SIZE];
+        ArgType::Filepath    => {
 
-            let tmp = File::open(in_content);
+            let mut buf: [u8; BUF_SIZE] = [0; BUF_SIZE];
+
+            let tmp = File::open(in_src);
             if let Err(_) = tmp {
                 println!("[!Err]: cannot open the file.");
                 return;
@@ -85,24 +87,18 @@ pub fn cmd_hash(args: Vec<String>) {
                 }
             }
 
-            ctx.digest(&mut md[..]).unwrap();
-            printbytesln(&md[..md_len]);
-
-        },
-
-        _ => {
-            println!("[!Err]: uninterpretable data-fomat.\n");
-            println_subcmd_usage();
-            return;
         }
 
     }
+
+    ctx.digest(&mut md[..md_len]).unwrap();
+    printbytesln(&md[..md_len]);
 
 }
 
 pub fn println_subcmd_usage() {
     println!("hash sub-command usage:");
-    println!("    crypto hash [algorithm] [in-data (with suffix): \"{{string}}.s\" | \"{{filepath}}.f\" ] ...");
+    println!("    crypto hash [algorithm] [message (with suffix)] ...");
     println!("");
     println!("supported algorithms are listed below:");
     println!(" - sha-224");
@@ -116,9 +112,10 @@ pub fn println_subcmd_usage() {
     println!(" - sha3-384");
     println!(" - sha3-512");
     println!("");
-    println!("and enter in-data as follows:");
-    println!(" - if the input is the string \"abc\", enter \"abc.s\"");
-    println!(" - if the input is the file \"efg.txt\", enter \"efg.txt.f\"");
+    println!("and enter message as follows:");
+    println!(" - if the data is the hexadecimal string \"00010203\", enter \"00010203.h\" (suffix is \".h\"))");
+    println!(" - if the data is the string \"abc\", enter \"abc.s\" (suffix is \".s\"))");
+    println!(" - if the data is the file \"efg.txt\", enter \"efg.txt.f\" (suffix is \".f\"))");
 }
 
 enum HashState {

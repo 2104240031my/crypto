@@ -5,6 +5,9 @@ mod test_aes;
 mod test_aes_mode;
 
 #[cfg(debug_assertions)]
+mod test_chacha20;
+
+#[cfg(debug_assertions)]
 mod test_ed25519;
 
 #[cfg(debug_assertions)]
@@ -32,6 +35,9 @@ pub const DEBUG_PRINT_AES: bool       = false | DEBUG_PRINT_ALL;
 pub const DEBUG_PRINT_AES_MODE: bool  = false | DEBUG_PRINT_ALL;
 
 #[cfg(debug_assertions)]
+pub const DEBUG_PRINT_CHACHA20: bool  = false | DEBUG_PRINT_ALL;
+
+#[cfg(debug_assertions)]
 pub const DEBUG_PRINT_ED25519: bool   = false | DEBUG_PRINT_ALL;
 
 #[cfg(debug_assertions)]
@@ -54,11 +60,12 @@ pub fn test() {
     let mut err: usize = 0;
     err = err + print_test_result_msg(test_aes::test_aes(),             "AES module");
     err = err + print_test_result_msg(test_aes_mode::test_aes_mode(),   "Block Cipher Operation Modes for AES");
-    err = err + print_test_result_msg(test_sha2::test_sha2(),           "SHA-2 module");
-    err = err + print_test_result_msg(test_sha3::test_sha3(),           "SHA-3 module");
+    err = err + print_test_result_msg(test_chacha20::test_chacha20(),   "ChaCha20 module");
+    err = err + print_test_result_msg(test_ed25519::test_ed25519(),     "Ed25519 module");
     err = err + print_test_result_msg(test_hmac_sha2::test_hmac_sha2(), "HMAC-SHA-2 module");
     err = err + print_test_result_msg(test_hmac_sha3::test_hmac_sha3(), "HMAC-SHA-3 module");
-    err = err + print_test_result_msg(test_ed25519::test_ed25519(),     "Ed25519 module");
+    err = err + print_test_result_msg(test_sha2::test_sha2(),           "SHA-2 module");
+    err = err + print_test_result_msg(test_sha3::test_sha3(),           "SHA-3 module");
     err = err + print_test_result_msg(test_x25519::test_x25519(),       "X25519 module");
     if err == 0 {
         println!("[Ok]: no error occurred in total. All tests are passed.");

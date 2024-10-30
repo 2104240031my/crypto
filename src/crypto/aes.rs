@@ -49,10 +49,10 @@ impl Aes {
 
 impl BlockCipher for Aes {
 
-    fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError> {
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
-        if key.len() < (self.nk << 2) {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if key.len() != (self.nk << 2) {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         unsafe {
@@ -71,14 +71,14 @@ impl BlockCipher for Aes {
 
         }
 
-        return Ok(());
+        return Ok(self);
 
     }
 
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
 
-        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if block_in.len() != AES_BLOCK_SIZE || block_out.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.encrypt_unchecked(block_in, block_out);
@@ -88,8 +88,8 @@ impl BlockCipher for Aes {
 
     fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
 
-        if block_in.len() < AES_BLOCK_SIZE || block_out.len() < AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if block_in.len() != AES_BLOCK_SIZE || block_out.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.decrypt_unchecked(block_in, block_out);
@@ -99,8 +99,8 @@ impl BlockCipher for Aes {
 
     fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
 
-        if block.len() < AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if block.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.encrypt_and_overwrite_unchecked(block);
@@ -110,8 +110,8 @@ impl BlockCipher for Aes {
 
     fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
 
-        if block.len() < AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if block.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         self.decrypt_and_overwrite_unchecked(block);

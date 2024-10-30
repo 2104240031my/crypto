@@ -82,19 +82,19 @@ impl Fp25519Uint {
 
     pub fn try_from_bytes(b: &[u8]) -> Result<Self, CryptoError> {
 
-        if b.len() < 32 {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if b.len() != 32 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         return Ok(Self{ w: [
-            u32::from_le_bytes(b[28..32].try_into().unwrap()),
-            u32::from_le_bytes(b[24..28].try_into().unwrap()),
-            u32::from_le_bytes(b[20..24].try_into().unwrap()),
-            u32::from_le_bytes(b[16..20].try_into().unwrap()),
-            u32::from_le_bytes(b[12..16].try_into().unwrap()),
-            u32::from_le_bytes(b[ 8..12].try_into().unwrap()),
-            u32::from_le_bytes(b[ 4.. 8].try_into().unwrap()),
-            u32::from_le_bytes(b[ 0.. 4].try_into().unwrap())
+            ((b[31] as u32) << 24) | ((b[30] as u32) << 16) | ((b[29] as u32) << 8) | (b[28] as u32),
+            ((b[27] as u32) << 24) | ((b[26] as u32) << 16) | ((b[25] as u32) << 8) | (b[24] as u32),
+            ((b[23] as u32) << 24) | ((b[22] as u32) << 16) | ((b[21] as u32) << 8) | (b[20] as u32),
+            ((b[19] as u32) << 24) | ((b[18] as u32) << 16) | ((b[17] as u32) << 8) | (b[16] as u32),
+            ((b[15] as u32) << 24) | ((b[14] as u32) << 16) | ((b[13] as u32) << 8) | (b[12] as u32),
+            ((b[11] as u32) << 24) | ((b[10] as u32) << 16) | ((b[ 9] as u32) << 8) | (b[ 8] as u32),
+            ((b[ 7] as u32) << 24) | ((b[ 6] as u32) << 16) | ((b[ 5] as u32) << 8) | (b[ 4] as u32),
+            ((b[ 3] as u32) << 24) | ((b[ 2] as u32) << 16) | ((b[ 1] as u32) << 8) | (b[ 0] as u32)
         ]});
 
     }
@@ -116,8 +116,8 @@ impl Fp25519Uint {
 
     pub fn try_into_bytes(&self, b: &mut [u8]) -> Result<(), CryptoError> {
 
-        if b.len() < 32 {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if b.len() != 32 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         for i in (0..8).rev() {

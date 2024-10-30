@@ -17,8 +17,8 @@ impl DiffieHellman for X25519 {
 
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 
-        if priv_key.len() < X25519_PRIVATE_KEY_LEN || pub_key.len() < X25519_PUBLIC_KEY_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if priv_key.len() != X25519_PRIVATE_KEY_LEN || pub_key.len() != X25519_PUBLIC_KEY_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let k: Fp25519Uint = Fp25519Uint::try_from_bytes_as_scalar(priv_key)?;
@@ -32,9 +32,9 @@ impl DiffieHellman for X25519 {
 
     fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Result<(), CryptoError> {
 
-        if priv_key.len() < X25519_PRIVATE_KEY_LEN || peer_pub_key.len() < X25519_PUBLIC_KEY_LEN ||
-            shared_secret.len() < X25519_SHARED_SECRET_LEN {
-            return Err(CryptoError::new(CryptoErrorCode::BufferTooShort));
+        if priv_key.len() != X25519_PRIVATE_KEY_LEN || peer_pub_key.len() != X25519_PUBLIC_KEY_LEN ||
+            shared_secret.len() != X25519_SHARED_SECRET_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
         let k: Fp25519Uint = Fp25519Uint::try_from_bytes_as_scalar(priv_key)?;

@@ -5,10 +5,10 @@ pub mod aes;
 pub mod block_cipher_mode;
 
 #[allow(dead_code)]
-pub mod sha2;
+pub mod chacha20;
 
 #[allow(dead_code)]
-pub mod sha3;
+pub mod ed25519;
 
 #[allow(dead_code)]
 pub mod hmac_sha2;
@@ -17,10 +17,13 @@ pub mod hmac_sha2;
 pub mod hmac_sha3;
 
 #[allow(dead_code)]
-pub mod x25519;
+pub mod sha2;
 
 #[allow(dead_code)]
-pub mod ed25519;
+pub mod sha3;
+
+#[allow(dead_code)]
+pub mod x25519;
 
 #[allow(dead_code)]
 mod curve_over_fp25519;
@@ -31,7 +34,7 @@ use std::fmt::Display;
 use std::marker::Copy;
 
 pub trait BlockCipher {
-    fn rekey(&mut self, key: &[u8]) -> Result<(), CryptoError>;
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
     fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
     fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
@@ -70,7 +73,7 @@ pub trait DigitalSignature {
     fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
     fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
     fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
-    fn rekey(&mut self, priv_key: &[u8]) -> Result<(), CryptoError>;
+    fn rekey(&mut self, priv_key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError>;
     fn sign(&self, msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
     fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
@@ -79,15 +82,20 @@ pub trait DigitalSignature {
 pub trait DigitalSignatureSigner {
     fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
     fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
-    fn rekey(&mut self, priv_key: &[u8]) -> Result<(), CryptoError>;
+    fn rekey(&mut self, priv_key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError>;
     fn sign(&self, msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub trait DigitalSignatureVerifier {
     fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
-    fn rekey(&mut self, pub_key: &[u8]) -> Result<(), CryptoError>;
+    fn rekey(&mut self, pub_key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError>;
+}
+
+pub trait StreamCipher {
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
+    fn encrypt_or_decrypt(&mut self, nonce: &[u8], intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -99,7 +107,7 @@ pub enum CryptoErrorCode {
 
     // specific
     UnsupportedAlgorithm,
-    BufferTooShort,
+    BufferLengthIncorrect,
     BufferLengthIsNotMultipleOfBlockSize,
     CounterOverwrapped,
     VerificationFailed
@@ -132,7 +140,7 @@ impl Display for CryptoError {
             CryptoErrorCode::Unknown                              => "unknown",
             CryptoErrorCode::IllegalArgument                      => "illegal argument",
             CryptoErrorCode::UnsupportedAlgorithm                 => "unsupported algorithm",
-            CryptoErrorCode::BufferTooShort                       => "buffer too short",
+            CryptoErrorCode::BufferLengthIncorrect                => "buffer length incorrect",
             CryptoErrorCode::BufferLengthIsNotMultipleOfBlockSize => "buffer length is not multiple of block size",
             CryptoErrorCode::CounterOverwrapped                   => "counter overwrapped",
             CryptoErrorCode::VerificationFailed                   => "verification failed"

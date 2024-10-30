@@ -21,7 +21,7 @@ pub fn cmd_main(args: Vec<String>) {
         println_subcmd_usage();
         return;
     } else if args.len() < 4 {
-        println!("[!Err]: mac sub-command takes at least 3 arguments.\n");
+        println!("[!Err]: mac sub-command takes at least 3 arguments.");
         println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto mac help\".");
         return;
     }
@@ -95,7 +95,7 @@ pub fn cmd_main(args: Vec<String>) {
 
     }
 
-    ctx.compute(&mut mac[..]).unwrap();
+    ctx.compute(&mut mac[..mac_len]).unwrap();
     printbytesln(&mac[..mac_len]);
 
 }

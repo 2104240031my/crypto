@@ -23,7 +23,7 @@ pub fn cmd_main(args: Vec<String>) {
         println_subcmd_usage();
         return;
     } else if args.len() < 3 {
-        println!("[!Err]: hash sub-command takes at least 2 arguments.\n");
+        println!("[!Err]: hash sub-command takes at least 2 arguments.");
         println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto hash help\".");
         return;
     }

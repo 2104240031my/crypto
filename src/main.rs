@@ -3,7 +3,7 @@ mod test;
 #[allow(dead_code)]
 mod crypto;
 
-const VERSION: &str = "0.0.0";
+const VERSION: &str = "0.0.1";
 
 fn main() {
 
@@ -46,7 +46,6 @@ fn println_cmd_usage() {
     println!(" - keyshare");
     println!(" - mac");
     println!(" - pubkey");
-    println!(" - rand");
     println!(" - sign");
     println!(" - verify");
     println!(" - version");

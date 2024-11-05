@@ -3,27 +3,27 @@ use crate::crypto::CryptoErrorCode;
 use crate::crypto::Hash;
 
 pub struct Sha224 {
-    s: Sha2State32
+    state: Sha2State32
 }
 
 pub struct Sha256 {
-    s: Sha2State32
+    state: Sha2State32
 }
 
 pub struct Sha384 {
-    s: Sha2State64
+    state: Sha2State64
 }
 
 pub struct Sha512 {
-    s: Sha2State64
+    state: Sha2State64
 }
 
 pub struct Sha512224 {
-    s: Sha2State64
+    state: Sha2State64
 }
 
 pub struct Sha512256 {
-    s: Sha2State64
+    state: Sha2State64
 }
 
 impl Sha224 {
@@ -32,8 +32,8 @@ impl Sha224 {
     pub const BLOCK_SIZE: usize         = SHA2_32_BLOCK_SIZE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha2State32{
+        return Self{
+            state: Sha2State32{
                 h: [
                     SHA224_H0_0,
                     SHA224_H0_1,
@@ -61,7 +61,7 @@ impl Hash for Sha224 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut s: Sha2State32 = Sha2State32{
+        let mut state: Sha2State32 = Sha2State32{
             h: [
                 SHA224_H0_0,
                 SHA224_H0_1,
@@ -77,14 +77,14 @@ impl Hash for Sha224 {
             total_len: 0
         };
 
-        sha2_32_digest_oneshot(&mut s, msg);
+        sha2_32_digest_oneshot(&mut state, msg);
 
         for i in 0..7 {
             let d: usize = i << 2;
-            md[d + 0] = (s.h[i] >> 24) as u8;
-            md[d + 1] = (s.h[i] >> 16) as u8;
-            md[d + 2] = (s.h[i] >>  8) as u8;
-            md[d + 3] =  s.h[i]        as u8;
+            md[d + 0] = (state.h[i] >> 24) as u8;
+            md[d + 1] = (state.h[i] >> 16) as u8;
+            md[d + 2] = (state.h[i] >>  8) as u8;
+            md[d + 3] =  state.h[i]        as u8;
         }
 
         return Ok(());
@@ -92,21 +92,21 @@ impl Hash for Sha224 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.h[0] = SHA224_H0_0;
-        self.s.h[1] = SHA224_H0_1;
-        self.s.h[2] = SHA224_H0_2;
-        self.s.h[3] = SHA224_H0_3;
-        self.s.h[4] = SHA224_H0_4;
-        self.s.h[5] = SHA224_H0_5;
-        self.s.h[6] = SHA224_H0_6;
-        self.s.h[7] = SHA224_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
+        self.state.h[0] = SHA224_H0_0;
+        self.state.h[1] = SHA224_H0_1;
+        self.state.h[2] = SHA224_H0_2;
+        self.state.h[3] = SHA224_H0_3;
+        self.state.h[4] = SHA224_H0_4;
+        self.state.h[5] = SHA224_H0_5;
+        self.state.h[6] = SHA224_H0_6;
+        self.state.h[7] = SHA224_H0_7;
+        self.state.buf_len = 0;
+        self.state.total_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha2_32_update(&mut self.s, msg);
+        sha2_32_update(&mut self.state, msg);
         return Ok(self);
     }
 
@@ -117,7 +117,7 @@ impl Hash for Sha224 {
         }
 
         let mut h: [u32; 8] = [0; 8];
-        sha2_32_digest(&mut self.s, &mut h[..]);
+        sha2_32_digest(&mut self.state, &mut h[..]);
 
         for i in 0..7 {
             let d: usize = i << 2;
@@ -139,8 +139,8 @@ impl Sha256 {
     pub const BLOCK_SIZE: usize         = SHA2_32_BLOCK_SIZE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha2State32{
+        return Self{
+            state: Sha2State32{
                 h: [
                     SHA256_H0_0,
                     SHA256_H0_1,
@@ -168,7 +168,7 @@ impl Hash for Sha256 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut s: Sha2State32 = Sha2State32{
+        let mut state: Sha2State32 = Sha2State32{
             h: [
                 SHA256_H0_0,
                 SHA256_H0_1,
@@ -184,14 +184,14 @@ impl Hash for Sha256 {
             total_len: 0
         };
 
-        sha2_32_digest_oneshot(&mut s, msg);
+        sha2_32_digest_oneshot(&mut state, msg);
 
         for i in 0..8 {
             let d: usize = i << 2;
-            md[d + 0] = (s.h[i] >> 24) as u8;
-            md[d + 1] = (s.h[i] >> 16) as u8;
-            md[d + 2] = (s.h[i] >>  8) as u8;
-            md[d + 3] =  s.h[i]        as u8;
+            md[d + 0] = (state.h[i] >> 24) as u8;
+            md[d + 1] = (state.h[i] >> 16) as u8;
+            md[d + 2] = (state.h[i] >>  8) as u8;
+            md[d + 3] =  state.h[i]        as u8;
         }
 
         return Ok(());
@@ -199,21 +199,21 @@ impl Hash for Sha256 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.h[0] = SHA256_H0_0;
-        self.s.h[1] = SHA256_H0_1;
-        self.s.h[2] = SHA256_H0_2;
-        self.s.h[3] = SHA256_H0_3;
-        self.s.h[4] = SHA256_H0_4;
-        self.s.h[5] = SHA256_H0_5;
-        self.s.h[6] = SHA256_H0_6;
-        self.s.h[7] = SHA256_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
+        self.state.h[0] = SHA256_H0_0;
+        self.state.h[1] = SHA256_H0_1;
+        self.state.h[2] = SHA256_H0_2;
+        self.state.h[3] = SHA256_H0_3;
+        self.state.h[4] = SHA256_H0_4;
+        self.state.h[5] = SHA256_H0_5;
+        self.state.h[6] = SHA256_H0_6;
+        self.state.h[7] = SHA256_H0_7;
+        self.state.buf_len = 0;
+        self.state.total_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha2_32_update(&mut self.s, msg);
+        sha2_32_update(&mut self.state, msg);
         return Ok(self);
     }
 
@@ -224,7 +224,7 @@ impl Hash for Sha256 {
         }
 
         let mut h: [u32; 8] = [0; 8];
-        sha2_32_digest(&mut self.s, &mut h[..]);
+        sha2_32_digest(&mut self.state, &mut h[..]);
 
         for i in 0..8 {
             let d: usize = i << 2;
@@ -246,8 +246,8 @@ impl Sha384 {
     pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha2State64{
+        return Self{
+            state: Sha2State64{
                 h: [
                     SHA384_H0_0,
                     SHA384_H0_1,
@@ -275,7 +275,7 @@ impl Hash for Sha384 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut s: Sha2State64 = Sha2State64{
+        let mut state: Sha2State64 = Sha2State64{
             h: [
                 SHA384_H0_0,
                 SHA384_H0_1,
@@ -291,18 +291,18 @@ impl Hash for Sha384 {
             total_len: 0
         };
 
-        sha2_64_digest_oneshot(&mut s, msg);
+        sha2_64_digest_oneshot(&mut state, msg);
 
         for i in 0..6 {
             let d: usize = i << 3;
-            md[d + 0] = (s.h[i] >> 56) as u8;
-            md[d + 1] = (s.h[i] >> 48) as u8;
-            md[d + 2] = (s.h[i] >> 40) as u8;
-            md[d + 3] = (s.h[i] >> 32) as u8;
-            md[d + 4] = (s.h[i] >> 24) as u8;
-            md[d + 5] = (s.h[i] >> 16) as u8;
-            md[d + 6] = (s.h[i] >>  8) as u8;
-            md[d + 7] =  s.h[i]        as u8;
+            md[d + 0] = (state.h[i] >> 56) as u8;
+            md[d + 1] = (state.h[i] >> 48) as u8;
+            md[d + 2] = (state.h[i] >> 40) as u8;
+            md[d + 3] = (state.h[i] >> 32) as u8;
+            md[d + 4] = (state.h[i] >> 24) as u8;
+            md[d + 5] = (state.h[i] >> 16) as u8;
+            md[d + 6] = (state.h[i] >>  8) as u8;
+            md[d + 7] =  state.h[i]        as u8;
         }
 
         return Ok(());
@@ -310,21 +310,21 @@ impl Hash for Sha384 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.h[0] = SHA384_H0_0;
-        self.s.h[1] = SHA384_H0_1;
-        self.s.h[2] = SHA384_H0_2;
-        self.s.h[3] = SHA384_H0_3;
-        self.s.h[4] = SHA384_H0_4;
-        self.s.h[5] = SHA384_H0_5;
-        self.s.h[6] = SHA384_H0_6;
-        self.s.h[7] = SHA384_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
+        self.state.h[0] = SHA384_H0_0;
+        self.state.h[1] = SHA384_H0_1;
+        self.state.h[2] = SHA384_H0_2;
+        self.state.h[3] = SHA384_H0_3;
+        self.state.h[4] = SHA384_H0_4;
+        self.state.h[5] = SHA384_H0_5;
+        self.state.h[6] = SHA384_H0_6;
+        self.state.h[7] = SHA384_H0_7;
+        self.state.buf_len = 0;
+        self.state.total_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha2_64_update(&mut self.s, msg);
+        sha2_64_update(&mut self.state, msg);
         return Ok(self);
     }
 
@@ -335,7 +335,7 @@ impl Hash for Sha384 {
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.s, &mut h[..]);
+        sha2_64_digest(&mut self.state, &mut h[..]);
 
         for i in 0..6 {
             let d: usize = i << 3;
@@ -361,8 +361,8 @@ impl Sha512 {
     pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha2State64{
+        return Self{
+            state: Sha2State64{
                 h: [
                     SHA512_H0_0,
                     SHA512_H0_1,
@@ -390,7 +390,7 @@ impl Hash for Sha512 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut s: Sha2State64 = Sha2State64{
+        let mut state: Sha2State64 = Sha2State64{
             h: [
                 SHA512_H0_0,
                 SHA512_H0_1,
@@ -406,18 +406,18 @@ impl Hash for Sha512 {
             total_len: 0
         };
 
-        sha2_64_digest_oneshot(&mut s, msg);
+        sha2_64_digest_oneshot(&mut state, msg);
 
         for i in 0..8 {
             let d: usize = i << 3;
-            md[d + 0] = (s.h[i] >> 56) as u8;
-            md[d + 1] = (s.h[i] >> 48) as u8;
-            md[d + 2] = (s.h[i] >> 40) as u8;
-            md[d + 3] = (s.h[i] >> 32) as u8;
-            md[d + 4] = (s.h[i] >> 24) as u8;
-            md[d + 5] = (s.h[i] >> 16) as u8;
-            md[d + 6] = (s.h[i] >>  8) as u8;
-            md[d + 7] =  s.h[i]        as u8;
+            md[d + 0] = (state.h[i] >> 56) as u8;
+            md[d + 1] = (state.h[i] >> 48) as u8;
+            md[d + 2] = (state.h[i] >> 40) as u8;
+            md[d + 3] = (state.h[i] >> 32) as u8;
+            md[d + 4] = (state.h[i] >> 24) as u8;
+            md[d + 5] = (state.h[i] >> 16) as u8;
+            md[d + 6] = (state.h[i] >>  8) as u8;
+            md[d + 7] =  state.h[i]        as u8;
         }
 
         return Ok(());
@@ -425,21 +425,21 @@ impl Hash for Sha512 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.h[0] = SHA512_H0_0;
-        self.s.h[1] = SHA512_H0_1;
-        self.s.h[2] = SHA512_H0_2;
-        self.s.h[3] = SHA512_H0_3;
-        self.s.h[4] = SHA512_H0_4;
-        self.s.h[5] = SHA512_H0_5;
-        self.s.h[6] = SHA512_H0_6;
-        self.s.h[7] = SHA512_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
+        self.state.h[0] = SHA512_H0_0;
+        self.state.h[1] = SHA512_H0_1;
+        self.state.h[2] = SHA512_H0_2;
+        self.state.h[3] = SHA512_H0_3;
+        self.state.h[4] = SHA512_H0_4;
+        self.state.h[5] = SHA512_H0_5;
+        self.state.h[6] = SHA512_H0_6;
+        self.state.h[7] = SHA512_H0_7;
+        self.state.buf_len = 0;
+        self.state.total_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha2_64_update(&mut self.s, msg);
+        sha2_64_update(&mut self.state, msg);
         return Ok(self);
     }
 
@@ -450,7 +450,7 @@ impl Hash for Sha512 {
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.s, &mut h[..]);
+        sha2_64_digest(&mut self.state, &mut h[..]);
 
         for i in 0..8 {
             let d: usize = i << 3;
@@ -476,8 +476,8 @@ impl Sha512224 {
     pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha2State64{
+        return Self{
+            state: Sha2State64{
                 h: [
                     SHA512224_H0_0,
                     SHA512224_H0_1,
@@ -505,7 +505,7 @@ impl Hash for Sha512224 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut s: Sha2State64 = Sha2State64{
+        let mut state: Sha2State64 = Sha2State64{
             h: [
                 SHA512224_H0_0,
                 SHA512224_H0_1,
@@ -521,22 +521,22 @@ impl Hash for Sha512224 {
             total_len: 0
         };
 
-        sha2_64_digest_oneshot(&mut s, msg);
+        sha2_64_digest_oneshot(&mut state, msg);
 
         let mut i: usize = 0;
         loop {
             let d: usize = i << 3;
-            md[d + 0] = (s.h[i] >> 56) as u8;
-            md[d + 1] = (s.h[i] >> 48) as u8;
-            md[d + 2] = (s.h[i] >> 40) as u8;
-            md[d + 3] = (s.h[i] >> 32) as u8;
+            md[d + 0] = (state.h[i] >> 56) as u8;
+            md[d + 1] = (state.h[i] >> 48) as u8;
+            md[d + 2] = (state.h[i] >> 40) as u8;
+            md[d + 3] = (state.h[i] >> 32) as u8;
             if i >= 3 {
                 break;
             }
-            md[d + 4] = (s.h[i] >> 24) as u8;
-            md[d + 5] = (s.h[i] >> 16) as u8;
-            md[d + 6] = (s.h[i] >>  8) as u8;
-            md[d + 7] =  s.h[i]        as u8;
+            md[d + 4] = (state.h[i] >> 24) as u8;
+            md[d + 5] = (state.h[i] >> 16) as u8;
+            md[d + 6] = (state.h[i] >>  8) as u8;
+            md[d + 7] =  state.h[i]        as u8;
             i = i + 1;
         }
 
@@ -545,21 +545,21 @@ impl Hash for Sha512224 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.h[0] = SHA512224_H0_0;
-        self.s.h[1] = SHA512224_H0_1;
-        self.s.h[2] = SHA512224_H0_2;
-        self.s.h[3] = SHA512224_H0_3;
-        self.s.h[4] = SHA512224_H0_4;
-        self.s.h[5] = SHA512224_H0_5;
-        self.s.h[6] = SHA512224_H0_6;
-        self.s.h[7] = SHA512224_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
+        self.state.h[0] = SHA512224_H0_0;
+        self.state.h[1] = SHA512224_H0_1;
+        self.state.h[2] = SHA512224_H0_2;
+        self.state.h[3] = SHA512224_H0_3;
+        self.state.h[4] = SHA512224_H0_4;
+        self.state.h[5] = SHA512224_H0_5;
+        self.state.h[6] = SHA512224_H0_6;
+        self.state.h[7] = SHA512224_H0_7;
+        self.state.buf_len = 0;
+        self.state.total_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha2_64_update(&mut self.s, msg);
+        sha2_64_update(&mut self.state, msg);
         return Ok(self);
     }
 
@@ -570,7 +570,7 @@ impl Hash for Sha512224 {
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.s, &mut h[..]);
+        sha2_64_digest(&mut self.state, &mut h[..]);
 
         let mut i: usize = 0;
         loop {
@@ -601,8 +601,8 @@ impl Sha512256 {
     pub const BLOCK_SIZE: usize         = SHA2_64_BLOCK_SIZE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha2State64{
+        return Self{
+            state: Sha2State64{
                 h: [
                     SHA512256_H0_0,
                     SHA512256_H0_1,
@@ -630,7 +630,7 @@ impl Hash for Sha512256 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut s: Sha2State64 = Sha2State64{
+        let mut state: Sha2State64 = Sha2State64{
             h: [
                 SHA512256_H0_0,
                 SHA512256_H0_1,
@@ -646,18 +646,18 @@ impl Hash for Sha512256 {
             total_len: 0
         };
 
-        sha2_64_digest_oneshot(&mut s, msg);
+        sha2_64_digest_oneshot(&mut state, msg);
 
         for i in 0..4 {
             let d: usize = i << 3;
-            md[d + 0] = (s.h[i] >> 56) as u8;
-            md[d + 1] = (s.h[i] >> 48) as u8;
-            md[d + 2] = (s.h[i] >> 40) as u8;
-            md[d + 3] = (s.h[i] >> 32) as u8;
-            md[d + 4] = (s.h[i] >> 24) as u8;
-            md[d + 5] = (s.h[i] >> 16) as u8;
-            md[d + 6] = (s.h[i] >>  8) as u8;
-            md[d + 7] =  s.h[i]        as u8;
+            md[d + 0] = (state.h[i] >> 56) as u8;
+            md[d + 1] = (state.h[i] >> 48) as u8;
+            md[d + 2] = (state.h[i] >> 40) as u8;
+            md[d + 3] = (state.h[i] >> 32) as u8;
+            md[d + 4] = (state.h[i] >> 24) as u8;
+            md[d + 5] = (state.h[i] >> 16) as u8;
+            md[d + 6] = (state.h[i] >>  8) as u8;
+            md[d + 7] =  state.h[i]        as u8;
         }
 
         return Ok(());
@@ -665,21 +665,21 @@ impl Hash for Sha512256 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.h[0] = SHA512256_H0_0;
-        self.s.h[1] = SHA512256_H0_1;
-        self.s.h[2] = SHA512256_H0_2;
-        self.s.h[3] = SHA512256_H0_3;
-        self.s.h[4] = SHA512256_H0_4;
-        self.s.h[5] = SHA512256_H0_5;
-        self.s.h[6] = SHA512256_H0_6;
-        self.s.h[7] = SHA512256_H0_7;
-        self.s.buf_len = 0;
-        self.s.total_len = 0;
+        self.state.h[0] = SHA512256_H0_0;
+        self.state.h[1] = SHA512256_H0_1;
+        self.state.h[2] = SHA512256_H0_2;
+        self.state.h[3] = SHA512256_H0_3;
+        self.state.h[4] = SHA512256_H0_4;
+        self.state.h[5] = SHA512256_H0_5;
+        self.state.h[6] = SHA512256_H0_6;
+        self.state.h[7] = SHA512256_H0_7;
+        self.state.buf_len = 0;
+        self.state.total_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha2_64_update(&mut self.s, msg);
+        sha2_64_update(&mut self.state, msg);
         return Ok(self);
     }
 
@@ -690,7 +690,7 @@ impl Hash for Sha512256 {
         }
 
         let mut h: [u64; 8] = [0; 8];
-        sha2_64_digest(&mut self.s, &mut h[..]);
+        sha2_64_digest(&mut self.state, &mut h[..]);
 
         for i in 0..4 {
             let d: usize = i << 3;
@@ -822,7 +822,7 @@ struct Sha2State64 {
     total_len: usize
 }
 
-fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
+fn sha2_32_digest_oneshot(state: &mut Sha2State32, msg: &[u8]) {
 
     let mut w: [u32; 64] = [0; 64];
     let mut i: usize = 0;
@@ -846,14 +846,14 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u32 = s.h[0];
-        let mut b: u32 = s.h[1];
-        let mut c: u32 = s.h[2];
-        let mut d: u32 = s.h[3];
-        let mut e: u32 = s.h[4];
-        let mut f: u32 = s.h[5];
-        let mut g: u32 = s.h[6];
-        let mut h: u32 = s.h[7];
+        let mut a: u32 = state.h[0];
+        let mut b: u32 = state.h[1];
+        let mut c: u32 = state.h[2];
+        let mut d: u32 = state.h[3];
+        let mut e: u32 = state.h[4];
+        let mut f: u32 = state.h[5];
+        let mut g: u32 = state.h[6];
+        let mut h: u32 = state.h[7];
 
         for t in 0..64 {
             let t1: u32 = h
@@ -873,14 +873,14 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
     }
 
@@ -890,18 +890,18 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
         n + ((64 - (n & 63)) & 63)
     };
 
-    s.buf[..(l - i)].copy_from_slice(&msg[i..l]);
-    s.buf[l - i] = 0x80;
+    state.buf[..(l - i)].copy_from_slice(&msg[i..l]);
+    state.buf[l - i] = 0x80;
 
     let bit_len: u64 = (l as u64) << 3;
-    s.buf[n - 8] = (bit_len >> 56) as u8;
-    s.buf[n - 7] = (bit_len >> 48) as u8;
-    s.buf[n - 6] = (bit_len >> 40) as u8;
-    s.buf[n - 5] = (bit_len >> 32) as u8;
-    s.buf[n - 4] = (bit_len >> 24) as u8;
-    s.buf[n - 3] = (bit_len >> 16) as u8;
-    s.buf[n - 2] = (bit_len >>  8) as u8;
-    s.buf[n - 1] =  bit_len        as u8;
+    state.buf[n - 8] = (bit_len >> 56) as u8;
+    state.buf[n - 7] = (bit_len >> 48) as u8;
+    state.buf[n - 6] = (bit_len >> 40) as u8;
+    state.buf[n - 5] = (bit_len >> 32) as u8;
+    state.buf[n - 4] = (bit_len >> 24) as u8;
+    state.buf[n - 3] = (bit_len >> 16) as u8;
+    state.buf[n - 2] = (bit_len >>  8) as u8;
+    state.buf[n - 1] =  bit_len        as u8;
 
     i = 0;
 
@@ -909,10 +909,10 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
 
         for t in 0..16 {
             w[t] =
-                ((s.buf[i + 0] as u32) << 24) |
-                ((s.buf[i + 1] as u32) << 16) |
-                ((s.buf[i + 2] as u32) <<  8) |
-                 (s.buf[i + 3] as u32);
+                ((state.buf[i + 0] as u32) << 24) |
+                ((state.buf[i + 1] as u32) << 16) |
+                ((state.buf[i + 2] as u32) <<  8) |
+                 (state.buf[i + 3] as u32);
             i = i + 4;
         }
 
@@ -923,14 +923,14 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u32 = s.h[0];
-        let mut b: u32 = s.h[1];
-        let mut c: u32 = s.h[2];
-        let mut d: u32 = s.h[3];
-        let mut e: u32 = s.h[4];
-        let mut f: u32 = s.h[5];
-        let mut g: u32 = s.h[6];
-        let mut h: u32 = s.h[7];
+        let mut a: u32 = state.h[0];
+        let mut b: u32 = state.h[1];
+        let mut c: u32 = state.h[2];
+        let mut d: u32 = state.h[3];
+        let mut e: u32 = state.h[4];
+        let mut f: u32 = state.h[5];
+        let mut g: u32 = state.h[6];
+        let mut h: u32 = state.h[7];
 
         for t in 0..64 {
             let t1: u32 = h
@@ -950,42 +950,42 @@ fn sha2_32_digest_oneshot(s: &mut Sha2State32, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
     }
 
 }
 
-fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
+fn sha2_32_update(state: &mut Sha2State32, msg: &[u8]) {
 
     let mut w: [u32; 64] = [0; 64];
-    let mut i: usize = if s.buf_len == 0 { 0 } else { SHA2_32_BLOCK_SIZE - s.buf_len };
+    let mut i: usize = if state.buf_len == 0 { 0 } else { SHA2_32_BLOCK_SIZE - state.buf_len };
     let l: usize = msg.len();
 
-    if l < SHA2_32_BLOCK_SIZE - s.buf_len {
-        s.buf[s.buf_len..(s.buf_len + l)].copy_from_slice(&msg[..]);
-        s.buf_len = s.buf_len + l;
+    if l < SHA2_32_BLOCK_SIZE - state.buf_len {
+        state.buf[state.buf_len..(state.buf_len + l)].copy_from_slice(&msg[..]);
+        state.buf_len = state.buf_len + l;
         return;
     }
 
     if i != 0 {
 
-        s.buf[s.buf_len..(s.buf_len + i)].copy_from_slice(&msg[..i]);
+        state.buf[state.buf_len..(state.buf_len + i)].copy_from_slice(&msg[..i]);
 
         let mut j: usize = 0;
         for t in 0..16 {
             w[t] =
-                ((s.buf[j + 0] as u32) << 24) |
-                ((s.buf[j + 1] as u32) << 16) |
-                ((s.buf[j + 2] as u32) <<  8) |
-                 (s.buf[j + 3] as u32);
+                ((state.buf[j + 0] as u32) << 24) |
+                ((state.buf[j + 1] as u32) << 16) |
+                ((state.buf[j + 2] as u32) <<  8) |
+                 (state.buf[j + 3] as u32);
             j = j + 4;
         }
 
@@ -996,14 +996,14 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u32 = s.h[0];
-        let mut b: u32 = s.h[1];
-        let mut c: u32 = s.h[2];
-        let mut d: u32 = s.h[3];
-        let mut e: u32 = s.h[4];
-        let mut f: u32 = s.h[5];
-        let mut g: u32 = s.h[6];
-        let mut h: u32 = s.h[7];
+        let mut a: u32 = state.h[0];
+        let mut b: u32 = state.h[1];
+        let mut c: u32 = state.h[2];
+        let mut d: u32 = state.h[3];
+        let mut e: u32 = state.h[4];
+        let mut f: u32 = state.h[5];
+        let mut g: u32 = state.h[6];
+        let mut h: u32 = state.h[7];
 
         for t in 0..64 {
             let t1: u32 = h
@@ -1023,16 +1023,16 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
-        s.total_len = s.total_len + s.buf_len;
+        state.total_len = state.total_len + state.buf_len;
 
     }
 
@@ -1054,14 +1054,14 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u32 = s.h[0];
-        let mut b: u32 = s.h[1];
-        let mut c: u32 = s.h[2];
-        let mut d: u32 = s.h[3];
-        let mut e: u32 = s.h[4];
-        let mut f: u32 = s.h[5];
-        let mut g: u32 = s.h[6];
-        let mut h: u32 = s.h[7];
+        let mut a: u32 = state.h[0];
+        let mut b: u32 = state.h[1];
+        let mut c: u32 = state.h[2];
+        let mut d: u32 = state.h[3];
+        let mut e: u32 = state.h[4];
+        let mut f: u32 = state.h[5];
+        let mut g: u32 = state.h[6];
+        let mut h: u32 = state.h[7];
 
         for t in 0..64 {
             let t1: u32 = h
@@ -1081,60 +1081,60 @@ fn sha2_32_update(s: &mut Sha2State32, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
     }
 
     if i < l {
-        s.buf_len = l - i;
-        s.buf[..s.buf_len].copy_from_slice(&msg[i..(i + s.buf_len)]);
+        state.buf_len = l - i;
+        state.buf[..state.buf_len].copy_from_slice(&msg[i..(i + state.buf_len)]);
     } else {
-        s.buf_len = 0;
+        state.buf_len = 0;
     }
 
-    s.total_len = s.total_len + i;
+    state.total_len = state.total_len + i;
 
 }
 
-fn sha2_32_digest(s: &mut Sha2State32, out: &mut [u32]) {
+fn sha2_32_digest(state: &mut Sha2State32, out: &mut [u32]) {
 
-    out[0] = s.h[0];
-    out[1] = s.h[1];
-    out[2] = s.h[2];
-    out[3] = s.h[3];
-    out[4] = s.h[4];
-    out[5] = s.h[5];
-    out[6] = s.h[6];
-    out[7] = s.h[7];
+    out[0] = state.h[0];
+    out[1] = state.h[1];
+    out[2] = state.h[2];
+    out[3] = state.h[3];
+    out[4] = state.h[4];
+    out[5] = state.h[5];
+    out[6] = state.h[6];
+    out[7] = state.h[7];
 
     let n: usize = {
-        let n: usize = 64 - ((s.total_len + s.buf_len) & 63);
+        let n: usize = 64 - ((state.total_len + state.buf_len) & 63);
         let n: usize = n + (if n < 9 { 64 } else { 0 });
         n + ((64 - (n & 63)) & 63)
     };
 
-    s.buf[s.buf_len] = 0x80;
+    state.buf[state.buf_len] = 0x80;
 
-    for i in (s.buf_len + 1)..(n - 8) {
-        s.buf[i] = 0x00;
+    for i in (state.buf_len + 1)..(n - 8) {
+        state.buf[i] = 0x00;
     }
 
-    let bit_len: u64 = ((s.total_len + s.buf_len) as u64) << 3;
-    s.buf[n - 8] = (bit_len >> 56) as u8;
-    s.buf[n - 7] = (bit_len >> 48) as u8;
-    s.buf[n - 6] = (bit_len >> 40) as u8;
-    s.buf[n - 5] = (bit_len >> 32) as u8;
-    s.buf[n - 4] = (bit_len >> 24) as u8;
-    s.buf[n - 3] = (bit_len >> 16) as u8;
-    s.buf[n - 2] = (bit_len >>  8) as u8;
-    s.buf[n - 1] =  bit_len        as u8;
+    let bit_len: u64 = ((state.total_len + state.buf_len) as u64) << 3;
+    state.buf[n - 8] = (bit_len >> 56) as u8;
+    state.buf[n - 7] = (bit_len >> 48) as u8;
+    state.buf[n - 6] = (bit_len >> 40) as u8;
+    state.buf[n - 5] = (bit_len >> 32) as u8;
+    state.buf[n - 4] = (bit_len >> 24) as u8;
+    state.buf[n - 3] = (bit_len >> 16) as u8;
+    state.buf[n - 2] = (bit_len >>  8) as u8;
+    state.buf[n - 1] =  bit_len        as u8;
 
     let mut w: [u32; 64] = [0; 64];
     let mut i: usize = 0;
@@ -1143,10 +1143,10 @@ fn sha2_32_digest(s: &mut Sha2State32, out: &mut [u32]) {
 
         for t in 0..16 {
             w[t] =
-                ((s.buf[i + 0] as u32) << 24) |
-                ((s.buf[i + 1] as u32) << 16) |
-                ((s.buf[i + 2] as u32) <<  8) |
-                 (s.buf[i + 3] as u32);
+                ((state.buf[i + 0] as u32) << 24) |
+                ((state.buf[i + 1] as u32) << 16) |
+                ((state.buf[i + 2] as u32) <<  8) |
+                 (state.buf[i + 3] as u32);
             i = i + 4;
         }
 
@@ -1197,7 +1197,7 @@ fn sha2_32_digest(s: &mut Sha2State32, out: &mut [u32]) {
 
 }
 
-fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
+fn sha2_64_digest_oneshot(state: &mut Sha2State64, msg: &[u8]) {
 
     let mut w: [u64; 80] = [0; 80];
     let mut i: usize = 0;
@@ -1225,14 +1225,14 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u64 = s.h[0];
-        let mut b: u64 = s.h[1];
-        let mut c: u64 = s.h[2];
-        let mut d: u64 = s.h[3];
-        let mut e: u64 = s.h[4];
-        let mut f: u64 = s.h[5];
-        let mut g: u64 = s.h[6];
-        let mut h: u64 = s.h[7];
+        let mut a: u64 = state.h[0];
+        let mut b: u64 = state.h[1];
+        let mut c: u64 = state.h[2];
+        let mut d: u64 = state.h[3];
+        let mut e: u64 = state.h[4];
+        let mut f: u64 = state.h[5];
+        let mut g: u64 = state.h[6];
+        let mut h: u64 = state.h[7];
 
         for t in 0..80 {
             let t1: u64 = h
@@ -1252,14 +1252,14 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
     }
 
@@ -1269,18 +1269,18 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
         n + ((128 - (n & 127)) & 127)
     };
 
-    s.buf[..(l - i)].copy_from_slice(&msg[i..l]);
-    s.buf[l - i] = 0x80;
+    state.buf[..(l - i)].copy_from_slice(&msg[i..l]);
+    state.buf[l - i] = 0x80;
 
     let bit_len: u64 = (l as u64) << 3;
-    s.buf[n - 8] = (bit_len >> 56) as u8;
-    s.buf[n - 7] = (bit_len >> 48) as u8;
-    s.buf[n - 6] = (bit_len >> 40) as u8;
-    s.buf[n - 5] = (bit_len >> 32) as u8;
-    s.buf[n - 4] = (bit_len >> 24) as u8;
-    s.buf[n - 3] = (bit_len >> 16) as u8;
-    s.buf[n - 2] = (bit_len >>  8) as u8;
-    s.buf[n - 1] =  bit_len        as u8;
+    state.buf[n - 8] = (bit_len >> 56) as u8;
+    state.buf[n - 7] = (bit_len >> 48) as u8;
+    state.buf[n - 6] = (bit_len >> 40) as u8;
+    state.buf[n - 5] = (bit_len >> 32) as u8;
+    state.buf[n - 4] = (bit_len >> 24) as u8;
+    state.buf[n - 3] = (bit_len >> 16) as u8;
+    state.buf[n - 2] = (bit_len >>  8) as u8;
+    state.buf[n - 1] =  bit_len        as u8;
 
     i = 0;
 
@@ -1288,14 +1288,14 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
 
         for t in 0..16 {
             w[t] =
-                ((s.buf[i + 0] as u64) << 56) |
-                ((s.buf[i + 1] as u64) << 48) |
-                ((s.buf[i + 2] as u64) << 40) |
-                ((s.buf[i + 3] as u64) << 32) |
-                ((s.buf[i + 4] as u64) << 24) |
-                ((s.buf[i + 5] as u64) << 16) |
-                ((s.buf[i + 6] as u64) <<  8) |
-                 (s.buf[i + 7] as u64);
+                ((state.buf[i + 0] as u64) << 56) |
+                ((state.buf[i + 1] as u64) << 48) |
+                ((state.buf[i + 2] as u64) << 40) |
+                ((state.buf[i + 3] as u64) << 32) |
+                ((state.buf[i + 4] as u64) << 24) |
+                ((state.buf[i + 5] as u64) << 16) |
+                ((state.buf[i + 6] as u64) <<  8) |
+                 (state.buf[i + 7] as u64);
             i = i + 8;
         }
 
@@ -1306,14 +1306,14 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u64 = s.h[0];
-        let mut b: u64 = s.h[1];
-        let mut c: u64 = s.h[2];
-        let mut d: u64 = s.h[3];
-        let mut e: u64 = s.h[4];
-        let mut f: u64 = s.h[5];
-        let mut g: u64 = s.h[6];
-        let mut h: u64 = s.h[7];
+        let mut a: u64 = state.h[0];
+        let mut b: u64 = state.h[1];
+        let mut c: u64 = state.h[2];
+        let mut d: u64 = state.h[3];
+        let mut e: u64 = state.h[4];
+        let mut f: u64 = state.h[5];
+        let mut g: u64 = state.h[6];
+        let mut h: u64 = state.h[7];
 
         for t in 0..80 {
             let t1: u64 = h
@@ -1333,46 +1333,46 @@ fn sha2_64_digest_oneshot(s: &mut Sha2State64, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
     }
 
 }
 
-fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
+fn sha2_64_update(state: &mut Sha2State64, msg: &[u8]) {
 
     let mut w: [u64; 80] = [0; 80];
-    let mut i: usize = if s.buf_len == 0 { 0 } else { SHA2_64_BLOCK_SIZE - s.buf_len };
+    let mut i: usize = if state.buf_len == 0 { 0 } else { SHA2_64_BLOCK_SIZE - state.buf_len };
     let l: usize = msg.len();
 
-    if l < SHA2_64_BLOCK_SIZE - s.buf_len {
-        s.buf[s.buf_len..(s.buf_len + l)].copy_from_slice(&msg[..]);
-        s.buf_len = s.buf_len + l;
+    if l < SHA2_64_BLOCK_SIZE - state.buf_len {
+        state.buf[state.buf_len..(state.buf_len + l)].copy_from_slice(&msg[..]);
+        state.buf_len = state.buf_len + l;
         return;
     }
 
     if i != 0 {
 
-        s.buf[s.buf_len..(s.buf_len + i)].copy_from_slice(&msg[..i]);
+        state.buf[state.buf_len..(state.buf_len + i)].copy_from_slice(&msg[..i]);
 
         let mut j: usize = 0;
         for t in 0..16 {
             w[t] =
-                ((s.buf[j + 0] as u64) << 56) |
-                ((s.buf[j + 1] as u64) << 48) |
-                ((s.buf[j + 2] as u64) << 40) |
-                ((s.buf[j + 3] as u64) << 32) |
-                ((s.buf[j + 4] as u64) << 24) |
-                ((s.buf[j + 5] as u64) << 16) |
-                ((s.buf[j + 6] as u64) <<  8) |
-                 (s.buf[j + 7] as u64);
+                ((state.buf[j + 0] as u64) << 56) |
+                ((state.buf[j + 1] as u64) << 48) |
+                ((state.buf[j + 2] as u64) << 40) |
+                ((state.buf[j + 3] as u64) << 32) |
+                ((state.buf[j + 4] as u64) << 24) |
+                ((state.buf[j + 5] as u64) << 16) |
+                ((state.buf[j + 6] as u64) <<  8) |
+                 (state.buf[j + 7] as u64);
             j = j + 8;
         }
 
@@ -1383,14 +1383,14 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u64 = s.h[0];
-        let mut b: u64 = s.h[1];
-        let mut c: u64 = s.h[2];
-        let mut d: u64 = s.h[3];
-        let mut e: u64 = s.h[4];
-        let mut f: u64 = s.h[5];
-        let mut g: u64 = s.h[6];
-        let mut h: u64 = s.h[7];
+        let mut a: u64 = state.h[0];
+        let mut b: u64 = state.h[1];
+        let mut c: u64 = state.h[2];
+        let mut d: u64 = state.h[3];
+        let mut e: u64 = state.h[4];
+        let mut f: u64 = state.h[5];
+        let mut g: u64 = state.h[6];
+        let mut h: u64 = state.h[7];
 
         for t in 0..80 {
             let t1: u64 = h
@@ -1410,16 +1410,16 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
-        s.total_len = s.total_len + s.buf_len;
+        state.total_len = state.total_len + state.buf_len;
 
     }
 
@@ -1445,14 +1445,14 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
                 .wrapping_add(w[t - 16]);
         }
 
-        let mut a: u64 = s.h[0];
-        let mut b: u64 = s.h[1];
-        let mut c: u64 = s.h[2];
-        let mut d: u64 = s.h[3];
-        let mut e: u64 = s.h[4];
-        let mut f: u64 = s.h[5];
-        let mut g: u64 = s.h[6];
-        let mut h: u64 = s.h[7];
+        let mut a: u64 = state.h[0];
+        let mut b: u64 = state.h[1];
+        let mut c: u64 = state.h[2];
+        let mut d: u64 = state.h[3];
+        let mut e: u64 = state.h[4];
+        let mut f: u64 = state.h[5];
+        let mut g: u64 = state.h[6];
+        let mut h: u64 = state.h[7];
 
         for t in 0..80 {
             let t1: u64 = h
@@ -1472,60 +1472,60 @@ fn sha2_64_update(s: &mut Sha2State64, msg: &[u8]) {
             a = t1.wrapping_add(t2);
         }
 
-        s.h[0] = s.h[0].wrapping_add(a);
-        s.h[1] = s.h[1].wrapping_add(b);
-        s.h[2] = s.h[2].wrapping_add(c);
-        s.h[3] = s.h[3].wrapping_add(d);
-        s.h[4] = s.h[4].wrapping_add(e);
-        s.h[5] = s.h[5].wrapping_add(f);
-        s.h[6] = s.h[6].wrapping_add(g);
-        s.h[7] = s.h[7].wrapping_add(h);
+        state.h[0] = state.h[0].wrapping_add(a);
+        state.h[1] = state.h[1].wrapping_add(b);
+        state.h[2] = state.h[2].wrapping_add(c);
+        state.h[3] = state.h[3].wrapping_add(d);
+        state.h[4] = state.h[4].wrapping_add(e);
+        state.h[5] = state.h[5].wrapping_add(f);
+        state.h[6] = state.h[6].wrapping_add(g);
+        state.h[7] = state.h[7].wrapping_add(h);
 
     }
 
     if i < l {
-        s.buf_len = l - i;
-        s.buf[..s.buf_len].copy_from_slice(&msg[i..(i + s.buf_len)]);
+        state.buf_len = l - i;
+        state.buf[..state.buf_len].copy_from_slice(&msg[i..(i + state.buf_len)]);
     } else {
-        s.buf_len = 0;
+        state.buf_len = 0;
     }
 
-    s.total_len = s.total_len + i;
+    state.total_len = state.total_len + i;
 
 }
 
-fn sha2_64_digest(s: &mut Sha2State64, out: &mut [u64]) {
+fn sha2_64_digest(state: &mut Sha2State64, out: &mut [u64]) {
 
-    out[0] = s.h[0];
-    out[1] = s.h[1];
-    out[2] = s.h[2];
-    out[3] = s.h[3];
-    out[4] = s.h[4];
-    out[5] = s.h[5];
-    out[6] = s.h[6];
-    out[7] = s.h[7];
+    out[0] = state.h[0];
+    out[1] = state.h[1];
+    out[2] = state.h[2];
+    out[3] = state.h[3];
+    out[4] = state.h[4];
+    out[5] = state.h[5];
+    out[6] = state.h[6];
+    out[7] = state.h[7];
 
     let n: usize = {
-        let n: usize = 128 - ((s.total_len + s.buf_len) & 127);
+        let n: usize = 128 - ((state.total_len + state.buf_len) & 127);
         let n: usize = n + (if n < 17 { 128 } else { 0 });
         n + ((128 - (n & 127)) & 127)
     };
 
-    s.buf[s.buf_len] = 0x80;
+    state.buf[state.buf_len] = 0x80;
 
-    for i in (s.buf_len + 1)..(n - 8) {
-        s.buf[i] = 0x00;
+    for i in (state.buf_len + 1)..(n - 8) {
+        state.buf[i] = 0x00;
     }
 
-    let bit_len: u64 = ((s.total_len + s.buf_len) as u64) << 3;
-    s.buf[n - 8] = (bit_len >> 56) as u8;
-    s.buf[n - 7] = (bit_len >> 48) as u8;
-    s.buf[n - 6] = (bit_len >> 40) as u8;
-    s.buf[n - 5] = (bit_len >> 32) as u8;
-    s.buf[n - 4] = (bit_len >> 24) as u8;
-    s.buf[n - 3] = (bit_len >> 16) as u8;
-    s.buf[n - 2] = (bit_len >>  8) as u8;
-    s.buf[n - 1] =  bit_len        as u8;
+    let bit_len: u64 = ((state.total_len + state.buf_len) as u64) << 3;
+    state.buf[n - 8] = (bit_len >> 56) as u8;
+    state.buf[n - 7] = (bit_len >> 48) as u8;
+    state.buf[n - 6] = (bit_len >> 40) as u8;
+    state.buf[n - 5] = (bit_len >> 32) as u8;
+    state.buf[n - 4] = (bit_len >> 24) as u8;
+    state.buf[n - 3] = (bit_len >> 16) as u8;
+    state.buf[n - 2] = (bit_len >>  8) as u8;
+    state.buf[n - 1] =  bit_len        as u8;
 
     let mut w: [u64; 80] = [0; 80];
     let mut i: usize = 0;
@@ -1534,14 +1534,14 @@ fn sha2_64_digest(s: &mut Sha2State64, out: &mut [u64]) {
 
         for t in 0..16 {
             w[t] =
-                ((s.buf[i + 0] as u64) << 56) |
-                ((s.buf[i + 1] as u64) << 48) |
-                ((s.buf[i + 2] as u64) << 40) |
-                ((s.buf[i + 3] as u64) << 32) |
-                ((s.buf[i + 4] as u64) << 24) |
-                ((s.buf[i + 5] as u64) << 16) |
-                ((s.buf[i + 6] as u64) <<  8) |
-                 (s.buf[i + 7] as u64);
+                ((state.buf[i + 0] as u64) << 56) |
+                ((state.buf[i + 1] as u64) << 48) |
+                ((state.buf[i + 2] as u64) << 40) |
+                ((state.buf[i + 3] as u64) << 32) |
+                ((state.buf[i + 4] as u64) << 24) |
+                ((state.buf[i + 5] as u64) << 16) |
+                ((state.buf[i + 6] as u64) <<  8) |
+                 (state.buf[i + 7] as u64);
             i = i + 8;
         }
 

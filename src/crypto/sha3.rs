@@ -3,19 +3,19 @@ use crate::crypto::CryptoErrorCode;
 use crate::crypto::Hash;
 
 pub struct Sha3224 {
-    s: Sha3State
+    state: Sha3State
 }
 
 pub struct Sha3256 {
-    s: Sha3State
+    state: Sha3State
 }
 
 pub struct Sha3384 {
-    s: Sha3State
+    state: Sha3State
 }
 
 pub struct Sha3512 {
-    s: Sha3State
+    state: Sha3State
 }
 
 impl Sha3224 {
@@ -24,8 +24,8 @@ impl Sha3224 {
     pub const BLOCK_SIZE: usize         = SHA3_224_RATE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha3State{
+        return Self{
+            state: Sha3State{
                 a: [0; 25],
                 buf: [0; 168],
                 buf_len: 0
@@ -67,13 +67,13 @@ impl Hash for Sha3224 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
+        self.state.a = [0; 25];
+        self.state.buf_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha3_absorb(&mut self.s, msg, SHA3_224_RATE);
+        sha3_absorb(&mut self.state, msg, SHA3_224_RATE);
         return Ok(self);
     }
 
@@ -85,7 +85,7 @@ impl Hash for Sha3224 {
 
         let mut a: [u64; 25] = [0; 25];
 
-        sha3_squeeze(&mut self.s, &mut a, SHA3_224_RATE);
+        sha3_squeeze(&mut self.state, &mut a, SHA3_224_RATE);
 
         for i in 0..4 {
             let b: usize = i << 3;
@@ -114,8 +114,8 @@ impl Sha3256 {
     pub const BLOCK_SIZE: usize         = SHA3_256_RATE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha3State{
+        return Self{
+            state: Sha3State{
                 a: [0; 25],
                 buf: [0; 168],
                 buf_len: 0
@@ -154,13 +154,13 @@ impl Hash for Sha3256 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
+        self.state.a = [0; 25];
+        self.state.buf_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha3_absorb(&mut self.s, msg, SHA3_256_RATE);
+        sha3_absorb(&mut self.state, msg, SHA3_256_RATE);
         return Ok(self);
     }
 
@@ -172,7 +172,7 @@ impl Hash for Sha3256 {
 
         let mut a: [u64; 25] = [0; 25];
 
-        sha3_squeeze(&mut self.s, &mut a, SHA3_256_RATE);
+        sha3_squeeze(&mut self.state, &mut a, SHA3_256_RATE);
 
         for i in 0..4 {
             let b: usize = i << 3;
@@ -198,8 +198,8 @@ impl Sha3384 {
     pub const BLOCK_SIZE: usize         = SHA3_384_RATE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha3State{
+        return Self{
+            state: Sha3State{
                 a: [0; 25],
                 buf: [0; 168],
                 buf_len: 0
@@ -238,13 +238,13 @@ impl Hash for Sha3384 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
+        self.state.a = [0; 25];
+        self.state.buf_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha3_absorb(&mut self.s, msg, SHA3_384_RATE);
+        sha3_absorb(&mut self.state, msg, SHA3_384_RATE);
         return Ok(self);
     }
 
@@ -256,7 +256,7 @@ impl Hash for Sha3384 {
 
         let mut a: [u64; 25] = [0; 25];
 
-        sha3_squeeze(&mut self.s, &mut a, SHA3_384_RATE);
+        sha3_squeeze(&mut self.state, &mut a, SHA3_384_RATE);
 
         for i in 0..6 {
             let b: usize = i << 3;
@@ -282,8 +282,8 @@ impl Sha3512 {
     pub const BLOCK_SIZE: usize         = SHA3_512_RATE;
 
     pub fn new() -> Self {
-        return Self{ s:
-            Sha3State{
+        return Self{
+            state: Sha3State{
                 a: [0; 25],
                 buf: [0; 168],
                 buf_len: 0
@@ -322,13 +322,13 @@ impl Hash for Sha3512 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.a = [0; 25];
-        self.s.buf_len = 0;
+        self.state.a = [0; 25];
+        self.state.buf_len = 0;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        sha3_absorb(&mut self.s, msg, SHA3_512_RATE);
+        sha3_absorb(&mut self.state, msg, SHA3_512_RATE);
         return Ok(self);
     }
 
@@ -340,7 +340,7 @@ impl Hash for Sha3512 {
 
         let mut a: [u64; 25] = [0; 25];
 
-        sha3_squeeze(&mut self.s, &mut a, SHA3_512_RATE);
+        sha3_squeeze(&mut self.state, &mut a, SHA3_512_RATE);
 
         for i in 0..8 {
             let b: usize = i << 3;
@@ -570,43 +570,43 @@ fn sha3_digest_oneshot(a: &mut [u64; 25], msg: &[u8], rate: usize) {
 
 }
 
-fn sha3_absorb(s: &mut Sha3State, msg: &[u8], rate: usize) {
+fn sha3_absorb(state: &mut Sha3State, msg: &[u8], rate: usize) {
 
-    let mut b: usize = if s.buf_len == 0 { 0 } else { rate - s.buf_len };
+    let mut b: usize = if state.buf_len == 0 { 0 } else { rate - state.buf_len };
     let l: usize = msg.len();
     let r: usize = rate >> 3;
 
-    if l < rate - s.buf_len {
-        s.buf[s.buf_len..(s.buf_len + l)].copy_from_slice(&msg[..]);
-        s.buf_len = s.buf_len + l;
+    if l < rate - state.buf_len {
+        state.buf[state.buf_len..(state.buf_len + l)].copy_from_slice(&msg[..]);
+        state.buf_len = state.buf_len + l;
         return;
     }
 
     if b != 0 {
 
-        s.buf[s.buf_len..(s.buf_len + b)].copy_from_slice(&msg[..b]);
+        state.buf[state.buf_len..(state.buf_len + b)].copy_from_slice(&msg[..b]);
 
         for i in (0..rate).step_by(8) {
-            s.a[i >> 3] = s.a[i >> 3] ^ (
-                 (s.buf[i + 0] as u64)        |
-                ((s.buf[i + 1] as u64) <<  8) |
-                ((s.buf[i + 2] as u64) << 16) |
-                ((s.buf[i + 3] as u64) << 24) |
-                ((s.buf[i + 4] as u64) << 32) |
-                ((s.buf[i + 5] as u64) << 40) |
-                ((s.buf[i + 6] as u64) << 48) |
-                ((s.buf[i + 7] as u64) << 56)
+            state.a[i >> 3] = state.a[i >> 3] ^ (
+                 (state.buf[i + 0] as u64)        |
+                ((state.buf[i + 1] as u64) <<  8) |
+                ((state.buf[i + 2] as u64) << 16) |
+                ((state.buf[i + 3] as u64) << 24) |
+                ((state.buf[i + 4] as u64) << 32) |
+                ((state.buf[i + 5] as u64) << 40) |
+                ((state.buf[i + 6] as u64) << 48) |
+                ((state.buf[i + 7] as u64) << 56)
             );
         }
 
-        sha3_block(&mut s.a);
+        sha3_block(&mut state.a);
 
     }
 
     while l - b >= rate {
 
         for i in 0..r {
-            s.a[i] = s.a[i] ^ (
+            state.a[i] = state.a[i] ^ (
                  (msg[b + 0] as u64)        |
                 ((msg[b + 1] as u64) <<  8) |
                 ((msg[b + 2] as u64) << 16) |
@@ -619,31 +619,31 @@ fn sha3_absorb(s: &mut Sha3State, msg: &[u8], rate: usize) {
             b = b + 8;
         }
 
-        sha3_block(&mut s.a);
+        sha3_block(&mut state.a);
 
     }
 
     if b < l {
-        s.buf_len = l - b;
-        s.buf[..s.buf_len].copy_from_slice(&msg[b..(b + s.buf_len)]);
+        state.buf_len = l - b;
+        state.buf[..state.buf_len].copy_from_slice(&msg[b..(b + state.buf_len)]);
     } else {
-        s.buf_len = 0;
+        state.buf_len = 0;
     }
 
 }
 
-fn sha3_squeeze(s: &Sha3State, a: &mut [u64; 25], rate: usize) {
+fn sha3_squeeze(state: &Sha3State, a: &mut [u64; 25], rate: usize) {
 
     for i in 0..25 {
-        a[i] = s.a[i];
+        a[i] = state.a[i];
     }
 
     let mut i: usize = 0;
     let mut n: usize = 0;
     let r: usize = rate >> 3;
 
-    for b in 0..s.buf_len {
-        a[i] = a[i] ^ ((s.buf[b] as u64) << n);
+    for b in 0..state.buf_len {
+        a[i] = a[i] ^ ((state.buf[b] as u64) << n);
         n = n + 8;
         if n == 64 {
             n = 0;

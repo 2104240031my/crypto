@@ -74,7 +74,7 @@ fn x25519(k: &Fp25519Uint, u: &Fp25519Uint, v: &mut Fp25519Uint) {
 
             j = j - 1;
 
-            let bit: bool = ((k.w[i] as usize) >> j) & 1 == 1;
+            let bit: bool = ((k.words[i] as usize) >> j) & 1 == 1;
             swap = swap ^ bit;
             Fp25519Uint::constant_time_swap(&mut x2, &mut x3, swap);
             Fp25519Uint::constant_time_swap(&mut z2, &mut z3, swap);

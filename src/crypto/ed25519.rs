@@ -11,8 +11,8 @@ use crate::crypto::curve_over_fp25519::Q;
 use crate::crypto::sha2::Sha512;
 
 pub struct Ed25519 {
-    s: Ed25519Signer,
-    v: Ed25519Verifier
+    signer: Ed25519Signer,
+    verifier: Ed25519Verifier
 }
 
 pub struct Ed25519Signer {
@@ -35,8 +35,8 @@ impl Ed25519 {
         Ed25519Signer::compute_public_key_oneshot(priv_key, &mut pub_key[..])?;
 
         return Ok(Self{
-            s: Ed25519Signer::new(priv_key)?,
-            v: Ed25519Verifier::new(&pub_key[..])?,
+            signer: Ed25519Signer::new(priv_key)?,
+            verifier: Ed25519Verifier::new(&pub_key[..])?,
         });
 
     }
@@ -58,20 +58,20 @@ impl DigitalSignature for Ed25519 {
     }
 
     fn rekey(&mut self, priv_key: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.rekey(priv_key)?.compute_public_key(&mut self.v.pub_key[..])?;
+        self.signer.rekey(priv_key)?.compute_public_key(&mut self.verifier.pub_key[..])?;
         return Ok(self);
     }
 
     fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError> {
-        return self.s.compute_public_key(pub_key);
+        return self.signer.compute_public_key(pub_key);
     }
 
     fn sign(&self, msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError> {
-        return self.s.sign(msg, signature);
+        return self.signer.sign(msg, signature);
     }
 
     fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError> {
-        return self.v.verify(msg, signature);
+        return self.verifier.verify(msg, signature);
     }
 
 }

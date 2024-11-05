@@ -17,6 +17,9 @@ pub mod hmac_sha2;
 pub mod hmac_sha3;
 
 #[allow(dead_code)]
+pub mod poly1305;
+
+#[allow(dead_code)]
 pub mod sha2;
 
 #[allow(dead_code)]

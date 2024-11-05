@@ -8,27 +8,27 @@ use crate::crypto::sha2::Sha384;
 use crate::crypto::sha2::Sha512;
 
 pub struct HmacSha224 {
+    hash_state: Sha224,
     inner: [u8; Sha224::BLOCK_SIZE],
-    outer: [u8; Sha224::BLOCK_SIZE + Sha224::MESSAGE_DIGEST_LEN],
-    s: Sha224
+    outer: [u8; Sha224::BLOCK_SIZE + Sha224::MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha256 {
+    hash_state: Sha256,
     inner: [u8; Sha256::BLOCK_SIZE],
-    outer: [u8; Sha256::BLOCK_SIZE + Sha256::MESSAGE_DIGEST_LEN],
-    s: Sha256
+    outer: [u8; Sha256::BLOCK_SIZE + Sha256::MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha384 {
+    hash_state: Sha384,
     inner: [u8; Sha384::BLOCK_SIZE],
-    outer: [u8; Sha384::BLOCK_SIZE + Sha384::MESSAGE_DIGEST_LEN],
-    s: Sha384
+    outer: [u8; Sha384::BLOCK_SIZE + Sha384::MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha512 {
+    hash_state: Sha512,
     inner: [u8; Sha512::BLOCK_SIZE],
-    outer: [u8; Sha512::BLOCK_SIZE + Sha512::MESSAGE_DIGEST_LEN],
-    s: Sha512
+    outer: [u8; Sha512::BLOCK_SIZE + Sha512::MESSAGE_DIGEST_LEN]
 }
 
 impl HmacSha224 {
@@ -37,9 +37,9 @@ impl HmacSha224 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha224::new(),
             inner: [0; Sha224::BLOCK_SIZE],
             outer: [0; Sha224::BLOCK_SIZE + Sha224::MESSAGE_DIGEST_LEN],
-            s: Sha224::new()
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -71,12 +71,12 @@ impl Mac for HmacSha224 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -86,7 +86,7 @@ impl Mac for HmacSha224 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha224::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha224::BLOCK_SIZE..])?;
         return Sha224::digest_oneshot(&self.outer[..], mac);
 
     }
@@ -99,9 +99,9 @@ impl HmacSha256 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha256::new(),
             inner: [0; Sha256::BLOCK_SIZE],
-            outer: [0; Sha256::BLOCK_SIZE + Sha256::MESSAGE_DIGEST_LEN],
-            s: Sha256::new()
+            outer: [0; Sha256::BLOCK_SIZE + Sha256::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -133,12 +133,12 @@ impl Mac for HmacSha256 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -148,7 +148,7 @@ impl Mac for HmacSha256 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha256::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha256::BLOCK_SIZE..])?;
         return Sha256::digest_oneshot(&self.outer[..], mac);
 
     }
@@ -161,9 +161,9 @@ impl HmacSha384 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha384::new(),
             inner: [0; Sha384::BLOCK_SIZE],
-            outer: [0; Sha384::BLOCK_SIZE + Sha384::MESSAGE_DIGEST_LEN],
-            s: Sha384::new()
+            outer: [0; Sha384::BLOCK_SIZE + Sha384::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -195,12 +195,12 @@ impl Mac for HmacSha384 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -210,7 +210,7 @@ impl Mac for HmacSha384 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha384::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha384::BLOCK_SIZE..])?;
         return Sha384::digest_oneshot(&self.outer[..], mac);
 
     }
@@ -223,9 +223,9 @@ impl HmacSha512 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha512::new(),
             inner: [0; Sha512::BLOCK_SIZE],
-            outer: [0; Sha512::BLOCK_SIZE + Sha512::MESSAGE_DIGEST_LEN],
-            s: Sha512::new()
+            outer: [0; Sha512::BLOCK_SIZE + Sha512::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -257,12 +257,12 @@ impl Mac for HmacSha512 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -272,7 +272,7 @@ impl Mac for HmacSha512 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha512::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha512::BLOCK_SIZE..])?;
         return Sha512::digest_oneshot(&self.outer[..], mac);
 
     }

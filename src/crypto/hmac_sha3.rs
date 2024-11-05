@@ -8,27 +8,27 @@ use crate::crypto::sha3::Sha3384;
 use crate::crypto::sha3::Sha3512;
 
 pub struct HmacSha3224 {
+    hash_state: Sha3224,
     inner: [u8; Sha3224::BLOCK_SIZE],
-    outer: [u8; Sha3224::BLOCK_SIZE + Sha3224::MESSAGE_DIGEST_LEN],
-    s: Sha3224
+    outer: [u8; Sha3224::BLOCK_SIZE + Sha3224::MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha3256 {
+    hash_state: Sha3256,
     inner: [u8; Sha3256::BLOCK_SIZE],
-    outer: [u8; Sha3256::BLOCK_SIZE + Sha3256::MESSAGE_DIGEST_LEN],
-    s: Sha3256
+    outer: [u8; Sha3256::BLOCK_SIZE + Sha3256::MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha3384 {
+    hash_state: Sha3384,
     inner: [u8; Sha3384::BLOCK_SIZE],
-    outer: [u8; Sha3384::BLOCK_SIZE + Sha3384::MESSAGE_DIGEST_LEN],
-    s: Sha3384
+    outer: [u8; Sha3384::BLOCK_SIZE + Sha3384::MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha3512 {
+    hash_state: Sha3512,
     inner: [u8; Sha3512::BLOCK_SIZE],
-    outer: [u8; Sha3512::BLOCK_SIZE + Sha3512::MESSAGE_DIGEST_LEN],
-    s: Sha3512
+    outer: [u8; Sha3512::BLOCK_SIZE + Sha3512::MESSAGE_DIGEST_LEN]
 }
 
 impl HmacSha3224 {
@@ -37,9 +37,9 @@ impl HmacSha3224 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha3224::new(),
             inner: [0; Sha3224::BLOCK_SIZE],
-            outer: [0; Sha3224::BLOCK_SIZE + Sha3224::MESSAGE_DIGEST_LEN],
-            s: Sha3224::new()
+            outer: [0; Sha3224::BLOCK_SIZE + Sha3224::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -71,12 +71,12 @@ impl Mac for HmacSha3224 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -86,7 +86,7 @@ impl Mac for HmacSha3224 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha3224::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha3224::BLOCK_SIZE..])?;
         return Sha3224::digest_oneshot(&self.outer[..], mac);
 
     }
@@ -99,9 +99,9 @@ impl HmacSha3256 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha3256::new(),
             inner: [0; Sha3256::BLOCK_SIZE],
-            outer: [0; Sha3256::BLOCK_SIZE + Sha3256::MESSAGE_DIGEST_LEN],
-            s: Sha3256::new()
+            outer: [0; Sha3256::BLOCK_SIZE + Sha3256::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -133,12 +133,12 @@ impl Mac for HmacSha3256 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -148,7 +148,7 @@ impl Mac for HmacSha3256 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha3256::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha3256::BLOCK_SIZE..])?;
         return Sha3256::digest_oneshot(&self.outer[..], mac);
 
     }
@@ -161,9 +161,9 @@ impl HmacSha3384 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha3384::new(),
             inner: [0; Sha3384::BLOCK_SIZE],
-            outer: [0; Sha3384::BLOCK_SIZE + Sha3384::MESSAGE_DIGEST_LEN],
-            s: Sha3384::new()
+            outer: [0; Sha3384::BLOCK_SIZE + Sha3384::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -195,12 +195,12 @@ impl Mac for HmacSha3384 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -210,7 +210,7 @@ impl Mac for HmacSha3384 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha3384::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha3384::BLOCK_SIZE..])?;
         return Sha3384::digest_oneshot(&self.outer[..], mac);
 
     }
@@ -223,9 +223,9 @@ impl HmacSha3512 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
+            hash_state: Sha3512::new(),
             inner: [0; Sha3512::BLOCK_SIZE],
-            outer: [0; Sha3512::BLOCK_SIZE + Sha3512::MESSAGE_DIGEST_LEN],
-            s: Sha3512::new()
+            outer: [0; Sha3512::BLOCK_SIZE + Sha3512::MESSAGE_DIGEST_LEN]
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
@@ -257,12 +257,12 @@ impl Mac for HmacSha3512 {
     }
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.s.reset()?.update(&self.inner[..])?;
+        self.hash_state.reset()?.update(&self.inner[..])?;
         return Ok(self);
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.s.update(msg)?;
+        self.hash_state.update(msg)?;
         return Ok(self);
     }
 
@@ -272,7 +272,7 @@ impl Mac for HmacSha3512 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.s.digest(&mut self.outer[Sha3512::BLOCK_SIZE..])?;
+        self.hash_state.digest(&mut self.outer[Sha3512::BLOCK_SIZE..])?;
         return Sha3512::digest_oneshot(&self.outer[..], mac);
 
     }

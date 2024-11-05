@@ -53,7 +53,7 @@ fn test_hmac_sha224_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     for i in 0..m.len() {
         hmac.update(&m[i..(i + 1)]).unwrap();
     }
-    hmac.compute(&mut out[..28]).unwrap();
+    hmac.compute(&mut out[..]).unwrap();
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA2 {
         print!("[!Err]: testing HMAC-SHA-224 is FAILED.\n");
@@ -86,7 +86,7 @@ fn test_hmac_sha256_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     for i in 0..m.len() {
         hmac.update(&m[i..(i + 1)]).unwrap();
     }
-    hmac.compute(&mut out[..32]).unwrap();
+    hmac.compute(&mut out[..]).unwrap();
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA2 {
         print!("[!Err]: testing HMAC-SHA-256 is FAILED.\n");
@@ -119,7 +119,7 @@ fn test_hmac_sha384_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     for i in 0..m.len() {
         hmac.update(&m[i..(i + 1)]).unwrap();
     }
-    hmac.compute(&mut out[..48]).unwrap();
+    hmac.compute(&mut out[..]).unwrap();
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA2 {
         print!("[!Err]: testing HMAC-SHA-384 is FAILED.\n");
@@ -152,7 +152,7 @@ fn test_hmac_sha512_inner(k: &[u8], m: &[u8], d: &[u8]) -> usize {
     for i in 0..m.len() {
         hmac.update(&m[i..(i + 1)]).unwrap();
     }
-    hmac.compute(&mut out[..64]).unwrap();
+    hmac.compute(&mut out[..]).unwrap();
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_HMAC_SHA2 {
         print!("[!Err]: testing HMAC-SHA-512 is FAILED.\n");

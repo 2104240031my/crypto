@@ -2,15 +2,15 @@ use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::StreamCipher;
 
-pub struct ChaCha20 {
+pub struct ChaCha20State {
     words: [u32; 16]
 }
 
-pub struct ChaCha20Cipher {
+pub struct ChaCha20 {
     key: [u8; 32]
 }
 
-impl ChaCha20 {
+impl ChaCha20State {
 
     pub fn new(key: &[u8], nonce: &[u8], counter: u32) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
@@ -42,6 +42,11 @@ impl ChaCha20 {
 
     }
 
+    pub fn set_counter(&mut self, ctr: u32) -> Result<(), CryptoError> {
+        self.words[12] = ctr;
+        return Ok(());
+    }
+
     pub fn increment_counter(&mut self) -> Result<(), CryptoError> {
         self.words[12] = self.words[12] + 1;
         return Ok(());
@@ -49,7 +54,7 @@ impl ChaCha20 {
 
 }
 
-impl ChaCha20Cipher {
+impl ChaCha20 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
 
@@ -72,7 +77,7 @@ impl ChaCha20Cipher {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        let mut state: ChaCha20 = ChaCha20::new(&self.key[..], nonce, counter)?;
+        let mut state: ChaCha20State = ChaCha20State::new(&self.key[..], nonce, counter)?;
         let mut key_strm: [u8; 64] = [0; 64];
 
         for i in (0..n).step_by(64) {
@@ -97,7 +102,7 @@ impl ChaCha20Cipher {
 
 }
 
-impl StreamCipher for ChaCha20Cipher  {
+impl StreamCipher for ChaCha20  {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         return if key.len() != 32 {
@@ -119,7 +124,7 @@ const CHACHA20_CONST_W1: u32 = 0x3320646e;
 const CHACHA20_CONST_W2: u32 = 0x79622d32;
 const CHACHA20_CONST_W3: u32 = 0x6b206574;
 
-fn chacha20_reseed(s: &mut ChaCha20, k: &[u8], n: &[u8], c: u32) {
+fn chacha20_reseed(s: &mut ChaCha20State, k: &[u8], n: &[u8], c: u32) {
     s.words[0]  = CHACHA20_CONST_W0;
     s.words[1]  = CHACHA20_CONST_W1;
     s.words[2]  = CHACHA20_CONST_W2;
@@ -138,9 +143,9 @@ fn chacha20_reseed(s: &mut ChaCha20, k: &[u8], n: &[u8], c: u32) {
     s.words[15] = ((n[11] as u32) << 24) | ((n[10] as u32) << 16) | ((n[ 9] as u32) << 8) | (n[ 8] as u32);
 }
 
-fn chacha20_block(s: &ChaCha20, k: &mut [u8]) {
+fn chacha20_block(s: &ChaCha20State, k: &mut [u8]) {
 
-    let mut r: ChaCha20 = ChaCha20{ words: [
+    let mut r: ChaCha20State = ChaCha20State{ words: [
         s.words[ 0], s.words[ 1], s.words[ 2], s.words[ 3],
         s.words[ 4], s.words[ 5], s.words[ 6], s.words[ 7],
         s.words[ 8], s.words[ 9], s.words[10], s.words[11],

@@ -36,6 +36,14 @@ use std::error::Error;
 use std::fmt::Display;
 use std::marker::Copy;
 
+pub trait Aead {
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
+    fn gcm_encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8],
+        tag: &mut [u8]) -> Result<(), CryptoError>;
+    fn gcm_decrypt_and_verify(&mut self, nonce: &[u8], aad: &[u8], ciphertext: &[u8], plaintext: &mut [u8],
+        tag: &[u8]) -> Result<bool, CryptoError>;
+}
+
 pub trait BlockCipher {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;

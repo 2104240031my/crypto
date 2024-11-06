@@ -9,7 +9,7 @@ use crate::crypto::block_cipher_mode::Cfb128Fb8;
 use crate::crypto::block_cipher_mode::Cfb128Fb128;
 use crate::crypto::block_cipher_mode::Ofb128;
 use crate::crypto::block_cipher_mode::Ctr128;
-use crate::crypto::chacha20::ChaCha20Cipher;
+use crate::crypto::chacha20::ChaCha20;
 use crate::cmd::ArgType;
 use crate::cmd::SuffixedArg;
 use crate::cmd::printbytesln;
@@ -118,7 +118,7 @@ pub fn cmd_main(args: Vec<String>) {
             Ok(v)  => Ok((CipherState::AesCtr(v), Aes::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "chacha20"        => match ChaCha20Cipher::new(&key[..]) {
+        "chacha20"        => match ChaCha20::new(&key[..]) {
             Ok(v)  => Ok((CipherState::ChaCha20(v), 12)),
             Err(e) => Err(e)
         },
@@ -244,7 +244,7 @@ enum CipherState {
     AesCfbFb128(Aes),
     AesOfb(Aes),
     AesCtr(Aes),
-    ChaCha20(ChaCha20Cipher),
+    ChaCha20(ChaCha20),
 }
 
 impl CipherState {

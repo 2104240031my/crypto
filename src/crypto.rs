@@ -8,6 +8,9 @@ pub mod block_cipher_mode;
 pub mod chacha20;
 
 #[allow(dead_code)]
+pub mod chacha20_poly1305;
+
+#[allow(dead_code)]
 pub mod ed25519;
 
 #[allow(dead_code)]
@@ -38,9 +41,9 @@ use std::marker::Copy;
 
 pub trait Aead {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
-    fn gcm_encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8],
+    fn encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8],
         tag: &mut [u8]) -> Result<(), CryptoError>;
-    fn gcm_decrypt_and_verify(&mut self, nonce: &[u8], aad: &[u8], ciphertext: &[u8], plaintext: &mut [u8],
+    fn decrypt_and_verify(&mut self, nonce: &[u8], aad: &[u8], ciphertext: &[u8], plaintext: &mut [u8],
         tag: &[u8]) -> Result<bool, CryptoError>;
 }
 
@@ -106,7 +109,7 @@ pub trait DigitalSignatureVerifier {
 
 pub trait StreamCipher {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
-    fn encrypt_or_decrypt(&mut self, nonce: &[u8], intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
+    fn encrypt_or_decrypt(&mut self, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[derive(Debug, Copy, Clone)]

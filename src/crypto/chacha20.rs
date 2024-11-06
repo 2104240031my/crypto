@@ -2,33 +2,36 @@ use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::StreamCipher;
 
-pub struct ChaCha20State {
-    words: [u32; 16]
-}
-
 pub struct ChaCha20 {
-    key: [u8; 32]
+    state: ChaCha20State
 }
 
-impl ChaCha20State {
+impl ChaCha20 {
+
+    pub const KEY_LEN: usize = CHACHA20_KEY_LEN;
 
     pub fn new(key: &[u8], nonce: &[u8], counter: u32) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
-            words: [0; 16]
+            state: ChaCha20State{
+                words: [0; 16]
+            }
         };
         v.reseed(key, nonce, counter)?;
         return Ok(v);
     }
 
-    pub fn reseed(&mut self, key: &[u8], nonce: &[u8], counter: u32) -> Result<(), CryptoError> {
+    pub fn reseed(&mut self, key: &[u8], nonce: &[u8], counter: u32) -> Result<&mut Self, CryptoError> {
+        self.rekey(key)?.reset(nonce, counter)?;
+        return Ok(self);
+    }
 
-        if key.len() != 32 || nonce.len() != 12 {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        chacha20_reseed(self, key, nonce, counter);
-        return Ok(());
-
+    pub fn reset(&mut self, nonce: &[u8], counter: u32) -> Result<&mut Self, CryptoError> {
+        return if nonce.len() != 12 {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            chacha20_reset(&mut self.state, nonce, counter);
+            Ok(self)
+        };
     }
 
     pub fn block(&self, key_strm: &mut [u8]) -> Result<(), CryptoError> {
@@ -37,67 +40,23 @@ impl ChaCha20State {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        chacha20_block(self, key_strm);
+        chacha20_block(&self.state, key_strm);
         return Ok(());
 
     }
 
+    pub fn block_unchecked(&self, key_strm: &mut [u8]) {
+        chacha20_block(&self.state, key_strm);
+    }
+
     pub fn set_counter(&mut self, ctr: u32) -> Result<(), CryptoError> {
-        self.words[12] = ctr;
+        self.state.words[12] = ctr;
         return Ok(());
     }
 
     pub fn increment_counter(&mut self) -> Result<(), CryptoError> {
-        self.words[12] = self.words[12] + 1;
+        self.state.words[12] = self.state.words[12] + 1;
         return Ok(());
-    }
-
-}
-
-impl ChaCha20 {
-
-    pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
-
-        let mut v: Self = Self{
-            key: [0; 32]
-        };
-
-        v.rekey(key)?;
-        return Ok(v);
-
-    }
-
-    pub fn encrypt_or_decrypt_with_counter(&mut self, nonce: &[u8], counter: u32, intext: &[u8],
-        outtext: &mut [u8]) -> Result<(), CryptoError> {
-
-        let len: usize = intext.len();
-        let n: usize = len & usize::MAX.wrapping_shl(6);
-
-        if nonce.len() != 12 || len != outtext.len() {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        let mut state: ChaCha20State = ChaCha20State::new(&self.key[..], nonce, counter)?;
-        let mut key_strm: [u8; 64] = [0; 64];
-
-        for i in (0..n).step_by(64) {
-            state.block(&mut key_strm[..])?;
-            for j in i..(i + 64) {
-                outtext[j] = intext[j] ^ key_strm[j - i];
-            }
-            state.increment_counter()?;
-        }
-
-        if n != len {
-            state.block(&mut key_strm[..])?;
-            for i in n..len {
-                outtext[i] = intext[i] ^ key_strm[i - n];
-            }
-            state.increment_counter()?;
-        }
-
-        return Ok(());
-
     }
 
 }
@@ -108,27 +67,56 @@ impl StreamCipher for ChaCha20  {
         return if key.len() != 32 {
             Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
         } else {
-            self.key.copy_from_slice(key);
+            chacha20_rekey(&mut self.state, key);
             Ok(self)
         };
     }
 
-    fn encrypt_or_decrypt(&mut self, nonce: &[u8], intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
-        return self.encrypt_or_decrypt_with_counter(nonce, 1, intext, outtext);
+    fn encrypt_or_decrypt(&mut self, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
+
+        let len: usize = intext.len();
+        let n: usize = len & usize::MAX.wrapping_shl(6);
+
+        if len != outtext.len() {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        let mut key_strm: [u8; 64] = [0; 64];
+
+        for i in (0..n).step_by(64) {
+            self.block_unchecked(&mut key_strm[..]);
+            for j in i..(i + 64) {
+                outtext[j] = intext[j] ^ key_strm[j - i];
+            }
+            self.increment_counter()?;
+        }
+
+        if n != len {
+            self.block_unchecked(&mut key_strm[..]);
+            for i in n..len {
+                outtext[i] = intext[i] ^ key_strm[i - n];
+            }
+            self.increment_counter()?;
+        }
+
+        return Ok(());
+
     }
 
 }
+
+struct ChaCha20State {
+    words: [u32; 16]
+}
+
+const CHACHA20_KEY_LEN: usize = 32;
 
 const CHACHA20_CONST_W0: u32 = 0x61707865;
 const CHACHA20_CONST_W1: u32 = 0x3320646e;
 const CHACHA20_CONST_W2: u32 = 0x79622d32;
 const CHACHA20_CONST_W3: u32 = 0x6b206574;
 
-fn chacha20_reseed(s: &mut ChaCha20State, k: &[u8], n: &[u8], c: u32) {
-    s.words[0]  = CHACHA20_CONST_W0;
-    s.words[1]  = CHACHA20_CONST_W1;
-    s.words[2]  = CHACHA20_CONST_W2;
-    s.words[3]  = CHACHA20_CONST_W3;
+fn chacha20_rekey(s: &mut ChaCha20State, k: &[u8]) {
     s.words[4]  = ((k[ 3] as u32) << 24) | ((k[ 2] as u32) << 16) | ((k[ 1] as u32) << 8) | (k[ 0] as u32);
     s.words[5]  = ((k[ 7] as u32) << 24) | ((k[ 6] as u32) << 16) | ((k[ 5] as u32) << 8) | (k[ 4] as u32);
     s.words[6]  = ((k[11] as u32) << 24) | ((k[10] as u32) << 16) | ((k[ 9] as u32) << 8) | (k[ 8] as u32);
@@ -137,6 +125,13 @@ fn chacha20_reseed(s: &mut ChaCha20State, k: &[u8], n: &[u8], c: u32) {
     s.words[9]  = ((k[23] as u32) << 24) | ((k[22] as u32) << 16) | ((k[21] as u32) << 8) | (k[20] as u32);
     s.words[10] = ((k[27] as u32) << 24) | ((k[26] as u32) << 16) | ((k[25] as u32) << 8) | (k[24] as u32);
     s.words[11] = ((k[31] as u32) << 24) | ((k[30] as u32) << 16) | ((k[29] as u32) << 8) | (k[28] as u32);
+}
+
+fn chacha20_reset(s: &mut ChaCha20State, n: &[u8], c: u32) {
+    s.words[0]  = CHACHA20_CONST_W0;
+    s.words[1]  = CHACHA20_CONST_W1;
+    s.words[2]  = CHACHA20_CONST_W2;
+    s.words[3]  = CHACHA20_CONST_W3;
     s.words[12] = c;
     s.words[13] = ((n[ 3] as u32) << 24) | ((n[ 2] as u32) << 16) | ((n[ 1] as u32) << 8) | (n[ 0] as u32);
     s.words[14] = ((n[ 7] as u32) << 24) | ((n[ 6] as u32) << 16) | ((n[ 5] as u32) << 8) | (n[ 4] as u32);

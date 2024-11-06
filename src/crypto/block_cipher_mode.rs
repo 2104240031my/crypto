@@ -468,14 +468,14 @@ impl Gcm for BlockCipherMode128 {
 
         let subkey: Block128  = gcm128_generate_subkey(cipher);
         let mut ctr: [u8; 16] = [0; 16];
-        let mut tv: [u8; 16]  = [0; 16];
+        let mut t: [u8; 16]  = [0; 16];
 
         gcm128_set_counter(&subkey, &iv, &mut ctr[..]);
-        gcm128_compute_tag(cipher, &subkey, &mut ctr[..], aad, ciphertext, &mut tv[..])?;
+        gcm128_compute_tag(cipher, &subkey, &mut ctr[..], aad, ciphertext, &mut t[..])?;
 
         let mut s: u8 = 0;
         for i in 0..16 {
-            s = s | (tag[i] ^ tv[i]);
+            s = s | (tag[i] ^ t[i]);
         }
         if s != 0 {
             return Err(CryptoError::new(CryptoErrorCode::VerificationFailed));

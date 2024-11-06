@@ -1,5 +1,6 @@
 use crate::crypto::CryptoError;
 use crate::crypto::BlockCipher128;
+use crate::crypto::StreamCipher;
 use crate::crypto::aes::AesAlgorithm;
 use crate::crypto::aes::Aes;
 use crate::crypto::block_cipher_mode::BlockCipherMode128;
@@ -118,7 +119,7 @@ pub fn cmd_main(args: Vec<String>) {
             Ok(v)  => Ok((CipherState::AesCtr(v), Aes::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "chacha20"        => match ChaCha20::new(&key[..]) {
+        "chacha20"        => match ChaCha20::new(&key[..], &[0; 16], 0) {
             Ok(v)  => Ok((CipherState::ChaCha20(v), 12)),
             Err(e) => Err(e)
         },
@@ -257,7 +258,7 @@ impl CipherState {
             Self::AesCfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
             Self::AesOfb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
             Self::AesCtr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
-            Self::ChaCha20(v)    => v.encrypt_or_decrypt_with_counter(iv, 1, plaintext, ciphertext),
+            Self::ChaCha20(v)    => v.reset(iv, 1)?.encrypt_or_decrypt(plaintext, ciphertext),
         };
     }
 
@@ -269,7 +270,7 @@ impl CipherState {
             Self::AesCfbFb128(v) => BlockCipherMode128::cfb_fb128_decrypt(v, iv, ciphertext, plaintext),
             Self::AesOfb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, ciphertext, plaintext),
             Self::AesCtr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, ciphertext, plaintext),
-            Self::ChaCha20(v)    => v.encrypt_or_decrypt_with_counter(iv, 1, ciphertext, plaintext),
+            Self::ChaCha20(v)    => v.reset(iv, 1)?.encrypt_or_decrypt(ciphertext, plaintext),
         };
     }
 

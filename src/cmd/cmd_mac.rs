@@ -8,6 +8,7 @@ use crate::crypto::hmac_sha3::HmacSha3224;
 use crate::crypto::hmac_sha3::HmacSha3256;
 use crate::crypto::hmac_sha3::HmacSha3384;
 use crate::crypto::hmac_sha3::HmacSha3512;
+use crate::crypto::poly1305::Poly1305;
 use crate::cmd::ArgType;
 use crate::cmd::SuffixedArg;
 use crate::cmd::BUF_SIZE;
@@ -43,6 +44,7 @@ pub fn cmd_main(args: Vec<String>) {
         "hmac-sha3-256" => (MacState::HmacSha3256(HmacSha3256::new(&key[..]).unwrap()), HmacSha3256::MAC_LEN),
         "hmac-sha3-384" => (MacState::HmacSha3384(HmacSha3384::new(&key[..]).unwrap()), HmacSha3384::MAC_LEN),
         "hmac-sha3-512" => (MacState::HmacSha3512(HmacSha3512::new(&key[..]).unwrap()), HmacSha3512::MAC_LEN),
+        "poly1305"      => (MacState::Poly1305(Poly1305::new(&key[..]).unwrap()), Poly1305::MAC_LEN),
         _               => {
             println!("[!Err]: unsupported algorithm.");
             println!("[Info]: if you want to know which MAC algorithms are supported, run \"crypto mac help\".");
@@ -113,6 +115,7 @@ pub fn println_subcmd_usage() {
     println!(" - hmac-sha3-256");
     println!(" - hmac-sha3-384");
     println!(" - hmac-sha3-512");
+    println!(" - poly1305");
     println!("");
     println!("and enter key and message as follows:");
     println!(" - if the data is the hexadecimal string \"00010203\", enter \"00010203.h\" (suffix is \".h\"))");
@@ -129,6 +132,7 @@ enum MacState {
     HmacSha3256(HmacSha3256),
     HmacSha3384(HmacSha3384),
     HmacSha3512(HmacSha3512),
+    Poly1305(Poly1305),
 }
 
 impl MacState {
@@ -143,6 +147,7 @@ impl MacState {
             Self::HmacSha3256(v)   => v.update(msg).err(),
             Self::HmacSha3384(v)   => v.update(msg).err(),
             Self::HmacSha3512(v)   => v.update(msg).err(),
+            Self::Poly1305(v)      => v.update(msg).err(),
         };
         return if let Some(e) = err { Err(e) } else { Ok(self) };
     }
@@ -157,6 +162,7 @@ impl MacState {
             Self::HmacSha3256(v)   => v.compute(mac).err(),
             Self::HmacSha3384(v)   => v.compute(mac).err(),
             Self::HmacSha3512(v)   => v.compute(mac).err(),
+            Self::Poly1305(v)      => v.compute(mac).err(),
         };
         return if let Some(e) = err { Err(e) } else { Ok(()) };
     }

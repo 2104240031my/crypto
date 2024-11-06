@@ -1,8 +1,6 @@
 use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::Mac;
-use std::clone::Clone;
-use std::marker::Copy;
 
 pub struct Poly1305 {
     key: Poly1305Key,
@@ -13,6 +11,7 @@ pub struct Poly1305 {
 
 impl Poly1305 {
 
+    pub const KEY_LEN: usize = POLY1305_KEY_LEN;
     pub const MAC_LEN: usize = POLY1305_MAC_LEN;
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
@@ -27,6 +26,47 @@ impl Poly1305 {
         };
         v.rekey(key)?.reset()?;
         return Ok(v);
+    }
+
+    pub fn block(&mut self, block: &[u8]) -> Result<&mut Self, CryptoError> {
+        return if block.len() != 16 {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            poly1305_block(&self.key, &mut self.acc, block);
+            Ok(self)
+        };
+    }
+
+    pub fn incomplete_block(&mut self, incomplete_block: &[u8]) -> Result<&mut Self, CryptoError> {
+        return if incomplete_block.len() != 16 {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            poly1305_incomplete_block(&self.key, &mut self.acc, incomplete_block);
+            Ok(self)
+        };
+    }
+
+    pub fn mac(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
+        return if mac.len() != POLY1305_MAC_LEN {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            poly1305_mac(&self.key, &self.acc, mac);
+            Ok(())
+        };
+    }
+
+    pub fn block_unchecked(&mut self, block: &[u8]) -> &mut Self {
+        poly1305_block(&self.key, &mut self.acc, block);
+        return self;
+    }
+
+    pub fn incomplete_block_unchecked(&mut self, incomplete_block: &[u8]) -> &mut Self {
+        poly1305_incomplete_block(&self.key, &mut self.acc, incomplete_block);
+        return self;
+    }
+
+    pub fn mac_unchecked(&mut self, mac: &mut [u8]) {
+        poly1305_mac(&self.key, &self.acc, mac);
     }
 
 }
@@ -53,83 +93,108 @@ impl Mac for Poly1305 {
     }
 
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        poly1305_update(self, &msg[..]);
+
+        let mut b: usize = if self.buf_len == 0 { 0 } else { 16 - self.buf_len };
+        let l: usize = msg.len();
+
+        if l < 16 - self.buf_len {
+            self.buf[self.buf_len..(self.buf_len + l)].copy_from_slice(&msg[..]);
+            self.buf_len = self.buf_len + l;
+            return Ok(self);
+        }
+
+        if b != 0 {
+            self.buf[self.buf_len..(self.buf_len + b)].copy_from_slice(&msg[..b]);
+            poly1305_block(&self.key, &mut self.acc, &self.buf[..]);
+        }
+
+        while l - b >= 16 {
+            poly1305_block(&self.key, &mut self.acc, &msg[b..(b + 16)]);
+            b = b + 16;
+        }
+
+        if b < l {
+            self.buf_len = l - b;
+            self.buf[..self.buf_len].copy_from_slice(&msg[b..(b + self.buf_len)]);
+        } else {
+            self.buf_len = 0;
+        }
+
         return Ok(self);
+
     }
 
     fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
-        return if mac.len() != POLY1305_MAC_LEN {
-            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+
+        if mac.len() != POLY1305_MAC_LEN {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        if self.buf_len != 0 {
+            self.buf[self.buf_len] = 0x01;
+            self.buf[(self.buf_len + 1)..].fill(0x00);
+            let mut u: Fp1305Uint = Fp1305Uint::try_from_bytes(&self.buf[..]).unwrap();
+            Fp1305Uint::gadd_assign(&mut u, &self.acc);
+            Fp1305Uint::gmul_assign(&mut u, &self.key.r);
+            Fp1305Uint::gadd_assign(&mut u, &self.key.s);
+            u.try_into_bytes(mac).unwrap();
         } else {
-            poly1305_compute(self, mac);
-            Ok(())
-        };
+            let mut u: Fp1305Uint = Fp1305Uint::new();
+            Fp1305Uint::gadd(&mut u, &self.acc, &self.key.s);
+            u.try_into_bytes(mac).unwrap();
+        }
+
+        return Ok(());
+
     }
 
 }
 
 struct Poly1305Key {
-    r: Fp1305Uint, // [u32; 4],
-    s: Fp1305Uint  // [u32; 4]
+    r: Fp1305Uint,
+    s: Fp1305Uint
 }
 
 type Poly1305Accumulator = Fp1305Uint;
 
-const POLY1305_MAC_LEN: usize = 16;
-
-fn poly1305_update(state: &mut Poly1305, msg: &[u8]) {
-
-    let mut b: usize = if state.buf_len == 0 { 0 } else { 16 - state.buf_len };
-    let l: usize = msg.len();
-
-    if l < 16 - state.buf_len {
-        state.buf[state.buf_len..(state.buf_len + l)].copy_from_slice(&msg[..]);
-        state.buf_len = state.buf_len + l;
-        return;
-    }
-
-    if b != 0 {
-        state.buf[state.buf_len..(state.buf_len + b)].copy_from_slice(&msg[..b]);
-        Fp1305Uint::gadd_assign(&mut state.acc, &Fp1305Uint::try_from_bytes_with_add_2_128(&state.buf[..]).unwrap());
-        Fp1305Uint::gmul_assign(&mut state.acc, &state.key.r);
-    }
-
-    while l - b >= 16 {
-        Fp1305Uint::gadd_assign(&mut state.acc, &Fp1305Uint::try_from_bytes_with_add_2_128(&msg[b..(b + 16)]).unwrap());
-        Fp1305Uint::gmul_assign(&mut state.acc, &state.key.r);
-        b = b + 16;
-    }
-
-    if b < l {
-        state.buf_len = l - b;
-        state.buf[..state.buf_len].copy_from_slice(&msg[b..(b + state.buf_len)]);
-    } else {
-        state.buf_len = 0;
-    }
-
+fn poly1305_rekey(k: &mut Poly1305Key, key: &[u8]) {
+    k.r = Fp1305Uint::try_from_bytes_as_r(&key[0..16]).unwrap();
+    k.s = Fp1305Uint::try_from_bytes(&key[16..32]).unwrap();
 }
 
-fn poly1305_compute(state: &mut Poly1305, tag: &mut [u8]) {
+fn poly1305_reset(a: &mut Poly1305Accumulator) {
+    a.words[0] = 0;
+    a.words[1] = 0;
+    a.words[2] = 0;
+    a.words[3] = 0;
+    a.words[4] = 0;
+}
 
-    let mut u: Fp1305Uint = if state.buf_len != 0 {
-        state.buf[state.buf_len] = 0x01;
-        state.buf[(state.buf_len + 1)..].fill(0x00);
-        let mut u: Fp1305Uint = Fp1305Uint::try_from_bytes(&state.buf[..]).unwrap();
-        Fp1305Uint::gadd_assign(&mut u, &state.acc);
-        Fp1305Uint::gmul_assign(&mut u, &state.key.r);
-        u
-    } else {
-        state.acc
-    };
+fn poly1305_block(k: &Poly1305Key, a: &mut Poly1305Accumulator, block: &[u8]) {
+    Fp1305Uint::gadd_assign(a, &Fp1305Uint::try_from_bytes_with_add_2_128(&block[..]).unwrap());
+    Fp1305Uint::gmul_assign(a, &k.r);
+}
 
-    Fp1305Uint::gadd_assign(&mut u, &state.key.s);
-    u.try_into_bytes(tag).unwrap();
+fn poly1305_incomplete_block(k: &Poly1305Key, a: &mut Poly1305Accumulator, incomplete_block: &[u8]) {
+    let mut block: [u8; 16] = [0; 16];
+    block.copy_from_slice(incomplete_block);
+    block[incomplete_block.len()] = 0x01;
+    Fp1305Uint::gadd_assign(a, &Fp1305Uint::try_from_bytes(&block[..]).unwrap());
+    Fp1305Uint::gmul_assign(a, &k.r);
+}
 
+fn poly1305_mac(k: &Poly1305Key, a: &Poly1305Accumulator, mac: &mut [u8]) {
+    let mut u: Fp1305Uint = Fp1305Uint::new();
+    Fp1305Uint::gadd(&mut u, a, &k.s);
+    u.try_into_bytes(mac).unwrap();
 }
 
 struct Fp1305Uint {
     words: [u32; 5]
 }
+
+const POLY1305_KEY_LEN: usize = 32;
+const POLY1305_MAC_LEN: usize = 16;
 
 // (2 ** 130) - 5
 // 1361129467683753853853498429727072845819
@@ -227,21 +292,6 @@ impl Fp1305Uint {
     }}
 
 }
-
-impl Clone for Fp1305Uint {
-
-    fn clone(&self) -> Self {
-        return Self{ words: [
-            self.words[0],
-            self.words[1],
-            self.words[2],
-            self.words[3],
-            self.words[4]
-        ]};
-    }
-
-}
-impl Copy for Fp1305Uint {}
 
 fn fp1305_uint_lt(lhs_carry: u64, lhs: &Fp1305Uint, rhs_carry: u64, rhs: &Fp1305Uint) -> bool {
 

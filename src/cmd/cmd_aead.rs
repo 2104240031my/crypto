@@ -1,9 +1,11 @@
 use crate::crypto::CryptoError;
+use crate::crypto::Aead;
 use crate::crypto::BlockCipher128;
 use crate::crypto::aes::AesAlgorithm;
 use crate::crypto::aes::Aes;
 use crate::crypto::block_cipher_mode::BlockCipherMode128;
 use crate::crypto::block_cipher_mode::Gcm128;
+use crate::crypto::chacha20_poly1305::ChaCha20Poly1305;
 use crate::cmd::ArgType;
 use crate::cmd::SuffixedArg;
 use crate::cmd::printbytesln;
@@ -40,16 +42,20 @@ pub fn cmd_main(args: Vec<String>) {
     };
 
     let tmp: Result<(AeadState, usize, usize), CryptoError> = match args[1].as_str() {
-        "aes-128-gcm" => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
+        "aes-128-gcm"       => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
             Ok(v)  => Ok((AeadState::AesGcm(v), 12, Aes::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-192-gcm" => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
+        "aes-192-gcm"       => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
             Ok(v)  => Ok((AeadState::AesGcm(v), 12, Aes::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-256-gcm" => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
+        "aes-256-gcm"       => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
             Ok(v)  => Ok((AeadState::AesGcm(v), 12, Aes::BLOCK_SIZE)),
+            Err(e) => Err(e)
+        },
+        "chacha20-poly1305" => match ChaCha20Poly1305::new(&key[..]) {
+            Ok(v)  => Ok((AeadState::ChaCha20Poly1305(v), ChaCha20Poly1305::NONCE_LEN, ChaCha20Poly1305::TAG_LEN)),
             Err(e) => Err(e)
         },
         _             => {
@@ -174,6 +180,7 @@ pub fn println_subcmd_usage() {
     println!(" - aes-128-gcm");
     println!(" - aes-192-gcm");
     println!(" - aes-256-gcm");
+    println!(" - chacha20-poly1305");
     println!("");
     println!("the operations are listed below:");
     println!(" - seal");
@@ -187,19 +194,22 @@ pub fn println_subcmd_usage() {
 
 enum AeadState {
     AesGcm(Aes),
+    ChaCha20Poly1305(ChaCha20Poly1305),
 }
 
 impl AeadState {
 
     fn seal(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
         return match self {
-            Self::AesGcm(v) => BlockCipherMode128::gcm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
+            Self::AesGcm(v)           => BlockCipherMode128::gcm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
+            Self::ChaCha20Poly1305(v) => v.encrypt_and_generate(nonce, aad, plaintext, ciphertext, tag),
         };
     }
 
     fn open(&mut self, nonce: &[u8], aad: &[u8], ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError> {
         return match self {
-            Self::AesGcm(v) => BlockCipherMode128::gcm_decrypt_and_verify(v, nonce, aad, ciphertext, plaintext, tag),
+            Self::AesGcm(v)           => BlockCipherMode128::gcm_decrypt_and_verify(v, nonce, aad, ciphertext, plaintext, tag),
+            Self::ChaCha20Poly1305(v) => v.decrypt_and_verify(nonce, aad, ciphertext, plaintext, tag),
         };
     }
 

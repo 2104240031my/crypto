@@ -3,7 +3,7 @@ mod test;
 #[allow(dead_code)]
 mod crypto;
 
-const VERSION: &str = "0.0.1";
+const VERSION: &str = "0.0.2";
 
 fn main() {
 

@@ -1,4 +1,4 @@
-use crate::crypto::chacha20::ChaCha20State;
+use crate::crypto::StreamCipher;
 use crate::crypto::chacha20::ChaCha20;
 use crate::test::{
     DEBUG_PRINT_CHACHA20,
@@ -26,7 +26,7 @@ fn test_chacha20_block_inner(k: &[u8], n: &[u8], b: &[u8], ctr: u32) -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let chacha20: ChaCha20State = ChaCha20State::new(&k[..], &n[..], ctr).unwrap();
+    let chacha20: ChaCha20 = ChaCha20::new(&k[..], &n[..], ctr).unwrap();
 
     chacha20.block(&mut out[..]).unwrap();
     if !eqbytes(&b[..], &out[..]) || DEBUG_PRINT_CHACHA20 {
@@ -167,14 +167,14 @@ fn test_chacha20_block_5() -> usize {
 
 }
 
-fn test_chacha20_inner(k: &[u8], n: &[u8], p: &[u8], c: &[u8], ctr: u32) -> usize {
+fn test_chacha20_inner(k: &[u8], n: &[u8], ctr: u32, p: &[u8], c: &[u8]) -> usize {
 
     let mut out: [u8; 512] = [0; 512];
     let mut err: usize = 0;
 
-    let mut chacha20: ChaCha20 = ChaCha20::new(&k[..]).unwrap();
+    let mut chacha20: ChaCha20 = ChaCha20::new(&k[..], &n[..], ctr).unwrap();
 
-    chacha20.encrypt_or_decrypt_with_counter(&n[..], ctr, &p[..], &mut out[..c.len()]).unwrap();
+    chacha20.encrypt_or_decrypt(&p[..], &mut out[..c.len()]).unwrap();
     if !eqbytes(&c[..], &out[..c.len()]) || DEBUG_PRINT_CHACHA20 {
         print!("[!Err]: testing ChaCha20 is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&c[..]);
@@ -183,7 +183,9 @@ fn test_chacha20_inner(k: &[u8], n: &[u8], p: &[u8], c: &[u8], ctr: u32) -> usiz
         err = err + 1;
     }
 
-    chacha20.encrypt_or_decrypt_with_counter(&n[..], ctr, &c[..], &mut out[..p.len()]).unwrap();
+    chacha20.set_counter(ctr).unwrap();
+
+    chacha20.encrypt_or_decrypt(&c[..], &mut out[..p.len()]).unwrap();
     if !eqbytes(&p[..], &out[..p.len()]) || DEBUG_PRINT_CHACHA20 {
         print!("[!Err]: testing ChaCha20 is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -227,7 +229,7 @@ fn test_chacha20_cipher_0() -> usize {
     ];
     let ctr: u32 = 1;
 
-    return test_chacha20_inner(&k[..], &n[..], &p[..], &c[..], ctr);
+    return test_chacha20_inner(&k[..], &n[..], ctr, &p[..], &c[..]);
 
 }
 
@@ -254,7 +256,7 @@ fn test_chacha20_cipher_1() -> usize {
     ];
     let ctr: u32 = 0;
 
-    return test_chacha20_inner(&k[..], &n[..], &p[..], &c[..], ctr);
+    return test_chacha20_inner(&k[..], &n[..], ctr, &p[..], &c[..]);
 
 }
 
@@ -321,7 +323,7 @@ fn test_chacha20_cipher_2() -> usize {
     ];
     let ctr: u32 = 1;
 
-    return test_chacha20_inner(&k[..], &n[..], &p[..], &c[..], ctr);
+    return test_chacha20_inner(&k[..], &n[..], ctr, &p[..], &c[..]);
 
 }
 
@@ -356,6 +358,6 @@ fn test_chacha20_cipher_3() -> usize {
     ];
     let ctr: u32 = 42;
 
-    return test_chacha20_inner(&k[..], &n[..], &p[..], &c[..], ctr);
+    return test_chacha20_inner(&k[..], &n[..], ctr, &p[..], &c[..]);
 
 }

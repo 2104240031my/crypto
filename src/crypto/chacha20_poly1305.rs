@@ -2,6 +2,7 @@ use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::Aead;
 use crate::crypto::Mac;
+use crate::crypto::StreamCipher;
 use crate::crypto::chacha20::ChaCha20;
 use crate::crypto::poly1305::Poly1305;
 

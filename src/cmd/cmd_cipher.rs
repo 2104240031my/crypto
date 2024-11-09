@@ -1,8 +1,9 @@
 use crate::crypto::CryptoError;
-use crate::crypto::BlockCipher128;
+use crate::crypto::BlockCipher;
 use crate::crypto::StreamCipher;
-use crate::crypto::aes::AesAlgorithm;
-use crate::crypto::aes::Aes;
+use crate::crypto::aes::Aes128;
+use crate::crypto::aes::Aes192;
+use crate::crypto::aes::Aes256;
 use crate::crypto::block_cipher_mode::BlockCipherMode128;
 use crate::crypto::block_cipher_mode::Ecb128;
 use crate::crypto::block_cipher_mode::Cbc128;
@@ -47,76 +48,76 @@ pub fn cmd_main(args: Vec<String>) {
     };
 
     let tmp: Result<(CipherState, usize), CryptoError> = match args[1].as_str() {
-        "aes-128-ecb"     => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesEcb(v), 0)),
+        "aes-128-ecb"     => match Aes128::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes128Ecb(v), 0)),
             Err(e) => Err(e)
         },
-        "aes-192-ecb"     => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesEcb(v), 0)),
+        "aes-192-ecb"     => match Aes192::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes192Ecb(v), 0)),
             Err(e) => Err(e)
         },
-        "aes-256-ecb"     => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesEcb(v), 0)),
+        "aes-256-ecb"     => match Aes256::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes256Ecb(v), 0)),
             Err(e) => Err(e)
         },
-        "aes-128-cbc"     => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCbc(v), Aes::BLOCK_SIZE)),
+        "aes-128-cbc"     => match Aes128::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes128Cbc(v), Aes128::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-192-cbc"     => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCbc(v), Aes::BLOCK_SIZE)),
+        "aes-192-cbc"     => match Aes192::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes192Cbc(v), Aes192::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-256-cbc"     => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCbc(v), Aes::BLOCK_SIZE)),
+        "aes-256-cbc"     => match Aes256::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes256Cbc(v), Aes256::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-128-cfb-8"   => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCfbFb8(v), Aes::BLOCK_SIZE)),
+        "aes-128-cfb-8"   => match Aes128::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes128CfbFb8(v), Aes128::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-192-cfb-8"   => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCfbFb8(v), Aes::BLOCK_SIZE)),
+        "aes-192-cfb-8"   => match Aes192::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes192CfbFb8(v), Aes192::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-256-cfb-8"   => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCfbFb8(v), Aes::BLOCK_SIZE)),
+        "aes-256-cfb-8"   => match Aes256::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes256CfbFb8(v), Aes256::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-128-cfb-128" => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCfbFb128(v), Aes::BLOCK_SIZE)),
+        "aes-128-cfb-128" => match Aes128::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes128CfbFb128(v), Aes128::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-192-cfb-128" => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCfbFb128(v), Aes::BLOCK_SIZE)),
+        "aes-192-cfb-128" => match Aes192::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes192CfbFb128(v), Aes192::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-256-cfb-128" => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCfbFb128(v), Aes::BLOCK_SIZE)),
+        "aes-256-cfb-128" => match Aes256::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes256CfbFb128(v), Aes256::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-128-ofb"     => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesOfb(v), Aes::BLOCK_SIZE)),
+        "aes-128-ofb"     => match Aes128::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes128Ofb(v), Aes128::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-192-ofb"     => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesOfb(v), Aes::BLOCK_SIZE)),
+        "aes-192-ofb"     => match Aes192::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes192Ofb(v), Aes192::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-256-ofb"     => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesOfb(v), Aes::BLOCK_SIZE)),
+        "aes-256-ofb"     => match Aes256::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes256Ofb(v), Aes256::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-128-ctr"     => match Aes::new(AesAlgorithm::Aes128, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCtr(v), Aes::BLOCK_SIZE)),
+        "aes-128-ctr"     => match Aes128::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes128Ctr(v), Aes128::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-192-ctr"     => match Aes::new(AesAlgorithm::Aes192, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCtr(v), Aes::BLOCK_SIZE)),
+        "aes-192-ctr"     => match Aes192::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes192Ctr(v), Aes192::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
-        "aes-256-ctr"     => match Aes::new(AesAlgorithm::Aes256, &key[..]) {
-            Ok(v)  => Ok((CipherState::AesCtr(v), Aes::BLOCK_SIZE)),
+        "aes-256-ctr"     => match Aes256::new(&key[..]) {
+            Ok(v)  => Ok((CipherState::Aes256Ctr(v), Aes256::BLOCK_SIZE)),
             Err(e) => Err(e)
         },
         "chacha20"        => match ChaCha20::new(&key[..], &[0; 16], 0) {
@@ -239,12 +240,24 @@ pub fn println_subcmd_usage() {
 }
 
 enum CipherState {
-    AesEcb(Aes),
-    AesCbc(Aes),
-    AesCfbFb8(Aes),
-    AesCfbFb128(Aes),
-    AesOfb(Aes),
-    AesCtr(Aes),
+    Aes128Ecb(Aes128),
+    Aes192Ecb(Aes192),
+    Aes256Ecb(Aes256),
+    Aes128Cbc(Aes128),
+    Aes192Cbc(Aes192),
+    Aes256Cbc(Aes256),
+    Aes128CfbFb8(Aes128),
+    Aes192CfbFb8(Aes192),
+    Aes256CfbFb8(Aes256),
+    Aes128CfbFb128(Aes128),
+    Aes192CfbFb128(Aes192),
+    Aes256CfbFb128(Aes256),
+    Aes128Ofb(Aes128),
+    Aes192Ofb(Aes192),
+    Aes256Ofb(Aes256),
+    Aes128Ctr(Aes128),
+    Aes192Ctr(Aes192),
+    Aes256Ctr(Aes256),
     ChaCha20(ChaCha20),
 }
 
@@ -252,25 +265,49 @@ impl CipherState {
 
     fn encrypt(&mut self, iv: &mut [u8], plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError> {
         return match self {
-            Self::AesEcb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
-            Self::AesCbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
-            Self::AesCfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
-            Self::AesCfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
-            Self::AesOfb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
-            Self::AesCtr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
-            Self::ChaCha20(v)    => v.reset(iv, 1)?.encrypt_or_decrypt(plaintext, ciphertext),
+            Self::Aes128Ecb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
+            Self::Aes192Ecb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
+            Self::Aes256Ecb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
+            Self::Aes128Cbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
+            Self::Aes192Cbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
+            Self::Aes256Cbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
+            Self::Aes128CfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
+            Self::Aes192CfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
+            Self::Aes256CfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
+            Self::Aes128CfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
+            Self::Aes192CfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
+            Self::Aes256CfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
+            Self::Aes128Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
+            Self::Aes192Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
+            Self::Aes256Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
+            Self::Aes128Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
+            Self::Aes192Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
+            Self::Aes256Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
+            Self::ChaCha20(v)       => v.reset(iv, 1)?.encrypt_or_decrypt(plaintext, ciphertext),
         };
     }
 
     fn decrypt(&mut self, iv: &mut [u8], ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError> {
         return match self {
-            Self::AesEcb(v)      => BlockCipherMode128::ecb_decrypt_blocks(v, ciphertext, plaintext),
-            Self::AesCbc(v)      => BlockCipherMode128::cbc_decrypt_blocks(v, iv, ciphertext, plaintext),
-            Self::AesCfbFb8(v)   => BlockCipherMode128::cfb_fb8_decrypt(v, iv, ciphertext, plaintext),
-            Self::AesCfbFb128(v) => BlockCipherMode128::cfb_fb128_decrypt(v, iv, ciphertext, plaintext),
-            Self::AesOfb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, ciphertext, plaintext),
-            Self::AesCtr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, ciphertext, plaintext),
-            Self::ChaCha20(v)    => v.reset(iv, 1)?.encrypt_or_decrypt(ciphertext, plaintext),
+            Self::Aes128Ecb(v)      => BlockCipherMode128::ecb_decrypt_blocks(v, ciphertext, plaintext),
+            Self::Aes192Ecb(v)      => BlockCipherMode128::ecb_decrypt_blocks(v, ciphertext, plaintext),
+            Self::Aes256Ecb(v)      => BlockCipherMode128::ecb_decrypt_blocks(v, ciphertext, plaintext),
+            Self::Aes128Cbc(v)      => BlockCipherMode128::cbc_decrypt_blocks(v, iv, ciphertext, plaintext),
+            Self::Aes192Cbc(v)      => BlockCipherMode128::cbc_decrypt_blocks(v, iv, ciphertext, plaintext),
+            Self::Aes256Cbc(v)      => BlockCipherMode128::cbc_decrypt_blocks(v, iv, ciphertext, plaintext),
+            Self::Aes128CfbFb8(v)   => BlockCipherMode128::cfb_fb8_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes192CfbFb8(v)   => BlockCipherMode128::cfb_fb8_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes256CfbFb8(v)   => BlockCipherMode128::cfb_fb8_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes128CfbFb128(v) => BlockCipherMode128::cfb_fb128_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes192CfbFb128(v) => BlockCipherMode128::cfb_fb128_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes256CfbFb128(v) => BlockCipherMode128::cfb_fb128_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes128Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes192Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes256Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, ciphertext, plaintext),
+            Self::Aes128Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, ciphertext, plaintext),
+            Self::Aes192Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, ciphertext, plaintext),
+            Self::Aes256Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, ciphertext, plaintext),
+            Self::ChaCha20(v)       => v.reset(iv, 1)?.encrypt_or_decrypt(ciphertext, plaintext),
         };
     }
 

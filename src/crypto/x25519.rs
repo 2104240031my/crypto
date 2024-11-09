@@ -7,13 +7,11 @@ use crate::crypto::curve_over_fp25519::U;
 
 pub struct X25519 {}
 
-impl X25519 {
-    pub const PRIVATE_KEY_LEN: usize   = X25519_PRIVATE_KEY_LEN;
-    pub const PUBLIC_KEY_LEN: usize    = X25519_PUBLIC_KEY_LEN;
-    pub const SHARED_SECRET_LEN: usize = X25519_SHARED_SECRET_LEN;
-}
-
 impl DiffieHellman for X25519 {
+
+    const PRIVATE_KEY_LEN: usize   = X25519_PRIVATE_KEY_LEN;
+    const PUBLIC_KEY_LEN: usize    = X25519_PUBLIC_KEY_LEN;
+    const SHARED_SECRET_LEN: usize = X25519_SHARED_SECRET_LEN;
 
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 

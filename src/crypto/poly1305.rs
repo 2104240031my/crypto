@@ -12,7 +12,6 @@ pub struct Poly1305 {
 impl Poly1305 {
 
     pub const KEY_LEN: usize = POLY1305_KEY_LEN;
-    pub const MAC_LEN: usize = POLY1305_MAC_LEN;
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
@@ -72,6 +71,8 @@ impl Poly1305 {
 }
 
 impl Mac for Poly1305 {
+
+    const MAC_LEN: usize = POLY1305_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);

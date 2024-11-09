@@ -1,6 +1,7 @@
 use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::Hash;
+use crate::crypto::Xof;
 
 pub struct Sha3224 {
     state: Sha3State
@@ -18,10 +19,17 @@ pub struct Sha3512 {
     state: Sha3State
 }
 
+pub struct Shake128 {
+    state: Sha3State
+}
+
+pub struct Shake256 {
+    state: Sha3State
+}
+
 impl Sha3224 {
 
-    pub const MESSAGE_DIGEST_LEN: usize = SHA3_224_MESSAGE_DIGEST_LEN;
-    pub const BLOCK_SIZE: usize         = SHA3_224_RATE;
+    pub const BLOCK_SIZE: usize = SHA3_224_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -36,6 +44,8 @@ impl Sha3224 {
 }
 
 impl Hash for Sha3224 {
+
+    const MESSAGE_DIGEST_LEN: usize = SHA3_224_MESSAGE_DIGEST_LEN;
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -110,8 +120,7 @@ impl Hash for Sha3224 {
 
 impl Sha3256 {
 
-    pub const MESSAGE_DIGEST_LEN: usize = SHA3_256_MESSAGE_DIGEST_LEN;
-    pub const BLOCK_SIZE: usize         = SHA3_256_RATE;
+    pub const BLOCK_SIZE: usize = SHA3_256_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -126,6 +135,8 @@ impl Sha3256 {
 }
 
 impl Hash for Sha3256 {
+
+    const MESSAGE_DIGEST_LEN: usize = SHA3_256_MESSAGE_DIGEST_LEN;
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -194,8 +205,7 @@ impl Hash for Sha3256 {
 
 impl Sha3384 {
 
-    pub const MESSAGE_DIGEST_LEN: usize = SHA3_384_MESSAGE_DIGEST_LEN;
-    pub const BLOCK_SIZE: usize         = SHA3_384_RATE;
+    pub const BLOCK_SIZE: usize = SHA3_384_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -210,6 +220,8 @@ impl Sha3384 {
 }
 
 impl Hash for Sha3384 {
+
+    const MESSAGE_DIGEST_LEN: usize = SHA3_384_MESSAGE_DIGEST_LEN;
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -278,8 +290,7 @@ impl Hash for Sha3384 {
 
 impl Sha3512 {
 
-    pub const MESSAGE_DIGEST_LEN: usize = SHA3_512_MESSAGE_DIGEST_LEN;
-    pub const BLOCK_SIZE: usize         = SHA3_512_RATE;
+    pub const BLOCK_SIZE: usize = SHA3_512_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -294,6 +305,8 @@ impl Sha3512 {
 }
 
 impl Hash for Sha3512 {
+
+    const MESSAGE_DIGEST_LEN: usize = SHA3_512_MESSAGE_DIGEST_LEN;
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -360,6 +373,104 @@ impl Hash for Sha3512 {
 
 }
 
+impl Shake128 {
+
+    pub const BLOCK_SIZE: usize = SHAKE128_RATE;
+
+    pub fn new() -> Self {
+        return Self{
+            state: Sha3State{
+                a: [0; 25],
+                buf: [0; 168],
+                buf_len: 0
+            }
+        };
+    }
+
+}
+
+impl Xof for Shake128 {
+
+    fn output_oneshot(msg: &[u8], output: &mut [u8], d: usize) -> Result<(), CryptoError> {
+        return if output.len() != d {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            shake_output_oneshot(msg, output, d, SHAKE128_RATE);
+            Ok(())
+        }
+    }
+
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.state.a = [0; 25];
+        self.state.buf_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
+        sha3_absorb(&mut self.state, msg, SHAKE128_RATE);
+        return Ok(self);
+    }
+
+    fn output(&mut self, output: &mut [u8], d: usize) -> Result<(), CryptoError> {
+        return if output.len() != d {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            shake_squeeze(&mut self.state, output, d, SHAKE128_RATE);
+            Ok(())
+        }
+    }
+
+}
+
+impl Shake256 {
+
+    pub const BLOCK_SIZE: usize = SHAKE256_RATE;
+
+    pub fn new() -> Self {
+        return Self{
+            state: Sha3State{
+                a: [0; 25],
+                buf: [0; 168],
+                buf_len: 0
+            }
+        };
+    }
+
+}
+
+impl Xof for Shake256 {
+
+    fn output_oneshot(msg: &[u8], output: &mut [u8], d: usize) -> Result<(), CryptoError> {
+        return if output.len() != d {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            shake_output_oneshot(msg, output, d, SHAKE256_RATE);
+            Ok(())
+        }
+    }
+
+    fn reset(&mut self) -> Result<&mut Self, CryptoError> {
+        self.state.a = [0; 25];
+        self.state.buf_len = 0;
+        return Ok(self);
+    }
+
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
+        sha3_absorb(&mut self.state, msg, SHAKE256_RATE);
+        return Ok(self);
+    }
+
+    fn output(&mut self, output: &mut [u8], d: usize) -> Result<(), CryptoError> {
+        return if output.len() != d {
+            Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect))
+        } else {
+            shake_squeeze(&mut self.state, output, d, SHAKE256_RATE);
+            Ok(())
+        }
+    }
+
+}
+
 struct Sha3State {
     a: [u64; 25],
     buf: [u8; 168],
@@ -384,6 +495,8 @@ const SHA3_224_RATE: usize = 144;
 const SHA3_256_RATE: usize = 136;
 const SHA3_384_RATE: usize = 104;
 const SHA3_512_RATE: usize = 72;
+const SHAKE128_RATE: usize = 168;
+const SHAKE256_RATE: usize = 136;
 
 fn rotl64(u: u64, r: usize) -> u64 {
     return (u << r) | (u >> ((64 - r) & 63));
@@ -563,10 +676,73 @@ fn sha3_digest_oneshot(a: &mut [u64; 25], msg: &[u8], rate: usize) {
         b = b + 1;
     }
 
-    a[i]     = a[i] ^ (0x06u64 << n);
+    a[i]     = a[i]     ^ (0x06u64 << n);
     a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
 
     sha3_block(a);
+
+}
+
+fn shake_output_oneshot(msg: &[u8], output: &mut [u8], d: usize, rate: usize) {
+
+    let mut a: [u64; 25] = [0; 25];
+    let mut b: usize = 0;
+    let l: usize = msg.len();
+    let r: usize = rate >> 3;
+
+    while l - b >= rate {
+
+        for i in 0..r {
+            a[i] = a[i] ^ (
+                 (msg[b + 0] as u64)        |
+                ((msg[b + 1] as u64) <<  8) |
+                ((msg[b + 2] as u64) << 16) |
+                ((msg[b + 3] as u64) << 24) |
+                ((msg[b + 4] as u64) << 32) |
+                ((msg[b + 5] as u64) << 40) |
+                ((msg[b + 6] as u64) << 48) |
+                ((msg[b + 7] as u64) << 56)
+            );
+            b = b + 8;
+        }
+
+        sha3_block(&mut a);
+
+    }
+
+    let mut i: usize = 0;
+    let mut n: usize = 0;
+    while b < l {
+        a[i] = a[i] ^ ((msg[b] as u64) << n);
+        n = n + 8;
+        if n == 64 {
+            n = 0;
+            i = i + 1;
+        }
+        b = b + 1;
+    }
+
+    a[i]     = a[i]     ^ (0x1fu64 << n);
+    a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
+
+    b = 0;
+    while b < d {
+
+        sha3_block(&mut a);
+
+        i = 0;
+        n = 0;
+        while b < d && i < r {
+            output[b] = (a[i] >> n) as u8;
+            n = n + 8;
+            if n >= 64 {
+                n = 0;
+                i = i + 1;
+            }
+            b = b + 1;
+        }
+
+    }
 
 }
 
@@ -651,9 +827,53 @@ fn sha3_squeeze(state: &Sha3State, a: &mut [u64; 25], rate: usize) {
         }
     }
 
-    a[i]     = a[i] ^ (0x06u64 << n);
+    a[i]     = a[i]     ^ (0x06u64 << n);
     a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
 
     sha3_block(a);
+
+}
+
+fn shake_squeeze(state: &Sha3State, output: &mut [u8], d: usize, rate: usize) {
+
+    let mut a: [u64; 25] = [0; 25];
+    let mut i: usize = 0;
+    let mut n: usize = 0;
+    let r: usize = rate >> 3;
+
+    for i in 0..25 {
+        a[i] = state.a[i];
+    }
+
+    for b in 0..state.buf_len {
+        a[i] = a[i] ^ ((state.buf[b] as u64) << n);
+        n = n + 8;
+        if n == 64 {
+            n = 0;
+            i = i + 1;
+        }
+    }
+
+    a[i]     = a[i]     ^ (0x1fu64 << n);
+    a[r - 1] = a[r - 1] ^ (0x80u64 << 56);
+
+    let mut b = 0;
+    while b < d {
+
+        sha3_block(&mut a);
+
+        i = 0;
+        n = 0;
+        while b < d && i < r {
+            output[b] = (a[i] >> n) as u8;
+            n = n + 8;
+            if n >= 64 {
+                n = 0;
+                i = i + 1;
+            }
+            b = b + 1;
+        }
+
+    }
 
 }

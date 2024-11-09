@@ -33,8 +33,6 @@ pub struct HmacSha3512 {
 
 impl HmacSha3224 {
 
-    pub const MAC_LEN: usize = HMAC_SHA3_224_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha3224::new(),
@@ -48,6 +46,8 @@ impl HmacSha3224 {
 }
 
 impl Mac for HmacSha3224 {
+
+    const MAC_LEN: usize = HMAC_SHA3_224_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
@@ -95,8 +95,6 @@ impl Mac for HmacSha3224 {
 
 impl HmacSha3256 {
 
-    pub const MAC_LEN: usize = HMAC_SHA3_256_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha3256::new(),
@@ -110,6 +108,8 @@ impl HmacSha3256 {
 }
 
 impl Mac for HmacSha3256 {
+
+    const MAC_LEN: usize = HMAC_SHA3_256_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
@@ -157,8 +157,6 @@ impl Mac for HmacSha3256 {
 
 impl HmacSha3384 {
 
-    pub const MAC_LEN: usize = HMAC_SHA3_384_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha3384::new(),
@@ -172,6 +170,8 @@ impl HmacSha3384 {
 }
 
 impl Mac for HmacSha3384 {
+
+    const MAC_LEN: usize = HMAC_SHA3_384_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
@@ -219,8 +219,6 @@ impl Mac for HmacSha3384 {
 
 impl HmacSha3512 {
 
-    pub const MAC_LEN: usize = HMAC_SHA3_512_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha3512::new(),
@@ -234,6 +232,8 @@ impl HmacSha3512 {
 }
 
 impl Mac for HmacSha3512 {
+
+    const MAC_LEN: usize = HMAC_SHA3_512_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);

@@ -6,6 +6,7 @@ pub mod cmd_mac;
 pub mod cmd_pubkey;
 pub mod cmd_sign;
 pub mod cmd_verify;
+pub mod cmd_xof;
 
 use std::clone::Clone;
 use std::error::Error;

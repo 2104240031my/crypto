@@ -25,6 +25,7 @@ fn main() {
         "sign"     => cmd::cmd_sign::cmd_main,
         "verify"   => cmd::cmd_verify::cmd_main,
         "version"  => |_: Vec<String>| { println!("crypto-v{}", VERSION) },
+        "xof"      => cmd::cmd_xof::cmd_main,
         #[cfg(debug_assertions)]
         "test"     => |_: Vec<String>| { test::test(); },
         _          => |_: Vec<String>| { println!("[!Err]: there is no such sub-command."); }
@@ -49,4 +50,5 @@ fn println_cmd_usage() {
     println!(" - sign");
     println!(" - verify");
     println!(" - version");
+    println!(" - xof");
 }

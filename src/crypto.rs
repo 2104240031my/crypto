@@ -48,6 +48,8 @@ pub trait Aead {
 }
 
 pub trait BlockCipher {
+    const KEY_LEN: usize;
+    const BLOCK_SIZE: usize;
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
     fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
@@ -58,12 +60,10 @@ pub trait BlockCipher {
     fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]);
     fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]);
 }
-
-pub trait BlockCipher128: BlockCipher {
-    const BLOCK_SIZE: usize;
-}
+pub trait BlockCipher128: BlockCipher {}
 
 pub trait Hash {
+    const MESSAGE_DIGEST_LEN: usize;
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError>;
     fn reset(&mut self) -> Result<&mut Self, CryptoError>;
     fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError>;
@@ -71,6 +71,7 @@ pub trait Hash {
 }
 
 pub trait Mac {
+    const MAC_LEN: usize;
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError>;
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn reset(&mut self) -> Result<&mut Self, CryptoError>;
@@ -79,6 +80,9 @@ pub trait Mac {
 }
 
 pub trait DiffieHellman {
+    const PRIVATE_KEY_LEN: usize;
+    const PUBLIC_KEY_LEN: usize;
+    const SHARED_SECRET_LEN: usize;
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
     fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Result<(), CryptoError>;
 }
@@ -108,8 +112,16 @@ pub trait DigitalSignatureVerifier {
 }
 
 pub trait StreamCipher {
+    const KEY_LEN: usize;
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn encrypt_or_decrypt(&mut self, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
+}
+
+pub trait Xof {
+    fn output_oneshot(msg: &[u8], output: &mut [u8], d: usize) -> Result<(), CryptoError>;
+    fn reset(&mut self) -> Result<&mut Self, CryptoError>;
+    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError>;
+    fn output(&mut self, output: &mut [u8], d: usize) -> Result<(), CryptoError>;
 }
 
 #[derive(Debug, Copy, Clone)]

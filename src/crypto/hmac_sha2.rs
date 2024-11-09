@@ -33,8 +33,6 @@ pub struct HmacSha512 {
 
 impl HmacSha224 {
 
-    pub const MAC_LEN: usize = HMAC_SHA224_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha224::new(),
@@ -48,6 +46,8 @@ impl HmacSha224 {
 }
 
 impl Mac for HmacSha224 {
+
+    const MAC_LEN: usize = HMAC_SHA224_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
@@ -95,8 +95,6 @@ impl Mac for HmacSha224 {
 
 impl HmacSha256 {
 
-    pub const MAC_LEN: usize = HMAC_SHA256_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha256::new(),
@@ -110,6 +108,8 @@ impl HmacSha256 {
 }
 
 impl Mac for HmacSha256 {
+
+    const MAC_LEN: usize = HMAC_SHA256_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
@@ -157,8 +157,6 @@ impl Mac for HmacSha256 {
 
 impl HmacSha384 {
 
-    pub const MAC_LEN: usize = HMAC_SHA384_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha384::new(),
@@ -172,6 +170,8 @@ impl HmacSha384 {
 }
 
 impl Mac for HmacSha384 {
+
+    const MAC_LEN: usize = HMAC_SHA384_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
@@ -219,8 +219,6 @@ impl Mac for HmacSha384 {
 
 impl HmacSha512 {
 
-    pub const MAC_LEN: usize = HMAC_SHA512_MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha512::new(),
@@ -234,6 +232,8 @@ impl HmacSha512 {
 }
 
 impl Mac for HmacSha512 {
+
+    const MAC_LEN: usize = HMAC_SHA512_MAC_LEN;
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);

@@ -1,6 +1,7 @@
 use crate::crypto::CryptoErrorCode;
-use crate::crypto::aes::AesAlgorithm;
-use crate::crypto::aes::Aes;
+use crate::crypto::aes::Aes128;
+use crate::crypto::aes::Aes192;
+use crate::crypto::aes::Aes256;
 use crate::crypto::block_cipher_mode::BlockCipherMode128;
 use crate::crypto::block_cipher_mode::Ecb128;
 use crate::crypto::block_cipher_mode::Cbc128;
@@ -61,7 +62,7 @@ fn test_aes_128_ecb() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     BlockCipherMode128::ecb_encrypt_blocks(&aes, &p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
@@ -106,7 +107,7 @@ fn test_aes_192_ecb() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     BlockCipherMode128::ecb_encrypt_blocks(&aes, &p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
@@ -151,7 +152,7 @@ fn test_aes_256_ecb() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     BlockCipherMode128::ecb_encrypt_blocks(&aes, &p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
@@ -198,7 +199,7 @@ fn test_aes_128_cbc() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     BlockCipherMode128::cbc_encrypt_blocks(&aes, &n[..], &p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
@@ -246,7 +247,7 @@ fn test_aes_192_cbc() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     BlockCipherMode128::cbc_encrypt_blocks(&aes, &n[..], &p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
@@ -294,7 +295,7 @@ fn test_aes_256_cbc() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     BlockCipherMode128::cbc_encrypt_blocks(&aes, &n[..], &p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
@@ -336,7 +337,7 @@ fn test_aes_128_cfb_fb8() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb8_encrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -381,7 +382,7 @@ fn test_aes_192_cfb_fb8() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb8_encrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -426,7 +427,7 @@ fn test_aes_256_cfb_fb8() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb8_encrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -476,7 +477,7 @@ fn test_aes_128_cfb_fb128() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb128_encrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -527,7 +528,7 @@ fn test_aes_192_cfb_fb128() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb128_encrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -578,7 +579,7 @@ fn test_aes_256_cfb_fb128() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb128_encrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -628,7 +629,7 @@ fn test_aes_128_ofb() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::ofb_encrypt_or_decrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -679,7 +680,7 @@ fn test_aes_192_ofb() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::ofb_encrypt_or_decrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -730,7 +731,7 @@ fn test_aes_256_ofb() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::ofb_encrypt_or_decrypt(&aes, &mut sr[..], &p[..], &mut out[..]).unwrap();
@@ -780,7 +781,7 @@ fn test_aes_128_ctr() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     ctr.copy_from_slice(&icb[..]);
     BlockCipherMode128::ctr_encrypt_or_decrypt(&aes, &mut ctr[..], 16, &p[..], &mut out[..]).unwrap();
@@ -831,7 +832,7 @@ fn test_aes_192_ctr() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     ctr.copy_from_slice(&icb[..]);
     BlockCipherMode128::ctr_encrypt_or_decrypt(&aes, &mut ctr[..], 16, &p[..], &mut out[..]).unwrap();
@@ -882,7 +883,7 @@ fn test_aes_256_ctr() -> usize {
     let mut out: [u8; 64] = [0; 64];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     ctr.copy_from_slice(&icb[..]);
     BlockCipherMode128::ctr_encrypt_or_decrypt(&aes, &mut ctr[..], 16, &p[..], &mut out[..]).unwrap();
@@ -908,24 +909,19 @@ fn test_aes_256_ctr() -> usize {
 
 }
 
-fn test_aes_gcm_inner(algo: AesAlgorithm, k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &[u8]) -> usize {
+fn test_aes_128_gcm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &[u8]) -> usize {
 
     let mut out1: [u8; 64] = [0; 64];
     let mut out2: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(algo, &k[..]).unwrap();
-    let algo_str: &str = match algo {
-        AesAlgorithm::Aes128 => "AES-128",
-        AesAlgorithm::Aes192 => "AES-192",
-        AesAlgorithm::Aes256 => "AES-256"
-    };
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     BlockCipherMode128::gcm_encrypt_and_generate(
         &aes, n, a, p, &mut out1[..c.len()], &mut out2[..]
     ).unwrap();
     if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..]) || DEBUG_PRINT_AES_MODE {
-        print!("[!Err]: testing {}-GCM is FAILED.\n", algo_str);
+        print!("[!Err]: testing AES-128-GCM is FAILED.\n");
         print!(" - Test-Vec => {{\n");
         print!("       CT : "); printbytesln(c);
         print!("       TAG: "); printbytesln(t);
@@ -943,7 +939,7 @@ fn test_aes_gcm_inner(algo: AesAlgorithm, k: &[u8], n: &[u8], a: &[u8], p: &[u8]
     ) {
         match e.err_code() {
             CryptoErrorCode::VerificationFailed => {
-                print!("[!Err]: testing {}-GCM is FAILED.\n", algo_str);
+                print!("[!Err]: testing AES-128-GCM is FAILED.\n");
                 print!(" - Verification FAILED.\n");
                 println!();
             },
@@ -953,14 +949,130 @@ fn test_aes_gcm_inner(algo: AesAlgorithm, k: &[u8], n: &[u8], a: &[u8], p: &[u8]
         }
         err = err + 1;
     } else if !eqbytes(p, &out1[..p.len()]) {
-        print!("[!Err]: testing {}-GCM is FAILED.\n", algo_str);
+        print!("[!Err]: testing AES-128-GCM is FAILED.\n");
         print!(" - Decryption FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
         print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
         println!();
         err = err + 1;
     } else if DEBUG_PRINT_AES_MODE {
-        print!("[!Err]: testing {}-GCM is FAILED.\n", algo_str);
+        print!("[!Err]: testing AES-128-GCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    return err;
+
+}
+
+fn test_aes_192_gcm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &[u8]) -> usize {
+
+    let mut out1: [u8; 64] = [0; 64];
+    let mut out2: [u8; 16] = [0; 16];
+    let mut err: usize = 0;
+
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
+
+    BlockCipherMode128::gcm_encrypt_and_generate(
+        &aes, n, a, p, &mut out1[..c.len()], &mut out2[..]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    if let Err(e) = BlockCipherMode128::gcm_decrypt_and_verify(
+        &aes, n, a, c, &mut out1[..p.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    return err;
+
+}
+
+fn test_aes_256_gcm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &[u8]) -> usize {
+
+    let mut out1: [u8; 64] = [0; 64];
+    let mut out2: [u8; 16] = [0; 16];
+    let mut err: usize = 0;
+
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
+
+    BlockCipherMode128::gcm_encrypt_and_generate(
+        &aes, n, a, p, &mut out1[..c.len()], &mut out2[..]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    if let Err(e) = BlockCipherMode128::gcm_decrypt_and_verify(
+        &aes, n, a, c, &mut out1[..p.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-GCM is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
         print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
         println!();
@@ -1014,11 +1126,11 @@ fn test_aes_128_gcm() -> usize {
     ];
     let mut err: usize = 0;
 
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes128, &k[..], &n[..], &a[..0],  &p[..0],  &c[..0],  &t1[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes128, &k[..], &n[..], &a[..0],  &p[..64], &c[..64], &t2[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes128, &k[..], &n[..], &a[..64], &p[..0],  &c[..0],  &t3[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes128, &k[..], &n[..], &a[..64], &p[..64], &c[..64], &t4[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes128, &k[..], &n[..], &a[..20], &p[..60], &c[..60], &t5[..]);
+    err = err + test_aes_128_gcm_inner(&k[..], &n[..], &a[..0],  &p[..0],  &c[..0],  &t1[..]);
+    err = err + test_aes_128_gcm_inner(&k[..], &n[..], &a[..0],  &p[..64], &c[..64], &t2[..]);
+    err = err + test_aes_128_gcm_inner(&k[..], &n[..], &a[..64], &p[..0],  &c[..0],  &t3[..]);
+    err = err + test_aes_128_gcm_inner(&k[..], &n[..], &a[..64], &p[..64], &c[..64], &t4[..]);
+    err = err + test_aes_128_gcm_inner(&k[..], &n[..], &a[..20], &p[..60], &c[..60], &t5[..]);
 
     return err;
 
@@ -1068,11 +1180,11 @@ fn test_aes_192_gcm() -> usize {
     ];
     let mut err: usize = 0;
 
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes192, &k[..], &n[..], &a[..0],  &p[..0],  &c[..0],  &t1[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes192, &k[..], &n[..], &a[..0],  &p[..64], &c[..64], &t2[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes192, &k[..], &n[..], &a[..64], &p[..0],  &c[..0],  &t3[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes192, &k[..], &n[..], &a[..64], &p[..64], &c[..64], &t4[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes192, &k[..], &n[..], &a[..20], &p[..60], &c[..60], &t5[..]);
+    err = err + test_aes_192_gcm_inner(&k[..], &n[..], &a[..0],  &p[..0],  &c[..0],  &t1[..]);
+    err = err + test_aes_192_gcm_inner(&k[..], &n[..], &a[..0],  &p[..64], &c[..64], &t2[..]);
+    err = err + test_aes_192_gcm_inner(&k[..], &n[..], &a[..64], &p[..0],  &c[..0],  &t3[..]);
+    err = err + test_aes_192_gcm_inner(&k[..], &n[..], &a[..64], &p[..64], &c[..64], &t4[..]);
+    err = err + test_aes_192_gcm_inner(&k[..], &n[..], &a[..20], &p[..60], &c[..60], &t5[..]);
 
     return err;
 
@@ -1122,11 +1234,11 @@ fn test_aes_256_gcm() -> usize {
     ];
     let mut err: usize = 0;
 
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes256, &k[..], &n[..], &a[..0],  &p[..0],  &c[..0],  &t1[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes256, &k[..], &n[..], &a[..0],  &p[..64], &c[..64], &t2[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes256, &k[..], &n[..], &a[..64], &p[..0],  &c[..0],  &t3[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes256, &k[..], &n[..], &a[..64], &p[..64], &c[..64], &t4[..]);
-    err = err + test_aes_gcm_inner(AesAlgorithm::Aes256, &k[..], &n[..], &a[..20], &p[..60], &c[..60], &t5[..]);
+    err = err + test_aes_256_gcm_inner(&k[..], &n[..], &a[..0],  &p[..0],  &c[..0],  &t1[..]);
+    err = err + test_aes_256_gcm_inner(&k[..], &n[..], &a[..0],  &p[..64], &c[..64], &t2[..]);
+    err = err + test_aes_256_gcm_inner(&k[..], &n[..], &a[..64], &p[..0],  &c[..0],  &t3[..]);
+    err = err + test_aes_256_gcm_inner(&k[..], &n[..], &a[..64], &p[..64], &c[..64], &t4[..]);
+    err = err + test_aes_256_gcm_inner(&k[..], &n[..], &a[..20], &p[..60], &c[..60], &t5[..]);
 
     return err;
 

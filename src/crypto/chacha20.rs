@@ -8,8 +8,6 @@ pub struct ChaCha20 {
 
 impl ChaCha20 {
 
-    pub const KEY_LEN: usize = CHACHA20_KEY_LEN;
-
     pub fn new(key: &[u8], nonce: &[u8], counter: u32) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             state: ChaCha20State{
@@ -62,6 +60,8 @@ impl ChaCha20 {
 }
 
 impl StreamCipher for ChaCha20  {
+
+    const KEY_LEN: usize = CHACHA20_KEY_LEN;
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         return if key.len() != 32 {

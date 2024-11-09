@@ -2,171 +2,189 @@ use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
 use crate::crypto::BlockCipher;
 use crate::crypto::BlockCipher128;
-use std::clone::Clone;
-use std::marker::Copy;
 
-pub enum AesAlgorithm {
-    Aes128,
-    Aes192,
-    Aes256
+pub struct Aes128 {
+    aes: Aes
 }
 
-pub struct Aes {
-    ew: [u8; 240], // expanded key for Cipher
-    dw: [u8; 240], // expanded key for EqInvCipher
-    nk: usize      // Nk (and Nr can also be derived from this value)
+pub struct Aes192 {
+    aes: Aes
 }
 
-impl Clone for AesAlgorithm {
-    fn clone(&self) -> AesAlgorithm {
-        return *self;
-    }
+pub struct Aes256 {
+    aes: Aes
 }
-impl Copy for AesAlgorithm {}
 
-impl Aes {
+impl Aes128 {
 
-    pub fn new(algo: AesAlgorithm, key: &[u8]) -> Result<Self, CryptoError> {
-
-        let nk: usize = match algo {
-            AesAlgorithm::Aes128 => AES_128_NK,
-            AesAlgorithm::Aes192 => AES_192_NK,
-            AesAlgorithm::Aes256 => AES_256_NK
-        };
-
-        let mut v: Self = Self{
-            ew: [0x00; 240],
-            dw: [0x00; 240],
-            nk: nk
-        };
-
-        v.rekey(key)?;
-        return Ok(v);
-
+    pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
+        return Ok(Self{
+            aes: Aes::new(key, AES_128_NK)?
+        });
     }
 
 }
 
-impl BlockCipher for Aes {
+impl Aes192 {
+
+    pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
+        return Ok(Self{
+            aes: Aes::new(key, AES_192_NK)?
+        });
+    }
+
+}
+
+impl Aes256 {
+
+    pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
+        return Ok(Self{
+            aes: Aes::new(key, AES_256_NK)?
+        });
+    }
+
+}
+
+impl BlockCipher for Aes128 {
+
+    const KEY_LEN: usize    = AES_128_KEY_LEN;
+    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
-
-        if key.len() != (self.nk << 2) {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        unsafe {
-
-            aes_key_expansion(
-                key.as_ptr() as *const u8,
-                self.ew.as_ptr() as *mut u8,
-                self.nk
-            );
-
-            aes_expanded_key_inversion(
-                self.ew.as_ptr() as *const u8,
-                self.dw.as_ptr() as *mut u8,
-                self.nk
-            );
-
-        }
-
+        self.aes.rekey(key, AES_128_NK)?;
         return Ok(self);
-
     }
 
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
-
-        if block_in.len() != AES_BLOCK_SIZE || block_out.len() != AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        self.encrypt_unchecked(block_in, block_out);
-        return Ok(());
-
+        return self.aes.encrypt(block_in, block_out, AES_128_NK);
     }
 
     fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
-
-        if block_in.len() != AES_BLOCK_SIZE || block_out.len() != AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        self.decrypt_unchecked(block_in, block_out);
-        return Ok(());
-
+        return self.aes.decrypt(block_in, block_out, AES_128_NK);
     }
 
     fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-
-        if block.len() != AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        self.encrypt_and_overwrite_unchecked(block);
-        return Ok(());
-
+        return self.aes.encrypt_and_overwrite(block, AES_128_NK);
     }
 
     fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-
-        if block.len() != AES_BLOCK_SIZE {
-            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
-        }
-
-        self.decrypt_and_overwrite_unchecked(block);
-        return Ok(());
-
+        return self.aes.decrypt_and_overwrite(block, AES_128_NK);
     }
 
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
-        unsafe {
-            aes_cipher(
-                self.ew.as_ptr() as *const u8,
-                block_in.as_ptr() as *const u8,
-                block_out.as_ptr() as *mut u8,
-                self.nk
-            );
-        }
+        self.aes.encrypt_unchecked(block_in, block_out, AES_128_NK);
     }
 
     fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
-        unsafe {
-            aes_eq_inv_cipher(
-                self.dw.as_ptr() as *const u8,
-                block_in.as_ptr() as *const u8,
-                block_out.as_ptr() as *mut u8,
-                self.nk
-            );
-        }
+        self.aes.decrypt_unchecked(block_in, block_out, AES_128_NK);
     }
 
     fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        unsafe {
-            aes_cipher(
-                self.ew.as_ptr() as *const u8,
-                block.as_ptr() as *const u8,
-                block.as_ptr() as *mut u8,
-                self.nk
-            );
-        }
+        self.aes.encrypt_and_overwrite_unchecked(block, AES_128_NK);
     }
 
     fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        unsafe {
-            aes_eq_inv_cipher(
-                self.dw.as_ptr() as *const u8,
-                block.as_ptr() as *const u8,
-                block.as_ptr() as *mut u8,
-                self.nk
-            );
-        }
+        self.aes.decrypt_and_overwrite_unchecked(block, AES_128_NK);
     }
 
 }
 
-impl BlockCipher128 for Aes {
+impl BlockCipher for Aes192 {
+
+    const KEY_LEN: usize    = AES_192_KEY_LEN;
     const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
+
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
+        self.aes.rekey(key, AES_192_NK)?;
+        return Ok(self);
+    }
+
+    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt(block_in, block_out, AES_192_NK);
+    }
+
+    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt(block_in, block_out, AES_192_NK);
+    }
+
+    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt_and_overwrite(block, AES_192_NK);
+    }
+
+    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt_and_overwrite(block, AES_192_NK);
+    }
+
+    fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
+        self.aes.encrypt_unchecked(block_in, block_out, AES_192_NK);
+    }
+
+    fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
+        self.aes.decrypt_unchecked(block_in, block_out, AES_192_NK);
+    }
+
+    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.encrypt_and_overwrite_unchecked(block, AES_192_NK);
+    }
+
+    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.decrypt_and_overwrite_unchecked(block, AES_192_NK);
+    }
+
+}
+
+impl BlockCipher for Aes256 {
+
+    const KEY_LEN: usize    = AES_256_KEY_LEN;
+    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
+
+    fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
+        self.aes.rekey(key, AES_256_NK)?;
+        return Ok(self);
+    }
+
+    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt(block_in, block_out, AES_256_NK);
+    }
+
+    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt(block_in, block_out, AES_256_NK);
+    }
+
+    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt_and_overwrite(block, AES_256_NK);
+    }
+
+    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt_and_overwrite(block, AES_256_NK);
+    }
+
+    fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
+        self.aes.encrypt_unchecked(block_in, block_out, AES_256_NK);
+    }
+
+    fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
+        self.aes.decrypt_unchecked(block_in, block_out, AES_256_NK);
+    }
+
+    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.encrypt_and_overwrite_unchecked(block, AES_256_NK);
+    }
+
+    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.decrypt_and_overwrite_unchecked(block, AES_256_NK);
+    }
+
+}
+
+impl BlockCipher128 for Aes128 {}
+impl BlockCipher128 for Aes192 {}
+impl BlockCipher128 for Aes256 {}
+
+#[repr(align(8))]
+struct Aes {
+    ew: [u8; 240], // expanded key for Cipher
+    dw: [u8; 240]  // expanded key for EqInvCipher
 }
 
 static S_BOX: [u8; 256] = [
@@ -743,7 +761,7 @@ static INV_SP_BOX_4: [u8; 1024] = [
     0xcb, 0x84, 0x61, 0x7b, 0x32, 0xb6, 0x70, 0xd5, 0x6c, 0x5c, 0x74, 0x48, 0xb8, 0x57, 0x42, 0xd0
 ];
 
-static RCON: [u8; 15] = [
+static RCON_8: [u8; 15] = [
     0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36, 0x6c, 0xd8, 0xab, 0x4d
 ];
 
@@ -789,7 +807,7 @@ unsafe fn aes_key_expansion(key: *const u8, exp_key: *mut u8, nk: usize) {
             *t8.add(1) = S_BOX[*t8.add(2) as usize];
             *t8.add(2) = S_BOX[*t8.add(3) as usize];
             *t8.add(3) = S_BOX[b8         as usize];
-            *t8.add(0) = *t8.add(0) ^ RCON[i / nk];
+            *t8.add(0) = *t8.add(0) ^ RCON_8[i / nk];
 
         } else if nk > 6 && i % nk == 4 {
 
@@ -1014,6 +1032,136 @@ unsafe fn aes_eq_inv_cipher(exp_key: *const u8, block_in: *const u8, block_out: 
     // InvSubBytes then AddRoundKey
     for i in 0..16 {
         *block_out.add(i) = INV_S_BOX[s[i] as usize] ^ *exp_key.add(i);
+    }
+
+}
+
+impl Aes {
+
+    fn new(key: &[u8], nk: usize) -> Result<Self, CryptoError> {
+
+        let mut v: Self = Self{
+            ew: [0x00; 240],
+            dw: [0x00; 240]
+        };
+
+        v.rekey(key, nk)?;
+        return Ok(v);
+
+    }
+
+    fn rekey(&mut self, key: &[u8], nk: usize) -> Result<(), CryptoError> {
+
+        if key.len() != (nk << 2) {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        unsafe {
+
+            aes_key_expansion(
+                key.as_ptr() as *const u8,
+                self.ew.as_ptr() as *mut u8,
+                nk
+            );
+
+            aes_expanded_key_inversion(
+                self.ew.as_ptr() as *const u8,
+                self.dw.as_ptr() as *mut u8,
+                nk
+            );
+
+        }
+
+        return Ok(());
+
+    }
+
+    fn encrypt(&self, block_in: &[u8], block_out: &mut [u8], nk: usize) -> Result<(), CryptoError> {
+
+        if block_in.len() != AES_BLOCK_SIZE || block_out.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        self.encrypt_unchecked(block_in, block_out, nk);
+        return Ok(());
+
+    }
+
+    fn decrypt(&self, block_in: &[u8], block_out: &mut [u8], nk: usize) -> Result<(), CryptoError> {
+
+        if block_in.len() != AES_BLOCK_SIZE || block_out.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        self.decrypt_unchecked(block_in, block_out, nk);
+        return Ok(());
+
+    }
+
+    fn encrypt_and_overwrite(&self, block: &mut [u8], nk: usize) -> Result<(), CryptoError> {
+
+        if block.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        self.encrypt_and_overwrite_unchecked(block, nk);
+        return Ok(());
+
+    }
+
+    fn decrypt_and_overwrite(&self, block: &mut [u8], nk: usize) -> Result<(), CryptoError> {
+
+        if block.len() != AES_BLOCK_SIZE {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        self.decrypt_and_overwrite_unchecked(block, nk);
+        return Ok(());
+
+    }
+
+    fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8], nk: usize) {
+        unsafe {
+            aes_cipher(
+                self.ew.as_ptr() as *const u8,
+                block_in.as_ptr() as *const u8,
+                block_out.as_ptr() as *mut u8,
+                nk
+            );
+        }
+    }
+
+    fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8], nk: usize) {
+        unsafe {
+            aes_eq_inv_cipher(
+                self.dw.as_ptr() as *const u8,
+                block_in.as_ptr() as *const u8,
+                block_out.as_ptr() as *mut u8,
+                nk
+            );
+        }
+    }
+
+    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8], nk: usize) {
+        unsafe {
+            aes_cipher(
+                self.ew.as_ptr() as *const u8,
+                block.as_ptr() as *const u8,
+                block.as_ptr() as *mut u8,
+                nk
+            );
+        }
+    }
+
+    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8], nk: usize) {
+        unsafe {
+            aes_eq_inv_cipher(
+                self.dw.as_ptr() as *const u8,
+                block.as_ptr() as *const u8,
+                block.as_ptr() as *mut u8,
+                nk
+            );
+        }
     }
 
 }

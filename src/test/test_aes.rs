@@ -1,6 +1,7 @@
 use crate::crypto::BlockCipher;
-use crate::crypto::aes::AesAlgorithm;
-use crate::crypto::aes::Aes;
+use crate::crypto::aes::Aes128;
+use crate::crypto::aes::Aes192;
+use crate::crypto::aes::Aes256;
 use crate::test::{
     DEBUG_PRINT_AES,
     printbytesln,
@@ -24,7 +25,7 @@ fn test_aes_128_a() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     aes.encrypt(&p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES {
@@ -56,7 +57,7 @@ fn test_aes_128_b() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes128, &k[..]).unwrap();
+    let aes: Aes128 = Aes128::new(&k[..]).unwrap();
 
     aes.encrypt(&p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES {
@@ -91,7 +92,7 @@ fn test_aes_192() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes192, &k[..]).unwrap();
+    let aes: Aes192 = Aes192::new(&k[..]).unwrap();
 
     aes.encrypt(&p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES {
@@ -126,7 +127,7 @@ fn test_aes_256() -> usize {
     let mut out: [u8; 16] = [0; 16];
     let mut err: usize = 0;
 
-    let aes: Aes = Aes::new(AesAlgorithm::Aes256, &k[..]).unwrap();
+    let aes: Aes256 = Aes256::new(&k[..]).unwrap();
 
     aes.encrypt(&p[..], &mut out[..]).unwrap();
     if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES {

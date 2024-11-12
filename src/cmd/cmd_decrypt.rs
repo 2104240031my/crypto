@@ -23,23 +23,13 @@ pub fn cmd_main(args: Vec<String>) {
     if args.len() == 1 || (args.len() == 2 && args[1] == "help") {
         println_subcmd_usage();
         return;
-    } else if args.len() < 7 {
-        println!("[!Err]: cipher sub-command takes at least 6 arguments.");
-        println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto cipher help\".");
+    } else if args.len() < 6 {
+        println!("[!Err]: decrypt sub-command takes at least 5 arguments.");
+        println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto decrypt help\".");
         return;
     }
 
-    let enc: bool = match args[2].as_str() {
-        "encrypt" => true,
-        "decrypt" => false,
-        _         => {
-            println!("[!Err]: invalid operation.");
-            println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto cipher help\".");
-            return;
-        }
-    };
-
-    let key: Vec<u8> = match SuffixedArg::to_bytes(args[3].as_str()) {
+    let key: Vec<u8> = match SuffixedArg::to_bytes(args[2].as_str()) {
         Ok(v)  => v,
         Err(e) => {
             println!("{}", e);
@@ -126,7 +116,7 @@ pub fn cmd_main(args: Vec<String>) {
         },
         _                 => {
             println!("[!Err]: unsupported algorithm.");
-            println!("[Info]: if you want to know which cipher algorithms are supported, run \"crypto cipher help\".");
+            println!("[Info]: if you want to know which cipher algorithms are supported, run \"crypto decrypt help\".");
             return;
         }
     };
@@ -139,7 +129,7 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let mut iv: Vec<u8> = match SuffixedArg::to_bytes(args[4].as_str()) {
+    let mut iv: Vec<u8> = match SuffixedArg::to_bytes(args[3].as_str()) {
         Ok(v)  => {
             if v.len() != iv_len {
                 println!("[!Err]: the length of IV is too long or short.");
@@ -153,26 +143,19 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let in_text: Vec<u8> = match SuffixedArg::to_bytes(args[5].as_str()) {
+    let ciphertext: Vec<u8> = match SuffixedArg::to_bytes(args[4].as_str()) {
         Ok(v)  => v,
         Err(e) => {
             println!("{}", e);
             return;
         }
     };
-    let mut out_text: Vec<u8> = Vec::<u8>::with_capacity(in_text.len());
-    unsafe { out_text.set_len(in_text.len()); }
+    let mut plaintext: Vec<u8> = Vec::<u8>::with_capacity(ciphertext.len());
+    unsafe { plaintext.set_len(ciphertext.len()); }
 
-    if let Err(e) = if enc {
-        ctx.encrypt(&mut iv, &in_text, &mut out_text)
-    } else {
-        ctx.decrypt(&mut iv, &in_text, &mut out_text)
-    } {
-        println!("[!Err]: {}.", e);
-        return;
-    }
+    ctx.decrypt(&mut iv, &ciphertext, &mut plaintext).unwrap();
 
-    let (out_fmt, out_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[6].as_str()) {
+    let (plaintext_fmt, plaintext_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[5].as_str()) {
         Ok(v)  => v,
         Err(e) => {
             println!("{}", e);
@@ -180,9 +163,9 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    match out_fmt {
-        ArgType::Hexadecimal => printbytesln(&out_text),
-        ArgType::String      => println!("{}", match std::str::from_utf8(&out_text) {
+    match plaintext_fmt {
+        ArgType::Hexadecimal => printbytesln(&plaintext),
+        ArgType::String      => println!("{}", match std::str::from_utf8(&plaintext) {
             Ok(v)  => v,
             Err(_) => {
                 println!("[!Err]: cannot convert to UTF-8.");
@@ -190,12 +173,12 @@ pub fn cmd_main(args: Vec<String>) {
             }
         }),
         ArgType::Filepath    => {
-            let tmp = File::create(out_src);
+            let tmp = File::create(plaintext_src);
             if let Err(_) = tmp {
                 println!("[!Err]: cannot open the file.");
                 return;
             }
-            if let Err(_) = tmp.unwrap().write_all(&out_text) {
+            if let Err(_) = tmp.unwrap().write_all(&plaintext) {
                 println!("[!Err]: an error occurred while writing data to file.");
                 return;
             }
@@ -205,8 +188,8 @@ pub fn cmd_main(args: Vec<String>) {
 }
 
 pub fn println_subcmd_usage() {
-    println!("cipher sub-command usage:");
-    println!("    crypto cipher [algorithm] [operation] [key (with suffix)] [iv (or icb, nonce, etc.) (with suffix)] [in-text (with suffix)] [out-text (with suffix)] ...");
+    println!("decrypt sub-command usage:");
+    println!("    crypto decrypt [algorithm] [key (with suffix)] [iv (or icb, nonce, etc.) (with suffix)] [ciphertext (with suffix)] [plaintext (with suffix)] ...");
     println!("");
     println!("supported algorithms are listed below:");
     println!(" - aes-128-ecb");
@@ -229,11 +212,7 @@ pub fn println_subcmd_usage() {
     println!(" - aes-256-ctr");
     println!(" - chacha20");
     println!("");
-    println!("the operations are listed below:");
-    println!(" - encrypt");
-    println!(" - decrypt");
-    println!("");
-    println!("and enter key, iv, in-text, and out-text as follows:");
+    println!("and enter key, iv, ciphertext, and plaintext as follows:");
     println!(" - if the data is the hexadecimal string \"00010203\", enter \"00010203.h\" (suffix is \".h\"))");
     println!(" - if the data is the string \"abc\", enter \"abc.s\" (suffix is \".s\"))");
     println!(" - if the data is the file \"efg.txt\", enter \"efg.txt.f\" (suffix is \".f\"))");
@@ -262,30 +241,6 @@ enum CipherState {
 }
 
 impl CipherState {
-
-    fn encrypt(&mut self, iv: &mut [u8], plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError> {
-        return match self {
-            Self::Aes128Ecb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
-            Self::Aes192Ecb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
-            Self::Aes256Ecb(v)      => BlockCipherMode128::ecb_encrypt_blocks(v, plaintext, ciphertext),
-            Self::Aes128Cbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
-            Self::Aes192Cbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
-            Self::Aes256Cbc(v)      => BlockCipherMode128::cbc_encrypt_blocks(v, iv, plaintext, ciphertext),
-            Self::Aes128CfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
-            Self::Aes192CfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
-            Self::Aes256CfbFb8(v)   => BlockCipherMode128::cfb_fb8_encrypt(v, iv, plaintext, ciphertext),
-            Self::Aes128CfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
-            Self::Aes192CfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
-            Self::Aes256CfbFb128(v) => BlockCipherMode128::cfb_fb128_encrypt(v, iv, plaintext, ciphertext),
-            Self::Aes128Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
-            Self::Aes192Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
-            Self::Aes256Ofb(v)      => BlockCipherMode128::ofb_encrypt_or_decrypt(v, iv, plaintext, ciphertext),
-            Self::Aes128Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
-            Self::Aes192Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
-            Self::Aes256Ctr(v)      => BlockCipherMode128::ctr_encrypt_or_decrypt(v, iv, 16, plaintext, ciphertext),
-            Self::ChaCha20(v)       => v.reset(iv, 1)?.encrypt_or_decrypt(plaintext, ciphertext),
-        };
-    }
 
     fn decrypt(&mut self, iv: &mut [u8], ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError> {
         return match self {

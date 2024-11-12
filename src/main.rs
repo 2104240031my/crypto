@@ -3,7 +3,7 @@ mod test;
 #[allow(dead_code)]
 mod crypto;
 
-const VERSION: &str = "0.0.2";
+const VERSION: &str = "0.0.3";
 
 fn main() {
 
@@ -15,17 +15,19 @@ fn main() {
     }
 
     let cmd: fn (args: Vec<String>) = match args[1].as_str() {
-        "aead"     => cmd::cmd_aead::cmd_main,
-        "cipher"   => cmd::cmd_cipher::cmd_main,
+        "version"  => |_: Vec<String>| { println!("crypto-v{}", VERSION) },
+        "encrypt"  => cmd::cmd_encrypt::cmd_main,
+        "decrypt"  => cmd::cmd_decrypt::cmd_main,
+        "seal"     => cmd::cmd_seal::cmd_main,
+        "open"     => cmd::cmd_open::cmd_main,
         "hash"     => cmd::cmd_hash::cmd_main,
-        "help"     => |_: Vec<String>| { println_cmd_usage(); },
-        "keyshare" => cmd::cmd_keyshare::cmd_main,
+        "xof"      => cmd::cmd_xof::cmd_main,
         "mac"      => cmd::cmd_mac::cmd_main,
         "pubkey"   => cmd::cmd_pubkey::cmd_main,
+        "keyshare" => cmd::cmd_keyshare::cmd_main,
         "sign"     => cmd::cmd_sign::cmd_main,
         "verify"   => cmd::cmd_verify::cmd_main,
-        "version"  => |_: Vec<String>| { println!("crypto-v{}", VERSION) },
-        "xof"      => cmd::cmd_xof::cmd_main,
+        "help"     => |_: Vec<String>| { println_cmd_usage(); },
         #[cfg(debug_assertions)]
         "test"     => |_: Vec<String>| { test::test(); },
         _          => |_: Vec<String>| { println!("[!Err]: there is no such sub-command."); }
@@ -40,15 +42,17 @@ fn println_cmd_usage() {
     println!("    crypto [sub-command] ...");
     println!("");
     println!("available sub-commands are listed below:");
-    println!(" - aead");
-    println!(" - cipher");
+    println!(" - version");
+    println!(" - encrypt");
+    println!(" - decrypt");
+    println!(" - seal");
+    println!(" - open");
     println!(" - hash");
-    println!(" - help");
-    println!(" - keyshare");
+    println!(" - xof");
     println!(" - mac");
     println!(" - pubkey");
+    println!(" - keyshare");
     println!(" - sign");
     println!(" - verify");
-    println!(" - version");
-    println!(" - xof");
+    println!(" - help");
 }

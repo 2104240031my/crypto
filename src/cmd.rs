@@ -1,9 +1,11 @@
-pub mod cmd_aead;
-pub mod cmd_cipher;
+pub mod cmd_decrypt;
+pub mod cmd_encrypt;
 pub mod cmd_hash;
 pub mod cmd_keyshare;
 pub mod cmd_mac;
+pub mod cmd_open;
 pub mod cmd_pubkey;
+pub mod cmd_seal;
 pub mod cmd_sign;
 pub mod cmd_verify;
 pub mod cmd_xof;

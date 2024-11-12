@@ -24,7 +24,7 @@ pub fn cmd_main(args: Vec<String>) {
         "x25519"  => (X25519::compute_shared_secret, X25519::PRIVATE_KEY_LEN, X25519::PUBLIC_KEY_LEN, X25519::SHARED_SECRET_LEN),
         _         => {
             println!("[!Err]: unsupported algorithm.");
-            println!("[Info]: if you want to know which public-key cryptography algorithms are supported, run \"crypto keyshare help\".");
+            println!("[Info]: if you want to know which key-share algorithms are supported, run \"crypto keyshare help\".");
             return;
         }
     };

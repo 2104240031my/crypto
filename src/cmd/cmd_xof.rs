@@ -25,7 +25,7 @@ pub fn cmd_main(args: Vec<String>) {
         "shake256" => XofState::Shake256(Shake256::new()),
         _          => {
             println!("[!Err]: unsupported algorithm.");
-            println!("[Info]: if you want to know which xof algorithms are supported, run \"crypto xof help\".");
+            println!("[Info]: if you want to know which XOF algorithms are supported, run \"crypto xof help\".");
             return;
         }
     };

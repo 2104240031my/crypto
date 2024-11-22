@@ -39,8 +39,8 @@ impl Aead for ChaCha20Poly1305 {
 
     }
 
-    fn encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8],
-        tag: &mut [u8]) -> Result<(), CryptoError> {
+    fn encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = plaintext.len();
         let n: usize = len & usize::MAX.wrapping_shl(6);

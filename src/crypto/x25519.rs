@@ -28,7 +28,8 @@ impl DiffieHellman for X25519 {
 
     }
 
-    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Result<(), CryptoError> {
+    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8],
+        shared_secret: &mut [u8]) -> Result<(), CryptoError> {
 
         if priv_key.len() != X25519_PRIVATE_KEY_LEN || peer_pub_key.len() != X25519_PUBLIC_KEY_LEN ||
             shared_secret.len() != X25519_SHARED_SECRET_LEN {

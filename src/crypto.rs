@@ -41,8 +41,8 @@ use std::marker::Copy;
 
 pub trait Aead {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
-    fn encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8],
-        tag: &mut [u8]) -> Result<(), CryptoError>;
+    fn encrypt_and_generate(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
     fn decrypt_and_verify(&mut self, nonce: &[u8], aad: &[u8], ciphertext: &[u8], plaintext: &mut [u8],
         tag: &[u8]) -> Result<bool, CryptoError>;
 }
@@ -53,12 +53,12 @@ pub trait BlockCipher {
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError>;
     fn encrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
     fn decrypt(&self, block_in: &[u8], block_out: &mut [u8]) -> Result<(), CryptoError>;
-    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
-    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
+    fn encrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
+    fn decrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError>;
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
     fn decrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]);
-    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]);
-    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]);
+    fn encrypt_overwrite_unchecked(&self, block: &mut [u8]);
+    fn decrypt_overwrite_unchecked(&self, block: &mut [u8]);
 }
 pub trait BlockCipher128: BlockCipher {}
 
@@ -84,7 +84,8 @@ pub trait DiffieHellman {
     const PUBLIC_KEY_LEN: usize;
     const SHARED_SECRET_LEN: usize;
     fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError>;
-    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8], shared_secret: &mut [u8]) -> Result<(), CryptoError>;
+    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8],
+        shared_secret: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 pub trait DigitalSignature {

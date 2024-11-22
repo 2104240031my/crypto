@@ -63,12 +63,12 @@ impl BlockCipher for Aes128 {
         return self.aes.decrypt(block_in, block_out, AES_128_NK);
     }
 
-    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-        return self.aes.encrypt_and_overwrite(block, AES_128_NK);
+    fn encrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt_overwrite(block, AES_128_NK);
     }
 
-    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-        return self.aes.decrypt_and_overwrite(block, AES_128_NK);
+    fn decrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt_overwrite(block, AES_128_NK);
     }
 
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
@@ -79,12 +79,12 @@ impl BlockCipher for Aes128 {
         self.aes.decrypt_unchecked(block_in, block_out, AES_128_NK);
     }
 
-    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        self.aes.encrypt_and_overwrite_unchecked(block, AES_128_NK);
+    fn encrypt_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.encrypt_overwrite_unchecked(block, AES_128_NK);
     }
 
-    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        self.aes.decrypt_and_overwrite_unchecked(block, AES_128_NK);
+    fn decrypt_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.decrypt_overwrite_unchecked(block, AES_128_NK);
     }
 
 }
@@ -107,12 +107,12 @@ impl BlockCipher for Aes192 {
         return self.aes.decrypt(block_in, block_out, AES_192_NK);
     }
 
-    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-        return self.aes.encrypt_and_overwrite(block, AES_192_NK);
+    fn encrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt_overwrite(block, AES_192_NK);
     }
 
-    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-        return self.aes.decrypt_and_overwrite(block, AES_192_NK);
+    fn decrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt_overwrite(block, AES_192_NK);
     }
 
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
@@ -123,12 +123,12 @@ impl BlockCipher for Aes192 {
         self.aes.decrypt_unchecked(block_in, block_out, AES_192_NK);
     }
 
-    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        self.aes.encrypt_and_overwrite_unchecked(block, AES_192_NK);
+    fn encrypt_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.encrypt_overwrite_unchecked(block, AES_192_NK);
     }
 
-    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        self.aes.decrypt_and_overwrite_unchecked(block, AES_192_NK);
+    fn decrypt_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.decrypt_overwrite_unchecked(block, AES_192_NK);
     }
 
 }
@@ -151,12 +151,12 @@ impl BlockCipher for Aes256 {
         return self.aes.decrypt(block_in, block_out, AES_256_NK);
     }
 
-    fn encrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-        return self.aes.encrypt_and_overwrite(block, AES_256_NK);
+    fn encrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.encrypt_overwrite(block, AES_256_NK);
     }
 
-    fn decrypt_and_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
-        return self.aes.decrypt_and_overwrite(block, AES_256_NK);
+    fn decrypt_overwrite(&self, block: &mut [u8]) -> Result<(), CryptoError> {
+        return self.aes.decrypt_overwrite(block, AES_256_NK);
     }
 
     fn encrypt_unchecked(&self, block_in: &[u8], block_out: &mut [u8]) {
@@ -167,12 +167,12 @@ impl BlockCipher for Aes256 {
         self.aes.decrypt_unchecked(block_in, block_out, AES_256_NK);
     }
 
-    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        self.aes.encrypt_and_overwrite_unchecked(block, AES_256_NK);
+    fn encrypt_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.encrypt_overwrite_unchecked(block, AES_256_NK);
     }
 
-    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8]) {
-        self.aes.decrypt_and_overwrite_unchecked(block, AES_256_NK);
+    fn decrypt_overwrite_unchecked(&self, block: &mut [u8]) {
+        self.aes.decrypt_overwrite_unchecked(block, AES_256_NK);
     }
 
 }
@@ -965,8 +965,7 @@ unsafe fn aes_cipher(exp_key: *const u8, block_in: *const u8, block_out: *mut u8
 
 }
 
-unsafe fn aes_eq_inv_cipher(exp_key: *const u8, block_in: *const u8, block_out: *mut u8,
-    nk: usize) {
+unsafe fn aes_eq_inv_cipher(exp_key: *const u8, block_in: *const u8, block_out: *mut u8, nk: usize) {
 
     let sp1: *const u32 = INV_SP_BOX_1.as_ptr() as *const u32;
     let sp2: *const u32 = INV_SP_BOX_2.as_ptr() as *const u32;
@@ -1098,24 +1097,24 @@ impl Aes {
 
     }
 
-    fn encrypt_and_overwrite(&self, block: &mut [u8], nk: usize) -> Result<(), CryptoError> {
+    fn encrypt_overwrite(&self, block: &mut [u8], nk: usize) -> Result<(), CryptoError> {
 
         if block.len() != AES_BLOCK_SIZE {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.encrypt_and_overwrite_unchecked(block, nk);
+        self.encrypt_overwrite_unchecked(block, nk);
         return Ok(());
 
     }
 
-    fn decrypt_and_overwrite(&self, block: &mut [u8], nk: usize) -> Result<(), CryptoError> {
+    fn decrypt_overwrite(&self, block: &mut [u8], nk: usize) -> Result<(), CryptoError> {
 
         if block.len() != AES_BLOCK_SIZE {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
-        self.decrypt_and_overwrite_unchecked(block, nk);
+        self.decrypt_overwrite_unchecked(block, nk);
         return Ok(());
 
     }
@@ -1142,7 +1141,7 @@ impl Aes {
         }
     }
 
-    fn encrypt_and_overwrite_unchecked(&self, block: &mut [u8], nk: usize) {
+    fn encrypt_overwrite_unchecked(&self, block: &mut [u8], nk: usize) {
         unsafe {
             aes_cipher(
                 self.ew.as_ptr() as *const u8,
@@ -1153,7 +1152,7 @@ impl Aes {
         }
     }
 
-    fn decrypt_and_overwrite_unchecked(&self, block: &mut [u8], nk: usize) {
+    fn decrypt_overwrite_unchecked(&self, block: &mut [u8], nk: usize) {
         unsafe {
             aes_eq_inv_cipher(
                 self.dw.as_ptr() as *const u8,

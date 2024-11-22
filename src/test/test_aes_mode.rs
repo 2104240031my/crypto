@@ -86,6 +86,26 @@ fn test_aes_128_ecb() -> usize {
         err = err + 1;
     }
 
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ecb_encrypt_blocks_overwrite(&aes, &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-ECB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ecb_decrypt_blocks_overwrite(&aes, &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-ECB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -123,6 +143,26 @@ fn test_aes_192_ecb() -> usize {
     }
 
     BlockCipherMode128::ecb_decrypt_blocks(&aes, &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-ECB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ecb_encrypt_blocks_overwrite(&aes, &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-ECB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ecb_decrypt_blocks_overwrite(&aes, &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-192-ECB is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -176,6 +216,26 @@ fn test_aes_256_ecb() -> usize {
         err = err + 1;
     }
 
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ecb_encrypt_blocks_overwrite(&aes, &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-ECB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ecb_decrypt_blocks_overwrite(&aes, &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-ECB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -215,6 +275,26 @@ fn test_aes_128_cbc() -> usize {
     }
 
     BlockCipherMode128::cbc_decrypt_blocks(&aes, &n[..], &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CBC is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cbc_encrypt_blocks_overwrite(&aes, &n[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CBC is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cbc_decrypt_blocks_overwrite(&aes, &n[..], &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-128-CBC is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -271,6 +351,26 @@ fn test_aes_192_cbc() -> usize {
         err = err + 1;
     }
 
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cbc_encrypt_blocks_overwrite(&aes, &n[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CBC is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cbc_decrypt_blocks_overwrite(&aes, &n[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CBC is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -319,6 +419,26 @@ fn test_aes_256_cbc() -> usize {
         err = err + 1;
     }
 
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cbc_encrypt_blocks_overwrite(&aes, &n[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CBC is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cbc_decrypt_blocks_overwrite(&aes, &n[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CBC is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -355,6 +475,28 @@ fn test_aes_128_cfb_fb8() -> usize {
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb8_decrypt(&aes, &mut sr[..], &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CFB-8 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cfb_fb8_encrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CFB-8 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cfb_fb8_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-128-CFB-8 is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -408,6 +550,28 @@ fn test_aes_192_cfb_fb8() -> usize {
         err = err + 1;
     }
 
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cfb_fb8_encrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CFB-8 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cfb_fb8_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CFB-8 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -445,6 +609,28 @@ fn test_aes_256_cfb_fb8() -> usize {
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb8_decrypt(&aes, &mut sr[..], &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CFB-8 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cfb_fb8_encrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CFB-8 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cfb_fb8_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-256-CFB-8 is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -495,6 +681,28 @@ fn test_aes_128_cfb_fb128() -> usize {
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::cfb_fb128_decrypt(&aes, &mut sr[..], &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CFB-128 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cfb_fb128_encrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CFB-128 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cfb_fb128_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-128-CFB-128 is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -554,6 +762,28 @@ fn test_aes_192_cfb_fb128() -> usize {
         err = err + 1;
     }
 
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cfb_fb128_encrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CFB-128 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cfb_fb128_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CFB-128 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -605,6 +835,28 @@ fn test_aes_256_cfb_fb128() -> usize {
         err = err + 1;
     }
 
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::cfb_fb128_encrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CFB-128 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::cfb_fb128_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CFB-128 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -647,6 +899,28 @@ fn test_aes_128_ofb() -> usize {
 
     sr.copy_from_slice(&iv[..]);
     BlockCipherMode128::ofb_encrypt_or_decrypt(&aes, &mut sr[..], &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-OFB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ofb_encrypt_or_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-OFB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ofb_encrypt_or_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-128-OFB is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -706,6 +980,28 @@ fn test_aes_192_ofb() -> usize {
         err = err + 1;
     }
 
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ofb_encrypt_or_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-OFB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ofb_encrypt_or_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-OFB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -757,6 +1053,28 @@ fn test_aes_256_ofb() -> usize {
         err = err + 1;
     }
 
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ofb_encrypt_or_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-OFB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    sr.copy_from_slice(&iv[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ofb_encrypt_or_decrypt_overwrite(&aes, &mut sr[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-OFB is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -799,6 +1117,28 @@ fn test_aes_128_ctr() -> usize {
 
     ctr.copy_from_slice(&icb[..]);
     BlockCipherMode128::ctr_encrypt_or_decrypt(&aes, &mut ctr[..], 16, &c[..], &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CTR is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    ctr.copy_from_slice(&icb[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ctr_encrypt_or_decrypt_overwrite(&aes, &mut ctr[..], 16, &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CTR is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    ctr.copy_from_slice(&icb[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ctr_encrypt_or_decrypt_overwrite(&aes, &mut ctr[..], 16, &mut out[..]).unwrap();
     if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
         print!("[!Err]: testing AES-128-CTR is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);
@@ -858,6 +1198,28 @@ fn test_aes_192_ctr() -> usize {
         err = err + 1;
     }
 
+    ctr.copy_from_slice(&icb[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ctr_encrypt_or_decrypt_overwrite(&aes, &mut ctr[..], 16, &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CTR is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    ctr.copy_from_slice(&icb[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ctr_encrypt_or_decrypt_overwrite(&aes, &mut ctr[..], 16, &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CTR is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -909,6 +1271,28 @@ fn test_aes_256_ctr() -> usize {
         err = err + 1;
     }
 
+    ctr.copy_from_slice(&icb[..]);
+    out.copy_from_slice(&p[..]);
+    BlockCipherMode128::ctr_encrypt_or_decrypt_overwrite(&aes, &mut ctr[..], 16, &mut out[..]).unwrap();
+    if !eqbytes(&c[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CTR is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
+    ctr.copy_from_slice(&icb[..]);
+    out.copy_from_slice(&c[..]);
+    BlockCipherMode128::ctr_encrypt_or_decrypt_overwrite(&aes, &mut ctr[..], 16, &mut out[..]).unwrap();
+    if !eqbytes(&p[..], &out[..]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CTR is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -940,6 +1324,54 @@ fn test_aes_128_ccm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &
 
     if let Err(e) = BlockCipherMode128::ccm_decrypt_and_verify(
         &aes, n, a, c, &mut out1[..p.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-128-CCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-128-CCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    out1[..p.len()].copy_from_slice(&p[..]);
+    BlockCipherMode128::ccm_encrypt_and_generate_overwrite(
+        &aes, n, a, &mut out1[..p.len()], &mut out2[..t.len()]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..t.len()]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-CCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..t.len()]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = BlockCipherMode128::ccm_decrypt_and_verify_overwrite(
+        &aes, n, a, &mut out1[..c.len()], t
     ) {
         match e.err_code() {
             CryptoErrorCode::VerificationFailed => {
@@ -1025,6 +1457,54 @@ fn test_aes_192_ccm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &
         err = err + 1;
     }
 
+    out1[..p.len()].copy_from_slice(&p[..]);
+    BlockCipherMode128::ccm_encrypt_and_generate_overwrite(
+        &aes, n, a, &mut out1[..p.len()], &mut out2[..t.len()]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..t.len()]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..t.len()]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = BlockCipherMode128::ccm_decrypt_and_verify_overwrite(
+        &aes, n, a, &mut out1[..c.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-192-CCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-192-CCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-CCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -1056,6 +1536,54 @@ fn test_aes_256_ccm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &
 
     if let Err(e) = BlockCipherMode128::ccm_decrypt_and_verify(
         &aes, n, a, c, &mut out1[..p.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-256-CCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-256-CCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    out1[..p.len()].copy_from_slice(&p[..]);
+    BlockCipherMode128::ccm_encrypt_and_generate_overwrite(
+        &aes, n, a, &mut out1[..p.len()], &mut out2[..t.len()]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..t.len()]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-CCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..t.len()]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = BlockCipherMode128::ccm_decrypt_and_verify_overwrite(
+        &aes, n, a, &mut out1[..c.len()], t
     ) {
         match e.err_code() {
             CryptoErrorCode::VerificationFailed => {
@@ -1335,6 +1863,54 @@ fn test_aes_128_gcm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &
         err = err + 1;
     }
 
+    out1[..p.len()].copy_from_slice(&p[..]);
+    BlockCipherMode128::gcm_encrypt_and_generate_overwrite(
+        &aes, n, a, &mut out1[..p.len()], &mut out2[..t.len()]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..t.len()]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-GCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..t.len()]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = BlockCipherMode128::gcm_decrypt_and_verify_overwrite(
+        &aes, n, a, &mut out1[..c.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-128-GCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-128-GCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-128-GCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -1393,6 +1969,54 @@ fn test_aes_192_gcm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &
         err = err + 1;
     }
 
+    out1[..p.len()].copy_from_slice(&p[..]);
+    BlockCipherMode128::gcm_encrypt_and_generate_overwrite(
+        &aes, n, a, &mut out1[..p.len()], &mut out2[..t.len()]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..t.len()]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..t.len()]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = BlockCipherMode128::gcm_decrypt_and_verify_overwrite(
+        &aes, n, a, &mut out1[..c.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-192-GCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
     return err;
 
 }
@@ -1424,6 +2048,54 @@ fn test_aes_256_gcm_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8], t: &
 
     if let Err(e) = BlockCipherMode128::gcm_decrypt_and_verify(
         &aes, n, a, c, &mut out1[..p.len()], t
+    ) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    out1[..p.len()].copy_from_slice(&p[..]);
+    BlockCipherMode128::gcm_encrypt_and_generate_overwrite(
+        &aes, n, a, &mut out1[..p.len()], &mut out2[..t.len()]
+    ).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..t.len()]) || DEBUG_PRINT_AES_MODE {
+        print!("[!Err]: testing AES-256-GCM is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..t.len()]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = BlockCipherMode128::gcm_decrypt_and_verify_overwrite(
+        &aes, n, a, &mut out1[..c.len()], t
     ) {
         match e.err_code() {
             CryptoErrorCode::VerificationFailed => {

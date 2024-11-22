@@ -888,7 +888,8 @@ unsafe fn fp25519_uint_gmulinv(res: *mut Fp25519Uint, val: *const Fp25519Uint) {
     fp25519_uint_gpow(res, val, &P_SUB2 as *const Fp25519Uint);
 }
 
-unsafe fn fp25519_uint_gadd_mod_order(res: *mut Fp25519Uint, lhs: *const Fp25519Uint, rhs: *const Fp25519Uint) {
+unsafe fn fp25519_uint_gadd_mod_order(res: *mut Fp25519Uint, lhs: *const Fp25519Uint,
+    rhs: *const Fp25519Uint) {
     let mut acc: u64 = 0;
     for i in (0..8).rev() {
         acc = acc + ((*lhs).words[i] as u64) + ((*rhs).words[i] as u64);
@@ -898,7 +899,8 @@ unsafe fn fp25519_uint_gadd_mod_order(res: *mut Fp25519Uint, lhs: *const Fp25519
     fp25519_uint_wrap_mod_order(acc, &mut (*res));
 }
 
-unsafe fn fp25519_uint_gmul_mod_order(res: *mut Fp25519Uint, lhs: *const Fp25519Uint, rhs: *const Fp25519Uint) {
+unsafe fn fp25519_uint_gmul_mod_order(res: *mut Fp25519Uint, lhs: *const Fp25519Uint,
+    rhs: *const Fp25519Uint) {
 
     let mut buf: [u32; 16] = [0; 16];
     let mut acc: u64;
@@ -929,7 +931,8 @@ unsafe fn fp25519_uint_gmul_mod_order(res: *mut Fp25519Uint, lhs: *const Fp25519
 
 }
 
-unsafe fn edwards25519_point_add(res: *mut Edwards25519Point, lhs: *const Edwards25519Point, rhs: *const Edwards25519Point) {
+unsafe fn edwards25519_point_add(res: *mut Edwards25519Point, lhs: *const Edwards25519Point,
+    rhs: *const Edwards25519Point) {
 
     let mut t1: Fp25519Uint = Fp25519Uint::new();
     let mut t2: Fp25519Uint = Fp25519Uint::new();
@@ -981,7 +984,8 @@ unsafe fn edwards25519_point_add(res: *mut Edwards25519Point, lhs: *const Edward
 
 }
 
-unsafe fn edwards25519_point_scalar_mul(res: *mut Edwards25519Point, p: *const Edwards25519Point, s: &Fp25519Uint) {
+unsafe fn edwards25519_point_scalar_mul(res: *mut Edwards25519Point, p: *const Edwards25519Point,
+    s: &Fp25519Uint) {
 
     let mut a: Edwards25519Point = Edwards25519Point::new_neutral_point(); // (0, 1, 1, 0)
     let mut b: Edwards25519Point = (*p).clone();

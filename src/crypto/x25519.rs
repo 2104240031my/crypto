@@ -1,19 +1,25 @@
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::DiffieHellman;
 use crate::crypto::curve_over_fp25519::Fp25519Uint;
 use crate::crypto::curve_over_fp25519::A24;
 use crate::crypto::curve_over_fp25519::U;
+use crate::crypto::dh::DiffieHellmanStdFeature;
+use crate::crypto::dh::DiffieHellmanStdConst;
+use crate::crypto::dh::DiffieHellmanStdStaticFn;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
 
 pub struct X25519 {}
 
-impl DiffieHellman for X25519 {
+impl DiffieHellmanStdFeature for X25519 {}
 
+impl DiffieHellmanStdConst for X25519 {
     const PRIVATE_KEY_LEN: usize   = X25519_PRIVATE_KEY_LEN;
     const PUBLIC_KEY_LEN: usize    = X25519_PUBLIC_KEY_LEN;
     const SHARED_SECRET_LEN: usize = X25519_SHARED_SECRET_LEN;
+}
 
-    fn compute_public_key(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
+impl DiffieHellmanStdStaticFn for X25519 {
+
+    fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 
         if priv_key.len() != X25519_PRIVATE_KEY_LEN || pub_key.len() != X25519_PUBLIC_KEY_LEN {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
@@ -28,7 +34,7 @@ impl DiffieHellman for X25519 {
 
     }
 
-    fn compute_shared_secret(priv_key: &[u8], peer_pub_key: &[u8],
+    fn compute_shared_secret_oneshot(priv_key: &[u8], peer_pub_key: &[u8],
         shared_secret: &mut [u8]) -> Result<(), CryptoError> {
 
         if priv_key.len() != X25519_PRIVATE_KEY_LEN || peer_pub_key.len() != X25519_PUBLIC_KEY_LEN ||

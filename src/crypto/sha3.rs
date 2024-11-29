@@ -1,7 +1,12 @@
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::Hash;
-use crate::crypto::Xof;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::hash::HashStdFeature;
+use crate::crypto::hash::HashStdStaticFn;
+use crate::crypto::hash::HashStdInstanceFn;
+use crate::crypto::hash::HashStdConst;
+use crate::crypto::xof::XofStdFeature;
+use crate::crypto::xof::XofStdStaticFn;
+use crate::crypto::xof::XofStdInstanceFn;
 
 pub struct Sha3224 {
     state: Sha3State
@@ -29,7 +34,7 @@ pub struct Shake256 {
 
 impl Sha3224 {
 
-    pub const BLOCK_SIZE: usize = SHA3_224_RATE;
+    pub const RATE: usize = SHA3_224_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -43,9 +48,13 @@ impl Sha3224 {
 
 }
 
-impl Hash for Sha3224 {
+impl HashStdFeature for Sha3224 {}
 
+impl HashStdConst for Sha3224 {
     const MESSAGE_DIGEST_LEN: usize = SHA3_224_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha3224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -75,6 +84,10 @@ impl Hash for Sha3224 {
         return Ok(());
 
     }
+
+}
+
+impl HashStdInstanceFn for Sha3224 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.a = [0; 25];
@@ -120,7 +133,7 @@ impl Hash for Sha3224 {
 
 impl Sha3256 {
 
-    pub const BLOCK_SIZE: usize = SHA3_256_RATE;
+    pub const RATE: usize = SHA3_256_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -134,9 +147,13 @@ impl Sha3256 {
 
 }
 
-impl Hash for Sha3256 {
+impl HashStdFeature for Sha3256 {}
 
+impl HashStdConst for Sha3256 {
     const MESSAGE_DIGEST_LEN: usize = SHA3_256_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha3256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -163,6 +180,10 @@ impl Hash for Sha3256 {
         return Ok(());
 
     }
+
+}
+
+impl HashStdInstanceFn for Sha3256 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.a = [0; 25];
@@ -205,7 +226,7 @@ impl Hash for Sha3256 {
 
 impl Sha3384 {
 
-    pub const BLOCK_SIZE: usize = SHA3_384_RATE;
+    pub const RATE: usize = SHA3_384_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -219,9 +240,13 @@ impl Sha3384 {
 
 }
 
-impl Hash for Sha3384 {
+impl HashStdFeature for Sha3384 {}
 
+impl HashStdConst for Sha3384 {
     const MESSAGE_DIGEST_LEN: usize = SHA3_384_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha3384 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -248,6 +273,10 @@ impl Hash for Sha3384 {
         return Ok(());
 
     }
+
+}
+
+impl HashStdInstanceFn for Sha3384 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.a = [0; 25];
@@ -290,7 +319,7 @@ impl Hash for Sha3384 {
 
 impl Sha3512 {
 
-    pub const BLOCK_SIZE: usize = SHA3_512_RATE;
+    pub const RATE: usize = SHA3_512_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -304,9 +333,13 @@ impl Sha3512 {
 
 }
 
-impl Hash for Sha3512 {
+impl HashStdFeature for Sha3512 {}
 
+impl HashStdConst for Sha3512 {
     const MESSAGE_DIGEST_LEN: usize = SHA3_512_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha3512 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -333,6 +366,10 @@ impl Hash for Sha3512 {
         return Ok(());
 
     }
+
+}
+
+impl HashStdInstanceFn for Sha3512 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.a = [0; 25];
@@ -375,7 +412,7 @@ impl Hash for Sha3512 {
 
 impl Shake128 {
 
-    pub const BLOCK_SIZE: usize = SHAKE128_RATE;
+    pub const RATE: usize = SHAKE128_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -389,7 +426,9 @@ impl Shake128 {
 
 }
 
-impl Xof for Shake128 {
+impl XofStdFeature for Shake128 {}
+
+impl XofStdStaticFn for Shake128 {
 
     fn output_oneshot(msg: &[u8], output: &mut [u8], d: usize) -> Result<(), CryptoError> {
         return if output.len() != d {
@@ -399,6 +438,10 @@ impl Xof for Shake128 {
             Ok(())
         }
     }
+
+}
+
+impl XofStdInstanceFn for Shake128 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.a = [0; 25];
@@ -424,7 +467,7 @@ impl Xof for Shake128 {
 
 impl Shake256 {
 
-    pub const BLOCK_SIZE: usize = SHAKE256_RATE;
+    pub const RATE: usize = SHAKE256_RATE;
 
     pub fn new() -> Self {
         return Self{
@@ -438,7 +481,9 @@ impl Shake256 {
 
 }
 
-impl Xof for Shake256 {
+impl XofStdFeature for Shake256 {}
+
+impl XofStdStaticFn for Shake256 {
 
     fn output_oneshot(msg: &[u8], output: &mut [u8], d: usize) -> Result<(), CryptoError> {
         return if output.len() != d {
@@ -448,6 +493,10 @@ impl Xof for Shake256 {
             Ok(())
         }
     }
+
+}
+
+impl XofStdInstanceFn for Shake256 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.a = [0; 25];

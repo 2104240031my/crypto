@@ -1,6 +1,8 @@
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::StreamCipher;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::stream_cipher::StreamCipherStdFeature;
+use crate::crypto::stream_cipher::StreamCipherStdConst;
+use crate::crypto::stream_cipher::StreamCipherStdInstanceFn;
 
 pub struct ChaCha20 {
     state: ChaCha20State
@@ -59,9 +61,13 @@ impl ChaCha20 {
 
 }
 
-impl StreamCipher for ChaCha20  {
+impl StreamCipherStdFeature for ChaCha20 {}
 
+impl StreamCipherStdConst for ChaCha20  {
     const KEY_LEN: usize = CHACHA20_KEY_LEN;
+}
+
+impl StreamCipherStdInstanceFn for ChaCha20  {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         return if key.len() != 32 {

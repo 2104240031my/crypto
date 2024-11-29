@@ -1,6 +1,9 @@
 use crate::crypto::CryptoError;
 use crate::crypto::CryptoErrorCode;
-use crate::crypto::Hash;
+use crate::crypto::hash::HashStdFeature;
+use crate::crypto::hash::HashStdStaticFn;
+use crate::crypto::hash::HashStdInstanceFn;
+use crate::crypto::hash::HashStdConst;
 
 pub struct Sha224 {
     state: Sha2State32
@@ -33,16 +36,7 @@ impl Sha224 {
     pub fn new() -> Self {
         return Self{
             state: Sha2State32{
-                h: [
-                    SHA224_H0_0,
-                    SHA224_H0_1,
-                    SHA224_H0_2,
-                    SHA224_H0_3,
-                    SHA224_H0_4,
-                    SHA224_H0_5,
-                    SHA224_H0_6,
-                    SHA224_H0_7
-                ],
+                h: Self::H0,
                 buf: [0; 128],
                 buf_len: 0,
                 total_len: 0
@@ -50,11 +44,26 @@ impl Sha224 {
         };
     }
 
+    const H0: [u32; 8] = [
+        SHA224_H0_0,
+        SHA224_H0_1,
+        SHA224_H0_2,
+        SHA224_H0_3,
+        SHA224_H0_4,
+        SHA224_H0_5,
+        SHA224_H0_6,
+        SHA224_H0_7
+    ];
+
 }
 
-impl Hash for Sha224 {
+impl HashStdFeature for Sha224 {}
 
+impl HashStdConst for Sha224 {
     const MESSAGE_DIGEST_LEN: usize = SHA224_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -77,15 +86,12 @@ impl Hash for Sha224 {
 
     }
 
+}
+
+impl HashStdInstanceFn for Sha224 {
+
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.state.h[0] = SHA224_H0_0;
-        self.state.h[1] = SHA224_H0_1;
-        self.state.h[2] = SHA224_H0_2;
-        self.state.h[3] = SHA224_H0_3;
-        self.state.h[4] = SHA224_H0_4;
-        self.state.h[5] = SHA224_H0_5;
-        self.state.h[6] = SHA224_H0_6;
-        self.state.h[7] = SHA224_H0_7;
+        self.state.h = Self::H0;
         self.state.buf_len = 0;
         self.state.total_len = 0;
         return Ok(self);
@@ -126,16 +132,7 @@ impl Sha256 {
     pub fn new() -> Self {
         return Self{
             state: Sha2State32{
-                h: [
-                    SHA256_H0_0,
-                    SHA256_H0_1,
-                    SHA256_H0_2,
-                    SHA256_H0_3,
-                    SHA256_H0_4,
-                    SHA256_H0_5,
-                    SHA256_H0_6,
-                    SHA256_H0_7
-                ],
+                h: Self::H0,
                 buf: [0; 128],
                 buf_len: 0,
                 total_len: 0
@@ -143,11 +140,26 @@ impl Sha256 {
         };
     }
 
+    const H0: [u32; 8] = [
+        SHA256_H0_0,
+        SHA256_H0_1,
+        SHA256_H0_2,
+        SHA256_H0_3,
+        SHA256_H0_4,
+        SHA256_H0_5,
+        SHA256_H0_6,
+        SHA256_H0_7
+    ];
+
 }
 
-impl Hash for Sha256 {
+impl HashStdFeature for Sha256 {}
 
+impl HashStdConst for Sha256 {
     const MESSAGE_DIGEST_LEN: usize = SHA256_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -169,16 +181,12 @@ impl Hash for Sha256 {
         return Ok(());
 
     }
+}
+
+impl HashStdInstanceFn for Sha256 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.state.h[0] = SHA256_H0_0;
-        self.state.h[1] = SHA256_H0_1;
-        self.state.h[2] = SHA256_H0_2;
-        self.state.h[3] = SHA256_H0_3;
-        self.state.h[4] = SHA256_H0_4;
-        self.state.h[5] = SHA256_H0_5;
-        self.state.h[6] = SHA256_H0_6;
-        self.state.h[7] = SHA256_H0_7;
+        self.state.h = Self::H0;
         self.state.buf_len = 0;
         self.state.total_len = 0;
         return Ok(self);
@@ -219,16 +227,7 @@ impl Sha384 {
     pub fn new() -> Self {
         return Self{
             state: Sha2State64{
-                h: [
-                    SHA384_H0_0,
-                    SHA384_H0_1,
-                    SHA384_H0_2,
-                    SHA384_H0_3,
-                    SHA384_H0_4,
-                    SHA384_H0_5,
-                    SHA384_H0_6,
-                    SHA384_H0_7
-                ],
+                h: Self::H0,
                 buf: [0; 256],
                 buf_len: 0,
                 total_len: 0
@@ -236,11 +235,26 @@ impl Sha384 {
         };
     }
 
+    const H0: [u64; 8] = [
+        SHA384_H0_0,
+        SHA384_H0_1,
+        SHA384_H0_2,
+        SHA384_H0_3,
+        SHA384_H0_4,
+        SHA384_H0_5,
+        SHA384_H0_6,
+        SHA384_H0_7
+    ];
+
 }
 
-impl Hash for Sha384 {
+impl HashStdFeature for Sha384 {}
 
+impl HashStdConst for Sha384 {
     const MESSAGE_DIGEST_LEN: usize = SHA384_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha384 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -267,15 +281,12 @@ impl Hash for Sha384 {
 
     }
 
+}
+
+impl HashStdInstanceFn for Sha384 {
+
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.state.h[0] = SHA384_H0_0;
-        self.state.h[1] = SHA384_H0_1;
-        self.state.h[2] = SHA384_H0_2;
-        self.state.h[3] = SHA384_H0_3;
-        self.state.h[4] = SHA384_H0_4;
-        self.state.h[5] = SHA384_H0_5;
-        self.state.h[6] = SHA384_H0_6;
-        self.state.h[7] = SHA384_H0_7;
+        self.state.h = Self::H0;
         self.state.buf_len = 0;
         self.state.total_len = 0;
         return Ok(self);
@@ -320,16 +331,7 @@ impl Sha512 {
     pub fn new() -> Self {
         return Self{
             state: Sha2State64{
-                h: [
-                    SHA512_H0_0,
-                    SHA512_H0_1,
-                    SHA512_H0_2,
-                    SHA512_H0_3,
-                    SHA512_H0_4,
-                    SHA512_H0_5,
-                    SHA512_H0_6,
-                    SHA512_H0_7
-                ],
+                h: Self::H0,
                 buf: [0; 256],
                 buf_len: 0,
                 total_len: 0
@@ -337,11 +339,26 @@ impl Sha512 {
         };
     }
 
+    const H0: [u64; 8] = [
+        SHA512_H0_0,
+        SHA512_H0_1,
+        SHA512_H0_2,
+        SHA512_H0_3,
+        SHA512_H0_4,
+        SHA512_H0_5,
+        SHA512_H0_6,
+        SHA512_H0_7
+    ];
+
 }
 
-impl Hash for Sha512 {
+impl HashStdFeature for Sha512 {}
 
+impl HashStdConst for Sha512 {
     const MESSAGE_DIGEST_LEN: usize = SHA512_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha512 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -368,15 +385,12 @@ impl Hash for Sha512 {
 
     }
 
+}
+
+impl HashStdInstanceFn for Sha512 {
+
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.state.h[0] = SHA512_H0_0;
-        self.state.h[1] = SHA512_H0_1;
-        self.state.h[2] = SHA512_H0_2;
-        self.state.h[3] = SHA512_H0_3;
-        self.state.h[4] = SHA512_H0_4;
-        self.state.h[5] = SHA512_H0_5;
-        self.state.h[6] = SHA512_H0_6;
-        self.state.h[7] = SHA512_H0_7;
+        self.state.h = Self::H0;
         self.state.buf_len = 0;
         self.state.total_len = 0;
         return Ok(self);
@@ -421,16 +435,7 @@ impl Sha512224 {
     pub fn new() -> Self {
         return Self{
             state: Sha2State64{
-                h: [
-                    SHA512224_H0_0,
-                    SHA512224_H0_1,
-                    SHA512224_H0_2,
-                    SHA512224_H0_3,
-                    SHA512224_H0_4,
-                    SHA512224_H0_5,
-                    SHA512224_H0_6,
-                    SHA512224_H0_7
-                ],
+                h: Self::H0,
                 buf: [0; 256],
                 buf_len: 0,
                 total_len: 0
@@ -438,11 +443,26 @@ impl Sha512224 {
         };
     }
 
+    const H0: [u64; 8] = [
+        SHA512224_H0_0,
+        SHA512224_H0_1,
+        SHA512224_H0_2,
+        SHA512224_H0_3,
+        SHA512224_H0_4,
+        SHA512224_H0_5,
+        SHA512224_H0_6,
+        SHA512224_H0_7
+    ];
+
 }
 
-impl Hash for Sha512224 {
+impl HashStdFeature for Sha512224 {}
 
+impl HashStdConst for Sha512224 {
     const MESSAGE_DIGEST_LEN: usize = SHA512224_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha512224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -474,15 +494,12 @@ impl Hash for Sha512224 {
 
     }
 
+}
+
+impl HashStdInstanceFn for Sha512224 {
+
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.state.h[0] = SHA512224_H0_0;
-        self.state.h[1] = SHA512224_H0_1;
-        self.state.h[2] = SHA512224_H0_2;
-        self.state.h[3] = SHA512224_H0_3;
-        self.state.h[4] = SHA512224_H0_4;
-        self.state.h[5] = SHA512224_H0_5;
-        self.state.h[6] = SHA512224_H0_6;
-        self.state.h[7] = SHA512224_H0_7;
+        self.state.h = Self::H0;
         self.state.buf_len = 0;
         self.state.total_len = 0;
         return Ok(self);
@@ -532,16 +549,7 @@ impl Sha512256 {
     pub fn new() -> Self {
         return Self{
             state: Sha2State64{
-                h: [
-                    SHA512256_H0_0,
-                    SHA512256_H0_1,
-                    SHA512256_H0_2,
-                    SHA512256_H0_3,
-                    SHA512256_H0_4,
-                    SHA512256_H0_5,
-                    SHA512256_H0_6,
-                    SHA512256_H0_7
-                ],
+                h: Self::H0,
                 buf: [0; 256],
                 buf_len: 0,
                 total_len: 0
@@ -549,11 +557,26 @@ impl Sha512256 {
         };
     }
 
+    const H0: [u64; 8] = [
+        SHA512256_H0_0,
+        SHA512256_H0_1,
+        SHA512256_H0_2,
+        SHA512256_H0_3,
+        SHA512256_H0_4,
+        SHA512256_H0_5,
+        SHA512256_H0_6,
+        SHA512256_H0_7
+    ];
+
 }
 
-impl Hash for Sha512256 {
+impl HashStdFeature for Sha512256 {}
 
+impl HashStdConst for Sha512256 {
     const MESSAGE_DIGEST_LEN: usize = SHA512256_MESSAGE_DIGEST_LEN;
+}
+
+impl HashStdStaticFn for Sha512256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -580,15 +603,12 @@ impl Hash for Sha512256 {
 
     }
 
+}
+
+impl HashStdInstanceFn for Sha512256 {
+
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
-        self.state.h[0] = SHA512256_H0_0;
-        self.state.h[1] = SHA512256_H0_1;
-        self.state.h[2] = SHA512256_H0_2;
-        self.state.h[3] = SHA512256_H0_3;
-        self.state.h[4] = SHA512256_H0_4;
-        self.state.h[5] = SHA512256_H0_5;
-        self.state.h[6] = SHA512256_H0_6;
-        self.state.h[7] = SHA512256_H0_7;
+        self.state.h = Self::H0;
         self.state.buf_len = 0;
         self.state.total_len = 0;
         return Ok(self);

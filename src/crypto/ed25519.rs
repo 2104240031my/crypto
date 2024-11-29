@@ -1,19 +1,19 @@
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::DigitalSignature;
-use crate::crypto::DigitalSignatureSigner;
-use crate::crypto::DigitalSignatureVerifier;
-use crate::crypto::Hash;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
 use crate::crypto::curve_over_fp25519::Fp25519Uint;
 use crate::crypto::curve_over_fp25519::Edwards25519Point;
 use crate::crypto::curve_over_fp25519::B;
 use crate::crypto::curve_over_fp25519::Q;
+use crate::crypto::hash::HashStdFeature;
 use crate::crypto::sha2::Sha512;
-
-pub struct Ed25519 {
-    signer: Ed25519Signer,
-    verifier: Ed25519Verifier
-}
+use crate::crypto::sign::DigitalSignatureSignerStdFeature;
+use crate::crypto::sign::DigitalSignatureSignerStdConst;
+use crate::crypto::sign::DigitalSignatureSignerStdStaticFn;
+use crate::crypto::sign::DigitalSignatureSignerStdInstanceFn;
+use crate::crypto::sign::DigitalSignatureVerifierStdFeature;
+use crate::crypto::sign::DigitalSignatureVerifierStdConst;
+use crate::crypto::sign::DigitalSignatureVerifierStdStaticFn;
+use crate::crypto::sign::DigitalSignatureVerifierStdInstanceFn;
 
 pub struct Ed25519Signer {
     priv_key: [u8; 32]
@@ -21,59 +21,6 @@ pub struct Ed25519Signer {
 
 pub struct Ed25519Verifier {
     pub_key: [u8; 32]
-}
-
-impl Ed25519 {
-
-    pub const PRIVATE_KEY_LEN: usize = ED25519_PRIVATE_KEY_LEN;
-    pub const PUBLIC_KEY_LEN: usize  = ED25519_PUBLIC_KEY_LEN;
-    pub const SIGNATURE_LEN: usize   = ED25519_SIGNATURE_LEN;
-
-    pub fn new(priv_key: &[u8]) -> Result<Self, CryptoError> {
-
-        let mut pub_key: [u8; 32] = [0; 32];
-        Ed25519Signer::compute_public_key_oneshot(priv_key, &mut pub_key[..])?;
-
-        return Ok(Self{
-            signer: Ed25519Signer::new(priv_key)?,
-            verifier: Ed25519Verifier::new(&pub_key[..])?,
-        });
-
-    }
-
-}
-
-impl DigitalSignature for Ed25519 {
-
-    fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
-        return Ed25519Signer::compute_public_key_oneshot(priv_key, pub_key);
-    }
-
-    fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError> {
-        return Ed25519Signer::sign_oneshot(priv_key, msg, signature);
-    }
-
-    fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError> {
-        return Ed25519Verifier::verify_oneshot(pub_key, msg, signature);
-    }
-
-    fn rekey(&mut self, priv_key: &[u8]) -> Result<&mut Self, CryptoError> {
-        self.signer.rekey(priv_key)?.compute_public_key(&mut self.verifier.pub_key[..])?;
-        return Ok(self);
-    }
-
-    fn compute_public_key(&self, pub_key: &mut [u8]) -> Result<(), CryptoError> {
-        return self.signer.compute_public_key(pub_key);
-    }
-
-    fn sign(&self, msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError> {
-        return self.signer.sign(msg, signature);
-    }
-
-    fn verify(&self, msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError> {
-        return self.verifier.verify(msg, signature);
-    }
-
 }
 
 impl Ed25519Signer {
@@ -91,7 +38,15 @@ impl Ed25519Signer {
 
 }
 
-impl DigitalSignatureSigner for Ed25519Signer {
+impl DigitalSignatureSignerStdFeature for Ed25519Signer {}
+
+impl DigitalSignatureSignerStdConst for Ed25519Signer {
+    const PRIVATE_KEY_LEN: usize = ED25519_PRIVATE_KEY_LEN;
+    const PUBLIC_KEY_LEN: usize  = ED25519_PUBLIC_KEY_LEN;
+    const SIGNATURE_LEN: usize   = ED25519_SIGNATURE_LEN;
+}
+
+impl DigitalSignatureSignerStdStaticFn for Ed25519Signer {
 
     fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -102,6 +57,10 @@ impl DigitalSignatureSigner for Ed25519Signer {
         return ed25519_compute_public_key(priv_key, pub_key);
 
     }
+
+}
+
+impl DigitalSignatureSignerStdInstanceFn for Ed25519Signer {
 
     fn sign_oneshot(priv_key: &[u8], msg: &[u8], signature: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -149,7 +108,15 @@ impl Ed25519Verifier {
 
 }
 
-impl DigitalSignatureVerifier for Ed25519Verifier {
+impl DigitalSignatureVerifierStdFeature for Ed25519Verifier {}
+
+impl DigitalSignatureVerifierStdConst for Ed25519Verifier {
+    const PRIVATE_KEY_LEN: usize = ED25519_PRIVATE_KEY_LEN;
+    const PUBLIC_KEY_LEN: usize  = ED25519_PUBLIC_KEY_LEN;
+    const SIGNATURE_LEN: usize   = ED25519_SIGNATURE_LEN;
+}
+
+impl DigitalSignatureVerifierStdStaticFn for Ed25519Verifier {
 
     fn verify_oneshot(pub_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<bool, CryptoError> {
 
@@ -160,6 +127,10 @@ impl DigitalSignatureVerifier for Ed25519Verifier {
         return ed25519_verify(pub_key, msg, signature);
 
     }
+
+}
+
+impl DigitalSignatureVerifierStdInstanceFn for Ed25519Verifier {
 
     fn rekey(&mut self, pub_key: &[u8]) -> Result<&mut Self, CryptoError> {
 

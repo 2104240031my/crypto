@@ -1,6 +1,8 @@
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::Aead;
+use crate::crypto::aead::AeadStdFeature;
+use crate::crypto::aead::AeadStdConst;
+use crate::crypto::aead::AeadStdInstanceFn;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
 use crate::crypto::Mac;
 use crate::crypto::StreamCipher;
 use crate::crypto::chacha20::ChaCha20;
@@ -12,10 +14,6 @@ pub struct ChaCha20Poly1305 {
 
 impl ChaCha20Poly1305 {
 
-    pub const KEY_LEN: usize   = ChaCha20::KEY_LEN;
-    pub const NONCE_LEN: usize = 12;
-    pub const TAG_LEN: usize   = Poly1305::MAC_LEN;
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             key: [0; 32]
@@ -26,7 +24,16 @@ impl ChaCha20Poly1305 {
 
 }
 
-impl Aead for ChaCha20Poly1305 {
+impl AeadStdFeature for ChaCha20Poly1305 {}
+
+impl AeadStdConst for ChaCha20Poly1305 {
+    const KEY_LEN: usize = ChaCha20::KEY_LEN;
+    const MIN_NONCE_LEN: usize = 12;
+    const MAX_NONCE_LEN: usize = 12;
+    const TAG_LEN: usize = Poly1305::MAC_LEN;
+}
+
+impl AeadStdInstanceFn for ChaCha20Poly1305 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 

@@ -1,9 +1,10 @@
-mod cmd;
-mod test;
 #[allow(dead_code)]
 mod crypto;
 
-const VERSION: &str = "0.0.4";
+mod cmd;
+mod test;
+
+const VERSION: &str = "0.0.5";
 
 fn main() {
 

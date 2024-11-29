@@ -1,23 +1,17 @@
 use crate::crypto::curve_over_fp25519::Fp25519Uint;
 use crate::crypto::curve_over_fp25519::A24;
 use crate::crypto::curve_over_fp25519::U;
-use crate::crypto::dh::DiffieHellmanStdFeature;
-use crate::crypto::dh::DiffieHellmanStdConst;
-use crate::crypto::dh::DiffieHellmanStdStaticFn;
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::feature::DiffieHellman;
 
-pub struct X25519 {}
+pub struct X25519;
 
-impl DiffieHellmanStdFeature for X25519 {}
+impl DiffieHellman for X25519 {
 
-impl DiffieHellmanStdConst for X25519 {
     const PRIVATE_KEY_LEN: usize   = X25519_PRIVATE_KEY_LEN;
     const PUBLIC_KEY_LEN: usize    = X25519_PUBLIC_KEY_LEN;
     const SHARED_SECRET_LEN: usize = X25519_SHARED_SECRET_LEN;
-}
-
-impl DiffieHellmanStdStaticFn for X25519 {
 
     fn compute_public_key_oneshot(priv_key: &[u8], pub_key: &mut [u8]) -> Result<(), CryptoError> {
 

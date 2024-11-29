@@ -1,7 +1,6 @@
-use crate::crypto::CryptoError;
-use crate::crypto::DigitalSignature;
-use crate::crypto::ed25519::Ed25519;
-use crate::cmd::SuffixedArg;
+use crate::crypto::util::DigitalSignatureAlgorithm;
+use crate::cmd::arg::SuffixedArg;
+use crate::cmd::printerrln;
 
 pub fn cmd_main(args: Vec<String>) {
 
@@ -16,12 +15,8 @@ pub fn cmd_main(args: Vec<String>) {
         return;
     }
 
-    let (verify, verify_key_len, signature_len): (
-        fn (a: &[u8], m: &[u8], s: &[u8]) -> Result<bool, CryptoError>,
-        usize,
-        usize
-    ) = match args[1].as_str() {
-        "ed25519" => (Ed25519::verify_oneshot, Ed25519::PUBLIC_KEY_LEN, Ed25519::SIGNATURE_LEN),
+    let algo: DigitalSignatureAlgorithm = match args[1].as_str() {
+        "ed25519" => DigitalSignatureAlgorithm::Ed25519,
         _         => {
             println!("[!Err]: unsupported algorithm.");
             println!("[Info]: if you want to know which signature algorithms are supported, run \"crypto verify help\".");
@@ -29,51 +24,23 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let verify_key: Vec<u8> = match SuffixedArg::to_bytes(args[2].as_str()) {
-        Ok(v)  => {
-            if v.len() != verify_key_len {
-                println!("[!Err]: the length of verify key is too long or short.");
-                return;
-            }
-            v
-        },
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(verify_key) = SuffixedArg::to_bytes(args[2].as_str()).map_err(printerrln) else { return; };
+    if verify_key.len() != algo.pub_key_len() {
+        println!("[!Err]: the length of verify key is too long or short.");
+        return;
+    }
 
-    let msg: Vec<u8> = match SuffixedArg::to_bytes(args[3].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(msg) = SuffixedArg::to_bytes(args[3].as_str()).map_err(printerrln) else { return; };
 
-    let signature: Vec<u8> = match SuffixedArg::to_bytes(args[4].as_str()) {
-        Ok(v)  => {
-            if v.len() != signature_len {
-                println!("[!Err]: the length of signature is too long or short.");
-                return;
-            }
-            v
-        },
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(signature) = SuffixedArg::to_bytes(args[4].as_str()).map_err(printerrln) else { return; };
+    if signature.len() != algo.signature_len() {
+        println!("[!Err]: the length of signature is too long or short.");
+        return;
+    }
 
-    match verify(&verify_key, &msg, &signature) {
-        Ok(v)  => {
-            if v {
-                println!("[Ok]: verification ok.")
-            } else {
-                println!("[!Err]: verification failed.")
-            }
-        },
-        Err(_) => println!("[!Err]: verification failed."),
+    match algo.verify_oneshot(&verify_key, &msg, &signature) {
+        Ok(v)  => println!("{}", if v { "[Ok]: verification ok." } else { "[!Err]: verification failed." }),
+        Err(_) => println!("[!Err]: verification failed.")
     }
 
 }

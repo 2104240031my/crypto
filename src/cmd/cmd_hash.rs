@@ -1,21 +1,10 @@
-use crate::crypto::error::CryptoError;
-use crate::crypto::hash::Hash;
-use crate::crypto::hash::HashAlgorithm;
-use crate::crypto::hash::HashStdInstanceFn;
-use crate::crypto::sha2::Sha224;
-use crate::crypto::sha2::Sha256;
-use crate::crypto::sha2::Sha384;
-use crate::crypto::sha2::Sha512;
-use crate::crypto::sha2::Sha512224;
-use crate::crypto::sha2::Sha512256;
-use crate::crypto::sha3::Sha3224;
-use crate::crypto::sha3::Sha3256;
-use crate::crypto::sha3::Sha3384;
-use crate::crypto::sha3::Sha3512;
+use crate::crypto::util::Hash;
+use crate::crypto::util::HashAlgorithm;
 use crate::cmd::arg::ArgType;
 use crate::cmd::arg::SuffixedArg;
 use crate::cmd::BUF_SIZE;
 use crate::cmd::printbytesln;
+use crate::cmd::printerrln;
 use std::fs::File;
 use std::io::Read;
 
@@ -30,17 +19,17 @@ pub fn cmd_main(args: Vec<String>) {
         return;
     }
 
-    let (mut algo, md_len): (HashAlgorithm, usize) = match args[1].as_str() {
-        "sha-224"     => (HashAlgorithm::Sha224, Sha224::MESSAGE_DIGEST_LEN),
-        "sha-256"     => (HashAlgorithm::Sha256, Sha256::MESSAGE_DIGEST_LEN),
-        "sha-384"     => (HashAlgorithm::Sha384, Sha384::MESSAGE_DIGEST_LEN),
-        "sha-512"     => (HashAlgorithm::Sha512, Sha512::MESSAGE_DIGEST_LEN),
-        "sha-512-224" => (HashAlgorithm::Sha512224, Sha512224::MESSAGE_DIGEST_LEN),
-        "sha-512-256" => (HashAlgorithm::Sha512256, Sha512256::MESSAGE_DIGEST_LEN),
-        "sha3-224"    => (HashAlgorithm::Sha3224, Sha3224::MESSAGE_DIGEST_LEN),
-        "sha3-256"    => (HashAlgorithm::Sha3256, Sha3256::MESSAGE_DIGEST_LEN),
-        "sha3-384"    => (HashAlgorithm::Sha3384, Sha3384::MESSAGE_DIGEST_LEN),
-        "sha3-512"    => (HashAlgorithm::Sha3512, Sha3512::MESSAGE_DIGEST_LEN),
+    let algo: HashAlgorithm = match args[1].as_str() {
+        "sha-224"     => HashAlgorithm::Sha224,
+        "sha-256"     => HashAlgorithm::Sha256,
+        "sha-384"     => HashAlgorithm::Sha384,
+        "sha-512"     => HashAlgorithm::Sha512,
+        "sha-512-224" => HashAlgorithm::Sha512224,
+        "sha-512-256" => HashAlgorithm::Sha512256,
+        "sha3-224"    => HashAlgorithm::Sha3224,
+        "sha3-256"    => HashAlgorithm::Sha3256,
+        "sha3-384"    => HashAlgorithm::Sha3384,
+        "sha3-512"    => HashAlgorithm::Sha3512,
         _             => {
             println!("[!Err]: unsupported algorithm.");
             println!("[Info]: if you want to know which hash algorithms are supported, run \"crypto hash help\".");
@@ -48,15 +37,9 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let hash: Hash = Hash::new(algo);
+    let Ok((in_fmt, in_src)) = SuffixedArg::parse_arg(args[2].as_str()).map_err(printerrln) else { return; };
 
-    let (in_fmt, in_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[2].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let mut hash: Hash = Hash::new(algo);
 
     let mut md: [u8; 64] = [0; 64];
     match in_fmt {
@@ -95,8 +78,8 @@ pub fn cmd_main(args: Vec<String>) {
 
     }
 
-    hash.digest(&mut md[..md_len]).unwrap();
-    printbytesln(&md[..md_len]);
+    hash.digest(&mut md[..algo.md_len()]).unwrap();
+    printbytesln(&md[..algo.md_len()]);
 
 }
 

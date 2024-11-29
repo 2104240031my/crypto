@@ -1,4 +1,4 @@
-use crate::crypto::Hash;
+use crate::crypto::feature::Hash;
 use crate::crypto::sha2::Sha224;
 use crate::crypto::sha2::Sha256;
 use crate::crypto::sha2::Sha384;

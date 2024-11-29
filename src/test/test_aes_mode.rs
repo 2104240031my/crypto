@@ -1,4 +1,3 @@
-use crate::crypto::CryptoErrorCode;
 use crate::crypto::aes::Aes128;
 use crate::crypto::aes::Aes192;
 use crate::crypto::aes::Aes256;
@@ -11,6 +10,7 @@ use crate::crypto::block_cipher_mode::Cfb128Fb128;
 use crate::crypto::block_cipher_mode::Ctr128;
 use crate::crypto::block_cipher_mode::Ccm128;
 use crate::crypto::block_cipher_mode::Gcm128;
+use crate::crypto::error::CryptoErrorCode;
 use crate::test::{
     DEBUG_PRINT_AES_MODE,
     printbytesln,

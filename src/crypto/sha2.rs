@@ -1,9 +1,7 @@
-use crate::crypto::CryptoError;
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::hash::HashStdFeature;
-use crate::crypto::hash::HashStdStaticFn;
-use crate::crypto::hash::HashStdInstanceFn;
-use crate::crypto::hash::HashStdConst;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::feature::BlockHash;
+use crate::crypto::feature::Hash;
 
 pub struct Sha224 {
     state: Sha2State32
@@ -31,8 +29,6 @@ pub struct Sha512256 {
 
 impl Sha224 {
 
-    pub const BLOCK_SIZE: usize = SHA2_32_BLOCK_SIZE;
-
     pub fn new() -> Self {
         return Self{
             state: Sha2State32{
@@ -57,13 +53,9 @@ impl Sha224 {
 
 }
 
-impl HashStdFeature for Sha224 {}
+impl Hash for Sha224 {
 
-impl HashStdConst for Sha224 {
     const MESSAGE_DIGEST_LEN: usize = SHA224_MESSAGE_DIGEST_LEN;
-}
-
-impl HashStdStaticFn for Sha224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -85,10 +77,6 @@ impl HashStdStaticFn for Sha224 {
         return Ok(());
 
     }
-
-}
-
-impl HashStdInstanceFn for Sha224 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.h = Self::H0;
@@ -125,9 +113,11 @@ impl HashStdInstanceFn for Sha224 {
 
 }
 
-impl Sha256 {
+impl BlockHash for Sha224 {
+    const BLOCK_SIZE: usize = SHA2_32_BLOCK_SIZE;
+}
 
-    pub const BLOCK_SIZE: usize = SHA2_32_BLOCK_SIZE;
+impl Sha256 {
 
     pub fn new() -> Self {
         return Self{
@@ -153,13 +143,9 @@ impl Sha256 {
 
 }
 
-impl HashStdFeature for Sha256 {}
+impl Hash for Sha256 {
 
-impl HashStdConst for Sha256 {
     const MESSAGE_DIGEST_LEN: usize = SHA256_MESSAGE_DIGEST_LEN;
-}
-
-impl HashStdStaticFn for Sha256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -181,9 +167,6 @@ impl HashStdStaticFn for Sha256 {
         return Ok(());
 
     }
-}
-
-impl HashStdInstanceFn for Sha256 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.h = Self::H0;
@@ -220,9 +203,11 @@ impl HashStdInstanceFn for Sha256 {
 
 }
 
-impl Sha384 {
+impl BlockHash for Sha256 {
+    const BLOCK_SIZE: usize = SHA2_32_BLOCK_SIZE;
+}
 
-    pub const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+impl Sha384 {
 
     pub fn new() -> Self {
         return Self{
@@ -248,13 +233,9 @@ impl Sha384 {
 
 }
 
-impl HashStdFeature for Sha384 {}
+impl Hash for Sha384 {
 
-impl HashStdConst for Sha384 {
     const MESSAGE_DIGEST_LEN: usize = SHA384_MESSAGE_DIGEST_LEN;
-}
-
-impl HashStdStaticFn for Sha384 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -280,10 +261,6 @@ impl HashStdStaticFn for Sha384 {
         return Ok(());
 
     }
-
-}
-
-impl HashStdInstanceFn for Sha384 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.h = Self::H0;
@@ -324,9 +301,11 @@ impl HashStdInstanceFn for Sha384 {
 
 }
 
-impl Sha512 {
+impl BlockHash for Sha384 {
+    const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+}
 
-    pub const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+impl Sha512 {
 
     pub fn new() -> Self {
         return Self{
@@ -352,13 +331,9 @@ impl Sha512 {
 
 }
 
-impl HashStdFeature for Sha512 {}
+impl Hash for Sha512 {
 
-impl HashStdConst for Sha512 {
     const MESSAGE_DIGEST_LEN: usize = SHA512_MESSAGE_DIGEST_LEN;
-}
-
-impl HashStdStaticFn for Sha512 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -384,10 +359,6 @@ impl HashStdStaticFn for Sha512 {
         return Ok(());
 
     }
-
-}
-
-impl HashStdInstanceFn for Sha512 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.h = Self::H0;
@@ -428,9 +399,11 @@ impl HashStdInstanceFn for Sha512 {
 
 }
 
-impl Sha512224 {
+impl BlockHash for Sha512 {
+    const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+}
 
-    pub const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+impl Sha512224 {
 
     pub fn new() -> Self {
         return Self{
@@ -456,13 +429,9 @@ impl Sha512224 {
 
 }
 
-impl HashStdFeature for Sha512224 {}
+impl Hash for Sha512224 {
 
-impl HashStdConst for Sha512224 {
     const MESSAGE_DIGEST_LEN: usize = SHA512224_MESSAGE_DIGEST_LEN;
-}
-
-impl HashStdStaticFn for Sha512224 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -493,10 +462,6 @@ impl HashStdStaticFn for Sha512224 {
         return Ok(());
 
     }
-
-}
-
-impl HashStdInstanceFn for Sha512224 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.h = Self::H0;
@@ -542,9 +507,11 @@ impl HashStdInstanceFn for Sha512224 {
 
 }
 
-impl Sha512256 {
+impl BlockHash for Sha512224 {
+    const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+}
 
-    pub const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
+impl Sha512256 {
 
     pub fn new() -> Self {
         return Self{
@@ -570,13 +537,9 @@ impl Sha512256 {
 
 }
 
-impl HashStdFeature for Sha512256 {}
+impl Hash for Sha512256 {
 
-impl HashStdConst for Sha512256 {
     const MESSAGE_DIGEST_LEN: usize = SHA512256_MESSAGE_DIGEST_LEN;
-}
-
-impl HashStdStaticFn for Sha512256 {
 
     fn digest_oneshot(msg: &[u8], md: &mut [u8]) -> Result<(), CryptoError> {
 
@@ -602,10 +565,6 @@ impl HashStdStaticFn for Sha512256 {
         return Ok(());
 
     }
-
-}
-
-impl HashStdInstanceFn for Sha512256 {
 
     fn reset(&mut self) -> Result<&mut Self, CryptoError> {
         self.state.h = Self::H0;
@@ -644,6 +603,10 @@ impl HashStdInstanceFn for Sha512256 {
 
     }
 
+}
+
+impl BlockHash for Sha512256 {
+    const BLOCK_SIZE: usize = SHA2_64_BLOCK_SIZE;
 }
 
 struct Sha2State32 {

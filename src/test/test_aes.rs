@@ -1,7 +1,7 @@
-use crate::crypto::BlockCipher;
 use crate::crypto::aes::Aes128;
 use crate::crypto::aes::Aes192;
 use crate::crypto::aes::Aes256;
+use crate::crypto::feature::BlockCipher;
 use crate::test::{
     DEBUG_PRINT_AES,
     printbytesln,

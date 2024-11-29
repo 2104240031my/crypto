@@ -1,6 +1,5 @@
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::DigitalSignature;
 use crate::crypto::ed25519::Ed25519;
+use crate::crypto::error::CryptoErrorCode;
 use crate::test::{
     DEBUG_PRINT_ED25519,
     printbytesln,

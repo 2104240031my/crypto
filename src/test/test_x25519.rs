@@ -1,4 +1,4 @@
-use crate::crypto::DiffieHellman;
+use crate::crypto::feature::DiffieHellman;
 use crate::crypto::x25519::X25519;
 use crate::test::{
     DEBUG_PRINT_X25519,
@@ -19,7 +19,7 @@ fn test_x25519_inner_a(s: &[u8], u: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 32] = [0; 32];
 
-    X25519::compute_shared_secret(s, u, &mut out[..]).unwrap();
+    X25519::compute_shared_secret_oneshot(s, u, &mut out[..]).unwrap();
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_X25519 {
         print!("[!Err]: testing X25519 is FAILED.\n");
@@ -37,7 +37,7 @@ fn test_x25519_inner_b(s: &[u8], d: &[u8]) -> usize {
 
     let mut out: [u8; 32] = [0; 32];
 
-    X25519::compute_public_key(s, &mut out[..]).unwrap();
+    X25519::compute_public_key_oneshot(s, &mut out[..]).unwrap();
 
     if !eqbytes(d, &out[..]) || DEBUG_PRINT_X25519 {
         print!("[!Err]: testing X25519 is FAILED.\n");
@@ -136,7 +136,7 @@ fn test_x25519_ecdh() -> usize {
     // print!("Bob ECDH private key: ");
     // printbytesln(&bob_privkey[..]);
 
-    X25519::compute_public_key(&alice_privkey[..], &mut out_alice_pubkey[..]).unwrap();
+    X25519::compute_public_key_oneshot(&alice_privkey[..], &mut out_alice_pubkey[..]).unwrap();
 
     if !eqbytes(&alice_pubkey[..], &out_alice_pubkey[..]) || DEBUG_PRINT_X25519 {
         print!("[!Err]: testing X25519 is FAILED.\n");
@@ -147,7 +147,7 @@ fn test_x25519_ecdh() -> usize {
         err = err + 1;
     }
 
-    X25519::compute_public_key(&bob_privkey[..], &mut out_bob_pubkey[..]).unwrap();
+    X25519::compute_public_key_oneshot(&bob_privkey[..], &mut out_bob_pubkey[..]).unwrap();
     if !eqbytes(&bob_pubkey[..], &out_bob_pubkey[..]) || DEBUG_PRINT_X25519 {
         print!("[!Err]: testing X25519 is FAILED.\n");
         print!("Bob ECDH public key:\n");
@@ -157,8 +157,8 @@ fn test_x25519_ecdh() -> usize {
         err = err + 1;
     }
 
-    X25519::compute_shared_secret(&alice_privkey[..], &out_bob_pubkey[..], &mut out_alice_ss[..]).unwrap();
-    X25519::compute_shared_secret(&bob_privkey[..], &out_alice_pubkey[..], &mut out_bob_ss[..]).unwrap();
+    X25519::compute_shared_secret_oneshot(&alice_privkey[..], &out_bob_pubkey[..], &mut out_alice_ss[..]).unwrap();
+    X25519::compute_shared_secret_oneshot(&bob_privkey[..], &out_alice_pubkey[..], &mut out_bob_ss[..]).unwrap();
 
     if !eqbytes(&shared_secret[..], &out_alice_ss[..]) || !eqbytes(&shared_secret[..], &out_bob_ss[..]) ||
         DEBUG_PRINT_X25519 {

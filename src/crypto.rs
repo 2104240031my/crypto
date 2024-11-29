@@ -2,10 +2,7 @@
 pub mod aes;
 
 #[allow(dead_code)]
-pub mod aead;
-
-#[allow(dead_code)]
-pub mod block_cipher;
+pub mod aes_aead;
 
 #[allow(dead_code)]
 pub mod block_cipher_mode;
@@ -17,28 +14,19 @@ pub mod chacha20;
 pub mod chacha20_poly1305;
 
 #[allow(dead_code)]
-pub mod dh;
-
-#[allow(dead_code)]
 pub mod ed25519;
 
 #[allow(dead_code)]
 pub mod error;
 
 #[allow(dead_code)]
-pub mod hash;
-
-#[allow(dead_code)]
-pub mod hmac;
+pub mod feature;
 
 #[allow(dead_code)]
 pub mod hmac_sha2;
 
 #[allow(dead_code)]
 pub mod hmac_sha3;
-
-#[allow(dead_code)]
-pub mod mac;
 
 #[allow(dead_code)]
 pub mod poly1305;
@@ -50,13 +38,10 @@ pub mod sha2;
 pub mod sha3;
 
 #[allow(dead_code)]
-pub mod stream_cipher;
+pub mod util;
 
 #[allow(dead_code)]
 pub mod x25519;
-
-#[allow(dead_code)]
-pub mod xof;
 
 #[allow(dead_code)]
 mod curve_over_fp25519;

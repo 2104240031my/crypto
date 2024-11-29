@@ -1,18 +1,10 @@
-use crate::crypto::CryptoError;
-use crate::crypto::Mac;
-use crate::crypto::hmac_sha2::HmacSha224;
-use crate::crypto::hmac_sha2::HmacSha256;
-use crate::crypto::hmac_sha2::HmacSha384;
-use crate::crypto::hmac_sha2::HmacSha512;
-use crate::crypto::hmac_sha3::HmacSha3224;
-use crate::crypto::hmac_sha3::HmacSha3256;
-use crate::crypto::hmac_sha3::HmacSha3384;
-use crate::crypto::hmac_sha3::HmacSha3512;
-use crate::crypto::poly1305::Poly1305;
-use crate::cmd::ArgType;
-use crate::cmd::SuffixedArg;
+use crate::crypto::util::Mac;
+use crate::crypto::util::MacAlgorithm;
+use crate::cmd::arg::ArgType;
+use crate::cmd::arg::SuffixedArg;
 use crate::cmd::BUF_SIZE;
 use crate::cmd::printbytesln;
+use crate::cmd::printerrln;
 use std::fs::File;
 use std::io::Read;
 
@@ -27,24 +19,16 @@ pub fn cmd_main(args: Vec<String>) {
         return;
     }
 
-    let key: Vec<u8> = match SuffixedArg::to_bytes(args[2].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
-
-    let (mut ctx, mac_len): (MacState, usize) = match args[1].as_str() {
-        "hmac-sha-224"  => (MacState::HmacSha224(HmacSha224::new(&key[..]).unwrap()), HmacSha224::MAC_LEN),
-        "hmac-sha-256"  => (MacState::HmacSha256(HmacSha256::new(&key[..]).unwrap()), HmacSha256::MAC_LEN),
-        "hmac-sha-384"  => (MacState::HmacSha384(HmacSha384::new(&key[..]).unwrap()), HmacSha384::MAC_LEN),
-        "hmac-sha-512"  => (MacState::HmacSha512(HmacSha512::new(&key[..]).unwrap()), HmacSha512::MAC_LEN),
-        "hmac-sha3-224" => (MacState::HmacSha3224(HmacSha3224::new(&key[..]).unwrap()), HmacSha3224::MAC_LEN),
-        "hmac-sha3-256" => (MacState::HmacSha3256(HmacSha3256::new(&key[..]).unwrap()), HmacSha3256::MAC_LEN),
-        "hmac-sha3-384" => (MacState::HmacSha3384(HmacSha3384::new(&key[..]).unwrap()), HmacSha3384::MAC_LEN),
-        "hmac-sha3-512" => (MacState::HmacSha3512(HmacSha3512::new(&key[..]).unwrap()), HmacSha3512::MAC_LEN),
-        "poly1305"      => (MacState::Poly1305(Poly1305::new(&key[..]).unwrap()), Poly1305::MAC_LEN),
+    let algo: MacAlgorithm = match args[1].as_str() {
+        "hmac-sha-224"  => MacAlgorithm::HmacSha224,
+        "hmac-sha-256"  => MacAlgorithm::HmacSha256,
+        "hmac-sha-384"  => MacAlgorithm::HmacSha384,
+        "hmac-sha-512"  => MacAlgorithm::HmacSha512,
+        "hmac-sha3-224" => MacAlgorithm::HmacSha3224,
+        "hmac-sha3-256" => MacAlgorithm::HmacSha3256,
+        "hmac-sha3-384" => MacAlgorithm::HmacSha3384,
+        "hmac-sha3-512" => MacAlgorithm::HmacSha3512,
+        "poly1305"      => MacAlgorithm::Poly1305,
         _               => {
             println!("[!Err]: unsupported algorithm.");
             println!("[Info]: if you want to know which MAC algorithms are supported, run \"crypto mac help\".");
@@ -52,25 +36,22 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let (in_fmt, in_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[3].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(key) = SuffixedArg::to_bytes(args[2].as_str()).map_err(printerrln) else { return; };
+    let Ok((in_fmt, in_src)) = SuffixedArg::parse_arg(args[3].as_str()).map_err(printerrln) else { return; };
+
+    let mut mac_state: Mac = Mac::new(algo, &key).unwrap();
 
     let mut mac: [u8; 64] = [0; 64];
     match in_fmt {
 
         ArgType::Hexadecimal => {
             let msg: Vec<u8> = SuffixedArg::hexdec_to_bytes(in_src).unwrap();
-            ctx.update(&msg).unwrap();
+            mac_state.update(&msg).unwrap();
         },
 
         ArgType::String      => {
             let msg: Vec<u8> = SuffixedArg::str_to_bytes(in_src).unwrap();
-            ctx.update(&msg).unwrap();
+            mac_state.update(&msg).unwrap();
         },
 
         ArgType::Filepath    => {
@@ -88,7 +69,7 @@ pub fn cmd_main(args: Vec<String>) {
                 match fs.read(&mut buf[..]).unwrap() {
                     0 => break,
                     n => {
-                        ctx.update(&buf[..n]).unwrap();
+                        mac_state.update(&buf[..n]).unwrap();
                     }
                 }
             }
@@ -97,8 +78,8 @@ pub fn cmd_main(args: Vec<String>) {
 
     }
 
-    ctx.compute(&mut mac[..mac_len]).unwrap();
-    printbytesln(&mac[..mac_len]);
+    mac_state.compute(&mut mac[..algo.mac_len()]).unwrap();
+    printbytesln(&mac[..algo.mac_len()]);
 
 }
 
@@ -121,50 +102,4 @@ pub fn println_subcmd_usage() {
     println!(" - if the data is the hexadecimal string \"00010203\", enter \"00010203.h\" (suffix is \".h\"))");
     println!(" - if the data is the string \"abc\", enter \"abc.s\" (suffix is \".s\"))");
     println!(" - if the data is the file \"efg.txt\", enter \"efg.txt.f\" (suffix is \".f\"))");
-}
-
-enum MacState {
-    HmacSha224(HmacSha224),
-    HmacSha256(HmacSha256),
-    HmacSha384(HmacSha384),
-    HmacSha512(HmacSha512),
-    HmacSha3224(HmacSha3224),
-    HmacSha3256(HmacSha3256),
-    HmacSha3384(HmacSha3384),
-    HmacSha3512(HmacSha3512),
-    Poly1305(Poly1305),
-}
-
-impl MacState {
-
-    fn update(&mut self, msg: &[u8]) -> Result<&mut Self, CryptoError> {
-        let err: Option<CryptoError> = match self {
-            Self::HmacSha224(v)    => v.update(msg).err(),
-            Self::HmacSha256(v)    => v.update(msg).err(),
-            Self::HmacSha384(v)    => v.update(msg).err(),
-            Self::HmacSha512(v)    => v.update(msg).err(),
-            Self::HmacSha3224(v)   => v.update(msg).err(),
-            Self::HmacSha3256(v)   => v.update(msg).err(),
-            Self::HmacSha3384(v)   => v.update(msg).err(),
-            Self::HmacSha3512(v)   => v.update(msg).err(),
-            Self::Poly1305(v)      => v.update(msg).err(),
-        };
-        return if let Some(e) = err { Err(e) } else { Ok(self) };
-    }
-
-    fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
-        let err: Option<CryptoError> = match self {
-            Self::HmacSha224(v)    => v.compute(mac).err(),
-            Self::HmacSha256(v)    => v.compute(mac).err(),
-            Self::HmacSha384(v)    => v.compute(mac).err(),
-            Self::HmacSha512(v)    => v.compute(mac).err(),
-            Self::HmacSha3224(v)   => v.compute(mac).err(),
-            Self::HmacSha3256(v)   => v.compute(mac).err(),
-            Self::HmacSha3384(v)   => v.compute(mac).err(),
-            Self::HmacSha3512(v)   => v.compute(mac).err(),
-            Self::Poly1305(v)      => v.compute(mac).err(),
-        };
-        return if let Some(e) = err { Err(e) } else { Ok(()) };
-    }
-
 }

@@ -1,10 +1,10 @@
-use crate::crypto::CryptoError;
-use crate::crypto::DiffieHellman;
-use crate::crypto::DigitalSignature;
 use crate::crypto::ed25519::Ed25519;
+use crate::crypto::error::CryptoError;
+use crate::crypto::feature::DiffieHellman;
 use crate::crypto::x25519::X25519;
-use crate::cmd::SuffixedArg;
+use crate::cmd::arg::SuffixedArg;
 use crate::cmd::printbytesln;
+use crate::cmd::printerrln;
 
 pub fn cmd_main(args: Vec<String>) {
 
@@ -23,7 +23,7 @@ pub fn cmd_main(args: Vec<String>) {
         usize
     ) = match args[1].as_str() {
         "ed25519" => (Ed25519::compute_public_key_oneshot, Ed25519::PRIVATE_KEY_LEN, Ed25519::PUBLIC_KEY_LEN),
-        "x25519"  => (X25519::compute_public_key, X25519::PRIVATE_KEY_LEN, X25519::PUBLIC_KEY_LEN),
+        "x25519"  => (X25519::compute_public_key_oneshot, X25519::PRIVATE_KEY_LEN, X25519::PUBLIC_KEY_LEN),
         _         => {
             println!("[!Err]: unsupported algorithm.");
             println!("[Info]: if you want to know which public-key cryptography algorithms are supported, run \"crypto pubkey help\".");
@@ -31,19 +31,11 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let priv_key: Vec<u8> = match SuffixedArg::to_bytes(args[2].as_str()) {
-        Ok(v)  => {
-            if v.len() != priv_key_len {
-                println!("[!Err]: the length of private key is too long or short.");
-                return;
-            }
-            v
-        },
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(priv_key) = SuffixedArg::to_bytes(args[2].as_str()).map_err(printerrln) else { return; };
+    if priv_key.len() != priv_key_len {
+        println!("[!Err]: the length of private key is too long or short.");
+        return;
+    }
 
     let mut pub_key: [u8; 32] = [0; 32];
     gen_pubkey(&priv_key, &mut pub_key[..pub_key_len]).unwrap();

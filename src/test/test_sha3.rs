@@ -1,5 +1,5 @@
-use crate::crypto::Hash;
-use crate::crypto::Xof;
+use crate::crypto::feature::Hash;
+use crate::crypto::feature::Xof;
 use crate::crypto::sha3::Sha3224;
 use crate::crypto::sha3::Sha3256;
 use crate::crypto::sha3::Sha3384;

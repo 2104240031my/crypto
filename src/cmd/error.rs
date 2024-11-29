@@ -23,9 +23,7 @@ pub struct CommandError {
 impl CommandError {
 
     pub fn new(err_code: CommandErrorCode) -> Self {
-        return Self{
-            err_code: err_code,
-        };
+        return Self{ err_code: err_code };
     }
 
 }

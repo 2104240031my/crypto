@@ -1,5 +1,5 @@
-use crate::crypto::StreamCipher;
 use crate::crypto::chacha20::ChaCha20;
+use crate::crypto::feature::StreamCipher;
 use crate::test::{
     DEBUG_PRINT_CHACHA20,
     printbytesln,
@@ -184,8 +184,29 @@ fn test_chacha20_inner(k: &[u8], n: &[u8], ctr: u32, p: &[u8], c: &[u8]) -> usiz
     }
 
     chacha20.set_counter(ctr).unwrap();
-
     chacha20.encrypt_or_decrypt(&c[..], &mut out[..p.len()]).unwrap();
+    if !eqbytes(&p[..], &out[..p.len()]) || DEBUG_PRINT_CHACHA20 {
+        print!("[!Err]: testing ChaCha20 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    out[..p.len()].copy_from_slice(&p[..]);
+    chacha20.set_counter(ctr).unwrap();
+    chacha20.encrypt_or_decrypt_overwrite(&mut out[..c.len()]).unwrap();
+    if !eqbytes(&c[..], &out[..c.len()]) || DEBUG_PRINT_CHACHA20 {
+        print!("[!Err]: testing ChaCha20 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&c[..]);
+        print!(" - Exec-Res => "); printbytesln(&out[..c.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    out[..c.len()].copy_from_slice(&c[..]);
+    chacha20.set_counter(ctr).unwrap();
+    chacha20.encrypt_or_decrypt_overwrite(&mut out[..p.len()]).unwrap();
     if !eqbytes(&p[..], &out[..p.len()]) || DEBUG_PRINT_CHACHA20 {
         print!("[!Err]: testing ChaCha20 is FAILED.\n");
         print!(" - Test-Vec => "); printbytesln(&p[..]);

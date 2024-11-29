@@ -31,9 +31,7 @@ pub struct CryptoError {
 impl CryptoError {
 
     pub fn new(err_code: CryptoErrorCode) -> Self {
-        return Self{
-            err_code: err_code,
-        };
+        return Self{ err_code: err_code };
     }
 
     pub fn err_code(&self) -> CryptoErrorCode {

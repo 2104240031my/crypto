@@ -1,5 +1,5 @@
-use crate::crypto::errror::CryptoError;
-use crate::crypto::errror::CryptoErrorCode;
+use crate::crypto::error::CryptoError;
+use crate::crypto::error::CryptoErrorCode;
 
 pub struct Fp25519Uint {
     pub words: [u32; 8]

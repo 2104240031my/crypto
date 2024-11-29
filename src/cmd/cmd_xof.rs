@@ -1,13 +1,10 @@
-use crate::crypto::error::CryptoError;
-use crate::crypto::sha3::Shake128;
-use crate::crypto::sha3::Shake256;
-use crate::crypto::xof::Xof;
-use crate::crypto::xof::XofAlgorithm;
-use crate::crypto::xof::XofStdInstanceFn;
+use crate::crypto::util::Xof;
+use crate::crypto::util::XofAlgorithm;
 use crate::cmd::arg::ArgType;
 use crate::cmd::arg::SuffixedArg;
 use crate::cmd::BUF_SIZE;
 use crate::cmd::printbytesln;
+use crate::cmd::printerrln;
 use std::fs::File;
 use std::io::Read;
 
@@ -22,7 +19,7 @@ pub fn cmd_main(args: Vec<String>) {
         return;
     }
 
-    let mut algo: XofAlgorithm = match args[1].as_str() {
+    let algo: XofAlgorithm = match args[1].as_str() {
         "shake128" => XofAlgorithm::Shake128,
         "shake256" => XofAlgorithm::Shake256,
         _          => {
@@ -32,23 +29,14 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let xof: Xof = Xof::new(algo);
+    let mut xof: Xof = Xof::new(algo);
 
-    let d: usize = match args[2].as_str().parse::<usize>() {
-        Ok(v)  => v,
-        Err(_) => {
-            println!("[!Err]: output-length is not non-negative integer.");
-            return;
-        }
+    let Ok(d) = args[2].as_str().parse::<usize>() else {
+        println!("[!Err]: output-length is not non-negative integer.");
+        return;
     };
 
-    let (in_fmt, in_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[3].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok((in_fmt, in_src)) = SuffixedArg::parse_arg(args[3].as_str()).map_err(printerrln) else { return; };
 
     let mut output: Vec<u8> = Vec::<u8>::with_capacity(d);
     unsafe { output.set_len(d); }

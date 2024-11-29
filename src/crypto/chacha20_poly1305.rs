@@ -1,11 +1,9 @@
-use crate::crypto::aead::AeadStdFeature;
-use crate::crypto::aead::AeadStdConst;
-use crate::crypto::aead::AeadStdInstanceFn;
+use crate::crypto::chacha20::ChaCha20;
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
-use crate::crypto::Mac;
-use crate::crypto::StreamCipher;
-use crate::crypto::chacha20::ChaCha20;
+use crate::crypto::feature::Aead;
+use crate::crypto::feature::Mac;
+use crate::crypto::feature::StreamCipher;
 use crate::crypto::poly1305::Poly1305;
 
 pub struct ChaCha20Poly1305 {
@@ -24,16 +22,12 @@ impl ChaCha20Poly1305 {
 
 }
 
-impl AeadStdFeature for ChaCha20Poly1305 {}
+impl Aead for ChaCha20Poly1305 {
 
-impl AeadStdConst for ChaCha20Poly1305 {
-    const KEY_LEN: usize = ChaCha20::KEY_LEN;
-    const MIN_NONCE_LEN: usize = 12;
-    const MAX_NONCE_LEN: usize = 12;
-    const TAG_LEN: usize = Poly1305::MAC_LEN;
-}
-
-impl AeadStdInstanceFn for ChaCha20Poly1305 {
+    const KEY_LEN: usize       = ChaCha20::KEY_LEN;
+    const MIN_NONCE_LEN: usize = CHACHA20_POLY1305_NONCE_LEN;
+    const MAX_NONCE_LEN: usize = CHACHA20_POLY1305_NONCE_LEN;
+    const TAG_LEN: usize       = Poly1305::MAC_LEN;
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
@@ -145,4 +139,105 @@ impl AeadStdInstanceFn for ChaCha20Poly1305 {
 
     }
 
+    fn encrypt_and_generate_overwrite(&mut self, nonce: &[u8], aad: &[u8], text: &mut [u8],
+        tag: &mut [u8]) -> Result<(), CryptoError> {
+
+        if nonce.len() != 12 || tag.len() != 16 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        let len: usize = text.len();
+        let n: usize = len & usize::MAX.wrapping_shl(6);
+
+        let mut chacha20: ChaCha20 = ChaCha20::new(&self.key[..], nonce, 0)?;
+        let mut key_strm: [u8; 64] = [0; 64];
+        chacha20.block_unchecked(&mut key_strm[..]);
+        chacha20.increment_counter()?;
+        let mut poly1305: Poly1305 = Poly1305::new(&key_strm[..32])?;
+
+        for i in (0..n).step_by(64) {
+            chacha20.block_unchecked(&mut key_strm[..]);
+            for j in i..(i + 64) {
+                text[j] = text[j] ^ key_strm[j - i];
+            }
+            chacha20.increment_counter()?;
+        }
+
+        if n != len {
+            chacha20.block_unchecked(&mut key_strm[..]);
+            for i in n..len {
+                text[i] = text[i] ^ key_strm[i - n];
+            }
+        }
+
+        let pad: [u8; 16] = [0; 16];
+        poly1305
+            .update(aad)?
+            .update(&pad[..((16 - (aad.len() & 15)) & 15)])?
+            .update(text)?
+            .update(&pad[..((16 - (len & 15)) & 15)])?
+            .update(&(aad.len() as u64).to_le_bytes())?
+            .update(&(len as u64).to_le_bytes())?
+            .compute(tag)?;
+
+        return Ok(());
+
+    }
+
+    fn decrypt_and_verify_overwrite(&mut self, nonce: &[u8], aad: &[u8], text: &mut [u8],
+        tag: &[u8]) -> Result<bool, CryptoError> {
+
+        if nonce.len() != 12 || tag.len() != 16 {
+            return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
+        }
+
+        let len: usize = text.len();
+        let n: usize = len & usize::MAX.wrapping_shl(6);
+
+        let mut chacha20: ChaCha20 = ChaCha20::new(&self.key[..], nonce, 0)?;
+        let mut key_strm: [u8; 64] = [0; 64];
+        chacha20.block_unchecked(&mut key_strm[..]);
+        chacha20.increment_counter()?;
+        let mut poly1305: Poly1305 = Poly1305::new(&key_strm[..32])?;
+
+        let mut t: [u8; 16] = [0; 16];
+        let pad: [u8; 16] = [0; 16];
+        poly1305
+            .update(aad)?
+            .update(&pad[..((16 - (aad.len() & 15)) & 15)])?
+            .update(text)?
+            .update(&pad[..((16 - (len & 15)) & 15)])?
+            .update(&(aad.len() as u64).to_le_bytes())?
+            .update(&(len as u64).to_le_bytes())?
+            .compute(&mut t[..])?;
+
+        let mut s: u8 = 0;
+        for i in 0..16 {
+            s = s | (tag[i] ^ t[i]);
+        }
+        if s != 0 {
+            return Err(CryptoError::new(CryptoErrorCode::VerificationFailed));
+        }
+
+        for i in (0..n).step_by(64) {
+            chacha20.block_unchecked(&mut key_strm[..]);
+            for j in i..(i + 64) {
+                text[j] = text[j] ^ key_strm[j - i];
+            }
+            chacha20.increment_counter()?;
+        }
+
+        if n != len {
+            chacha20.block_unchecked(&mut key_strm[..]);
+            for i in n..len {
+                text[i] = text[i] ^ key_strm[i - n];
+            }
+        }
+
+        return Ok(true);
+
+    }
+
 }
+
+const CHACHA20_POLY1305_NONCE_LEN: usize = 12;

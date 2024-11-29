@@ -1,8 +1,6 @@
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
-use crate::crypto::stream_cipher::StreamCipherStdFeature;
-use crate::crypto::stream_cipher::StreamCipherStdConst;
-use crate::crypto::stream_cipher::StreamCipherStdInstanceFn;
+use crate::crypto::feature::StreamCipher;
 
 pub struct ChaCha20 {
     state: ChaCha20State
@@ -61,13 +59,9 @@ impl ChaCha20 {
 
 }
 
-impl StreamCipherStdFeature for ChaCha20 {}
+impl StreamCipher for ChaCha20 {
 
-impl StreamCipherStdConst for ChaCha20  {
     const KEY_LEN: usize = CHACHA20_KEY_LEN;
-}
-
-impl StreamCipherStdInstanceFn for ChaCha20  {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         return if key.len() != 32 {
@@ -101,6 +95,33 @@ impl StreamCipherStdInstanceFn for ChaCha20  {
             self.block_unchecked(&mut key_strm[..]);
             for i in n..len {
                 outtext[i] = intext[i] ^ key_strm[i - n];
+            }
+            self.increment_counter()?;
+        }
+
+        return Ok(());
+
+    }
+
+    fn encrypt_or_decrypt_overwrite(&mut self, text: &mut [u8]) -> Result<(), CryptoError> {
+
+        let len: usize = text.len();
+        let n: usize = len & usize::MAX.wrapping_shl(6);
+
+        let mut key_strm: [u8; 64] = [0; 64];
+
+        for i in (0..n).step_by(64) {
+            self.block_unchecked(&mut key_strm[..]);
+            for j in i..(i + 64) {
+                text[j] = text[j] ^ key_strm[j - i];
+            }
+            self.increment_counter()?;
+        }
+
+        if n != len {
+            self.block_unchecked(&mut key_strm[..]);
+            for i in n..len {
+                text[i] = text[i] ^ key_strm[i - n];
             }
             self.increment_counter()?;
         }

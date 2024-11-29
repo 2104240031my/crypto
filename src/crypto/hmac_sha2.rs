@@ -1,43 +1,36 @@
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
-use crate::crypto::hash::HashStdConst;
-use crate::crypto::hash::HashStdStaticFn;
-use crate::crypto::hash::HashStdInstanceFn;
-use crate::crypto::hmac::HmacMacStdFeature;
-use crate::crypto::hmac::HmacMacStdConst;
-use crate::crypto::hmac::HmacMacStdStaticFn;
-use crate::crypto::hmac::HmacMacStdInstanceFn;
-use crate::crypto::mac::MacStdFeature;
-use crate::crypto::mac::MacStdConst;
-use crate::crypto::mac::MacStdStaticFn;
-use crate::crypto::mac::MacStdInstanceFn;
 use crate::crypto::sha2::Sha224;
 use crate::crypto::sha2::Sha256;
 use crate::crypto::sha2::Sha384;
 use crate::crypto::sha2::Sha512;
+use crate::crypto::feature::BlockHash;
+use crate::crypto::feature::Hash;
+use crate::crypto::feature::Hmac;
+use crate::crypto::feature::Mac;
 
 pub struct HmacSha224 {
     hash_state: Sha224,
-    inner: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE],
-    outer: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE + <Self as HmacStdConst>::HASH_MESSAGE_DIGEST_LEN]
+    inner: [u8; <Self as Hmac>::HASH_BLOCK_SIZE],
+    outer: [u8; <Self as Hmac>::HASH_BLOCK_SIZE + <Self as Hmac>::HASH_MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha256 {
     hash_state: Sha256,
-    inner: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE],
-    outer: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE + <Self as HmacStdConst>::HASH_MESSAGE_DIGEST_LEN]
+    inner: [u8; <Self as Hmac>::HASH_BLOCK_SIZE],
+    outer: [u8; <Self as Hmac>::HASH_BLOCK_SIZE + <Self as Hmac>::HASH_MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha384 {
     hash_state: Sha384,
-    inner: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE],
-    outer: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE + <Self as HmacStdConst>::HASH_MESSAGE_DIGEST_LEN]
+    inner: [u8; <Self as Hmac>::HASH_BLOCK_SIZE],
+    outer: [u8; <Self as Hmac>::HASH_BLOCK_SIZE + <Self as Hmac>::HASH_MESSAGE_DIGEST_LEN]
 }
 
 pub struct HmacSha512 {
     hash_state: Sha512,
-    inner: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE],
-    outer: [u8; <Self as HmacStdConst>::HASH_BLOCK_SIZE + <Self as HmacStdConst>::HASH_MESSAGE_DIGEST_LEN]
+    inner: [u8; <Self as Hmac>::HASH_BLOCK_SIZE],
+    outer: [u8; <Self as Hmac>::HASH_BLOCK_SIZE + <Self as Hmac>::HASH_MESSAGE_DIGEST_LEN]
 }
 
 impl HmacSha224 {
@@ -54,32 +47,18 @@ impl HmacSha224 {
 
 }
 
-impl HmacStdFeature for HmacSha224 {}
-
-impl HmacStdConst for HmacSha224 {
-    const HASH_BLOCK_SIZE: usize = Sha224::BLOCK_SIZE;
+impl Hmac for HmacSha224 {
+    const HASH_BLOCK_SIZE: usize         = Sha224::BLOCK_SIZE;
     const HASH_MESSAGE_DIGEST_LEN: usize = Sha224::MESSAGE_DIGEST_LEN;
 }
 
-impl HmacStdStaticFn for HmacSha224 {}
+impl Mac for HmacSha224 {
 
-impl HmacStdInstanceFn for HmacSha224 {}
-
-impl MacStdFeature for HmacSha224 {}
-
-impl MacStdConst for HmacSha224 {
     const MAC_LEN: usize = Self::HASH_MESSAGE_DIGEST_LEN;
-}
-
-impl MacStdStaticFn for HmacSha224 {
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
     }
-
-}
-
-impl MacStdInstanceFn for HmacSha224 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
@@ -110,7 +89,7 @@ impl MacStdInstanceFn for HmacSha224 {
 
     fn compute(&mut self, mac: &mut [u8]) -> Result<(), CryptoError> {
 
-        if mac.len() != HMAC_SHA224_MAC_LEN {
+        if mac.len() != Self::MAC_LEN {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
         }
 
@@ -135,32 +114,18 @@ impl HmacSha256 {
 
 }
 
-impl HmacStdFeature for HmacSha256 {}
-
-impl HmacStdConst for HmacSha256 {
-    const HASH_BLOCK_SIZE: usize = Sha256::BLOCK_SIZE;
+impl Hmac for HmacSha256 {
+    const HASH_BLOCK_SIZE: usize         = Sha256::BLOCK_SIZE;
     const HASH_MESSAGE_DIGEST_LEN: usize = Sha256::MESSAGE_DIGEST_LEN;
 }
 
-impl HmacStdStaticFn for HmacSha256 {}
+impl Mac for HmacSha256 {
 
-impl HmacStdInstanceFn for HmacSha256 {}
-
-impl MacStdFeature for HmacSha256 {}
-
-impl MacStdConst for HmacSha256 {
     const MAC_LEN: usize = Self::HASH_MESSAGE_DIGEST_LEN;
-}
-
-impl MacStdStaticFn for HmacSha256 {
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
     }
-
-}
-
-impl MacStdInstanceFn for HmacSha256 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
@@ -216,32 +181,18 @@ impl HmacSha384 {
 
 }
 
-impl HmacStdFeature for HmacSha384 {}
-
-impl HmacStdConst for HmacSha384 {
-    const HASH_BLOCK_SIZE: usize = Sha384::BLOCK_SIZE;
+impl Hmac for HmacSha384 {
+    const HASH_BLOCK_SIZE: usize         = Sha384::BLOCK_SIZE;
     const HASH_MESSAGE_DIGEST_LEN: usize = Sha384::MESSAGE_DIGEST_LEN;
 }
 
-impl HmacStdStaticFn for HmacSha384 {}
+impl Mac for HmacSha384 {
 
-impl HmacStdInstanceFn for HmacSha384 {}
-
-impl MacStdFeature for HmacSha384 {}
-
-impl MacStdConst for HmacSha384 {
     const MAC_LEN: usize = Self::HASH_MESSAGE_DIGEST_LEN;
-}
-
-impl MacStdStaticFn for HmacSha384 {
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
     }
-
-}
-
-impl MacStdInstanceFn for HmacSha384 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 
@@ -297,32 +248,18 @@ impl HmacSha512 {
 
 }
 
-impl HmacStdFeature for HmacSha512 {}
-
-impl HmacStdConst for HmacSha512 {
-    const HASH_BLOCK_SIZE: usize = Sha512::BLOCK_SIZE;
+impl Hmac for HmacSha512 {
+    const HASH_BLOCK_SIZE: usize         = Sha512::BLOCK_SIZE;
     const HASH_MESSAGE_DIGEST_LEN: usize = Sha512::MESSAGE_DIGEST_LEN;
 }
 
-impl HmacStdStaticFn for HmacSha512 {}
+impl Mac for HmacSha512 {
 
-impl HmacStdInstanceFn for HmacSha512 {}
-
-impl MacStdFeature for HmacSha512 {}
-
-impl MacStdConst for HmacSha512 {
     const MAC_LEN: usize = Self::HASH_MESSAGE_DIGEST_LEN;
-}
-
-impl MacStdStaticFn for HmacSha512 {
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
     }
-
-}
-
-impl MacStdInstanceFn for HmacSha512 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
 

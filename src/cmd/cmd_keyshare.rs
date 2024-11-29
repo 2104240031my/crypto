@@ -1,8 +1,7 @@
-use crate::crypto::CryptoError;
-use crate::crypto::DiffieHellman;
-use crate::crypto::x25519::X25519;
-use crate::cmd::SuffixedArg;
+use crate::crypto::util::DiffieHellmanAlgorithm;
+use crate::cmd::arg::SuffixedArg;
 use crate::cmd::printbytesln;
+use crate::cmd::printerrln;
 
 pub fn cmd_main(args: Vec<String>) {
 
@@ -15,13 +14,8 @@ pub fn cmd_main(args: Vec<String>) {
         return;
     }
 
-    let (keyshare, priv_key_len, pub_key_len, secret_len): (
-        fn (k: &[u8], a: &[u8], v: &mut [u8]) -> Result<(), CryptoError>,
-        usize,
-        usize,
-        usize
-    ) = match args[1].as_str() {
-        "x25519"  => (X25519::compute_shared_secret, X25519::PRIVATE_KEY_LEN, X25519::PUBLIC_KEY_LEN, X25519::SHARED_SECRET_LEN),
+    let algo: DiffieHellmanAlgorithm = match args[1].as_str() {
+        "x25519"  => DiffieHellmanAlgorithm::X25519,
         _         => {
             println!("[!Err]: unsupported algorithm.");
             println!("[Info]: if you want to know which key-share algorithms are supported, run \"crypto keyshare help\".");
@@ -29,37 +23,21 @@ pub fn cmd_main(args: Vec<String>) {
         }
     };
 
-    let priv_key: Vec<u8> = match SuffixedArg::to_bytes(args[2].as_str()) {
-        Ok(v)  => {
-            if v.len() != priv_key_len {
-                println!("[!Err]: the length of private key is too long or short.");
-                return;
-            }
-            v
-        },
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(priv_key) = SuffixedArg::to_bytes(args[2].as_str()).map_err(printerrln) else { return; };
+    if priv_key.len() != algo.priv_key_len() {
+        println!("[!Err]: the length of private key is too long or short.");
+        return;
+    }
 
-    let pub_key: Vec<u8> = match SuffixedArg::to_bytes(args[3].as_str()) {
-        Ok(v)  => {
-            if v.len() != pub_key_len {
-                println!("[!Err]: the length of public key is too long or short.");
-                return;
-            }
-            v
-        },
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(pub_key) = SuffixedArg::to_bytes(args[3].as_str()).map_err(printerrln) else { return; };
+    if pub_key.len() != algo.pub_key_len() {
+        println!("[!Err]: the length of public key is too long or short.");
+        return;
+    }
 
     let mut secret: [u8; 32] = [0; 32];
-    keyshare(&priv_key, &pub_key, &mut secret[..secret_len]).unwrap();
-    printbytesln(&secret[..secret_len]);
+    algo.compute_shared_secret_oneshot(&priv_key, &pub_key, &mut secret[..algo.shared_secret_len()]).unwrap();
+    printbytesln(&secret[..algo.shared_secret_len()]);
 
 }
 

@@ -1,4 +1,4 @@
-use crate::crypto::Mac;
+use crate::crypto::feature::Mac;
 use crate::crypto::hmac_sha3::HmacSha3224;
 use crate::crypto::hmac_sha3::HmacSha3256;
 use crate::crypto::hmac_sha3::HmacSha3384;

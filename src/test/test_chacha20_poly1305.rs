@@ -1,6 +1,6 @@
-use crate::crypto::CryptoErrorCode;
-use crate::crypto::Aead;
 use crate::crypto::chacha20_poly1305::ChaCha20Poly1305;
+use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::feature::Aead;
 use crate::test::{
     DEBUG_PRINT_CHACHA20_POLY1305,
     printbytesln,
@@ -38,6 +38,50 @@ fn test_chacha20_poly1305_inner(k: &[u8], n: &[u8], a: &[u8], p: &[u8], c: &[u8]
     }
 
     if let Err(e) = chacha20_poly1305.decrypt_and_verify(n, a, c, &mut out1[..p.len()], t) {
+        match e.err_code() {
+            CryptoErrorCode::VerificationFailed => {
+                print!("[!Err]: ChaCha20-Poly1305 is FAILED.\n");
+                print!(" - Verification FAILED.\n");
+                println!();
+            },
+            _ => {
+                panic!("{}", e);
+            }
+        }
+        err = err + 1;
+    } else if !eqbytes(p, &out1[..p.len()]) {
+        print!("[!Err]: ChaCha20-Poly1305 is FAILED.\n");
+        print!(" - Decryption FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    } else if DEBUG_PRINT_CHACHA20_POLY1305 {
+        print!("[!Err]: ChaCha20-Poly1305 is FAILED.\n");
+        print!(" - Test-Vec => "); printbytesln(&p[..]);
+        print!(" - Exec-Res => "); printbytesln(&out1[..p.len()]);
+        println!();
+        err = err + 1;
+    }
+
+    out1[..p.len()].copy_from_slice(&p[..]);
+    chacha20_poly1305.encrypt_and_generate_overwrite(n, a, &mut out1[..c.len()], &mut out2[..]).unwrap();
+    if !eqbytes(c, &out1[..c.len()]) || !eqbytes(t, &out2[..]) || DEBUG_PRINT_CHACHA20_POLY1305 {
+        print!("[!Err]: testing ChaCha20-Poly1305 is FAILED.\n");
+        print!(" - Test-Vec => {{\n");
+        print!("       CT : "); printbytesln(c);
+        print!("       TAG: "); printbytesln(t);
+        print!("   }}\n");
+        print!(" - Exec-Res => {{\n");
+        print!("       CT : "); printbytesln(&out1[..c.len()]);
+        print!("       TAG: "); printbytesln(&out2[..]);
+        print!("   }}\n");
+        println!();
+        err = err + 1;
+    }
+
+    out1[..c.len()].copy_from_slice(&c[..]);
+    if let Err(e) = chacha20_poly1305.decrypt_and_verify_overwrite(n, a, &mut out1[..p.len()], t) {
         match e.err_code() {
             CryptoErrorCode::VerificationFailed => {
                 print!("[!Err]: ChaCha20-Poly1305 is FAILED.\n");

@@ -1,4 +1,4 @@
-use crate::crypto::Mac;
+use crate::crypto::feature::Mac;
 use crate::crypto::poly1305::Poly1305;
 use crate::test::{
     DEBUG_PRINT_POLY1305,

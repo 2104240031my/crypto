@@ -1,10 +1,12 @@
 use std::fs::File;
 use std::io::Read;
 use crate::cmd::BUF_INIT_CAP;
+use crate::cmd::error::CommandError;
+use crate::cmd::error::CommandErrorCode;
 
-struct SuffixedArg {}
+pub struct SuffixedArg;
 
-enum ArgType {
+pub enum ArgType {
     Hexadecimal,
     String,
     Filepath
@@ -25,7 +27,7 @@ impl ArgType {
 
 impl SuffixedArg {
 
-    fn parse_arg(arg: &str) -> Result<(ArgType, &str), CommandError> {
+    pub fn parse_arg(arg: &str) -> Result<(ArgType, &str), CommandError> {
         let n: usize = arg.len();
         if n < 2 {
             return Err(CommandError::new(CommandErrorCode::UninterpretableInputFormat));
@@ -35,7 +37,7 @@ impl SuffixedArg {
         return Ok((arg_type, arg_data));
     }
 
-    fn to_bytes(arg: &str) -> Result<Vec<u8>, CommandError> {
+    pub fn to_bytes(arg: &str) -> Result<Vec<u8>, CommandError> {
         let (arg_type, arg_data): (ArgType, &str,) = Self::parse_arg(arg)?;
         return match arg_type {
             // convert from hexadecimal string to bytes
@@ -47,11 +49,11 @@ impl SuffixedArg {
         }
     }
 
-    fn str_to_bytes(s: &str) -> Result<Vec<u8>, CommandError> {
+    pub fn str_to_bytes(s: &str) -> Result<Vec<u8>, CommandError> {
         return Ok(s.as_bytes().to_vec());
     }
 
-    fn hexdec_to_bytes(h: &str) -> Result<Vec<u8>, CommandError> {
+    pub fn hexdec_to_bytes(h: &str) -> Result<Vec<u8>, CommandError> {
 
         let mut vec: Vec<u8> = Vec::<u8>::with_capacity(BUF_INIT_CAP);
 

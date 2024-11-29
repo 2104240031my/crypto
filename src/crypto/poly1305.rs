@@ -1,9 +1,6 @@
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
-use crate::crypto::mac::MacStdFeature;
-use crate::crypto::mac::MacStdConst;
-use crate::crypto::mac::MacStdStaticFn;
-use crate::crypto::mac::MacStdInstanceFn;
+use crate::crypto::feature::Mac;
 
 pub struct Poly1305 {
     key: Poly1305Key,
@@ -73,21 +70,13 @@ impl Poly1305 {
 
 }
 
-impl MacStdFeature for Poly1305 {}
+impl Mac for Poly1305 {
 
-impl MacStdConst for Poly1305 {
     const MAC_LEN: usize = POLY1305_MAC_LEN;
-}
-
-impl MacStdStaticFn for Poly1305 {
 
     fn compute_oneshot(key: &[u8], msg: &[u8], mac: &mut [u8]) -> Result<(), CryptoError> {
         return Self::new(key)?.update(msg)?.compute(mac);
     }
-
-}
-
-impl MacStdInstanceFn for Poly1305 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         if key.len() != 32 {

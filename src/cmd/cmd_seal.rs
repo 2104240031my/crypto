@@ -1,16 +1,9 @@
-use crate::crypto::CryptoError;
-use crate::crypto::Aead;
-use crate::crypto::BlockCipher;
-use crate::crypto::aes::Aes128;
-use crate::crypto::aes::Aes192;
-use crate::crypto::aes::Aes256;
-use crate::crypto::block_cipher_mode::BlockCipherMode128;
-use crate::crypto::block_cipher_mode::Ccm128;
-use crate::crypto::block_cipher_mode::Gcm128;
-use crate::crypto::chacha20_poly1305::ChaCha20Poly1305;
-use crate::cmd::ArgType;
-use crate::cmd::SuffixedArg;
+use crate::crypto::util::Aead;
+use crate::crypto::util::AeadAlgorithm;
+use crate::cmd::arg::ArgType;
+use crate::cmd::arg::SuffixedArg;
 use crate::cmd::printbytesln;
+use crate::cmd::printerrln;
 use std::fs::File;
 use std::io::Write;
 
@@ -25,110 +18,52 @@ pub fn cmd_main(args: Vec<String>) {
         return;
     }
 
-    let key: Vec<u8> = match SuffixedArg::to_bytes(args[2].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
-
-    let tmp: Result<(AeadState, usize, usize), CryptoError> = match args[1].as_str() {
-        "aes-128-ccm"       => match Aes128::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::Aes128Ccm(v), 12, Aes128::BLOCK_SIZE)),
-            Err(e) => Err(e)
-        },
-        "aes-192-ccm"       => match Aes192::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::Aes192Ccm(v), 12, Aes192::BLOCK_SIZE)),
-            Err(e) => Err(e)
-        },
-        "aes-256-ccm"       => match Aes256::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::Aes256Ccm(v), 12, Aes256::BLOCK_SIZE)),
-            Err(e) => Err(e)
-        },
-        "aes-128-gcm"       => match Aes128::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::Aes128Gcm(v), 12, Aes128::BLOCK_SIZE)),
-            Err(e) => Err(e)
-        },
-        "aes-192-gcm"       => match Aes192::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::Aes192Gcm(v), 12, Aes192::BLOCK_SIZE)),
-            Err(e) => Err(e)
-        },
-        "aes-256-gcm"       => match Aes256::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::Aes256Gcm(v), 12, Aes256::BLOCK_SIZE)),
-            Err(e) => Err(e)
-        },
-        "chacha20-poly1305" => match ChaCha20Poly1305::new(&key[..]) {
-            Ok(v)  => Ok((AeadState::ChaCha20Poly1305(v), ChaCha20Poly1305::NONCE_LEN, ChaCha20Poly1305::TAG_LEN)),
-            Err(e) => Err(e)
-        },
-        _             => {
+    let algo: AeadAlgorithm = match args[1].as_str() {
+        "aes-128-ccm"       => AeadAlgorithm::Aes128Ccm,
+        "aes-192-ccm"       => AeadAlgorithm::Aes192Ccm,
+        "aes-256-ccm"       => AeadAlgorithm::Aes256Ccm,
+        "aes-128-gcm"       => AeadAlgorithm::Aes128Gcm,
+        "aes-192-gcm"       => AeadAlgorithm::Aes192Gcm,
+        "aes-256-gcm"       => AeadAlgorithm::Aes256Gcm,
+        "chacha20-poly1305" => AeadAlgorithm::ChaCha20Poly1305,
+        _                   => {
             println!("[!Err]: unsupported algorithm.");
-            println!("[Info]: if you want to know which aead algorithms are supported, run \"crypto aead help\".");
+            println!("[Info]: if you want to know which aead algorithms are supported, run \"crypto seal help\".");
             return;
         }
     };
 
-    let (mut ctx, nonce_len, tag_len): (AeadState, usize, usize) = match tmp {
-        Ok(v)  => v,
-        Err(_) => {
-            println!("[!Err]: the length of key is too long or short.");
-            return;
-        }
-    };
-
-    let mut nonce: Vec<u8> = match SuffixedArg::to_bytes(args[3].as_str()) {
-        Ok(v)  => {
-            if v.len() != nonce_len {
-                println!("[!Err]: the length of nonce is too long or short.");
-                return;
-            }
-            v
-        },
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
-
-    let aad: Vec<u8> = match SuffixedArg::to_bytes(args[4].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
-
-    let plaintext: Vec<u8> = match SuffixedArg::to_bytes(args[5].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
-    let mut ciphertext: Vec<u8> = Vec::<u8>::with_capacity(plaintext.len() + tag_len);
-    unsafe { ciphertext.set_len(plaintext.len()); }
-
-    let mut tag: [u8; 16] = [0; 16];
-    if let Err(e) = ctx.seal(&mut nonce, &aad, &plaintext, &mut ciphertext, &mut tag[..]) {
-        println!("{}", e);
+    let Ok(key) = SuffixedArg::to_bytes(args[2].as_str()).map_err(printerrln) else { return; };
+    if key.len() != algo.key_len() {
+        println!("[!Err]: the length of key is too long or short.");
         return;
     }
-    for i in 0..16 {
-        ciphertext.push(tag[i]);
+
+    let Ok(mut nonce) = SuffixedArg::to_bytes(args[3].as_str()).map_err(printerrln) else { return; };
+    if nonce.len() < algo.min_nonce_len() || nonce.len() > algo.max_nonce_len() {
+        println!("[!Err]: the length of nonce is too long or short.");
+        return;
     }
 
-    let (ciphertext_fmt, ciphertext_src): (ArgType, &str) = match SuffixedArg::parse_arg(args[6].as_str()) {
-        Ok(v)  => v,
-        Err(e) => {
-            println!("{}", e);
-            return;
-        }
-    };
+    let Ok(aad) = SuffixedArg::to_bytes(args[4].as_str()).map_err(printerrln) else { return; };
+    let Ok(pt)  = SuffixedArg::to_bytes(args[5].as_str()).map_err(printerrln) else { return; };
 
-    match ciphertext_fmt {
-        ArgType::Hexadecimal => printbytesln(&ciphertext),
-        ArgType::String      => println!("{}", match std::str::from_utf8(&ciphertext) {
+    let mut tag: [u8; 16] = [0; 16];
+    let tlen: usize = algo.tag_len();
+
+    let mut ct: Vec<u8> = Vec::<u8>::with_capacity(pt.len() + tlen);
+    unsafe { ct.set_len(pt.len()); }
+
+    let mut aead: Aead = Aead::new(algo, &key).unwrap();
+    aead.encrypt_and_generate(&mut nonce, &aad, &pt, &mut ct, &mut tag[..tlen]).unwrap();
+    for t in &tag[..tlen] {
+        ct.push(*t);
+    }
+
+    let Ok((ct_fmt, ct_src)) = SuffixedArg::parse_arg(args[6].as_str()).map_err(printerrln) else { return; };
+    match ct_fmt {
+        ArgType::Hexadecimal => printbytesln(&ct),
+        ArgType::String      => println!("{}", match std::str::from_utf8(&ct) {
             Ok(v)  => v,
             Err(_) => {
                 println!("[!Err]: cannot convert to UTF-8.");
@@ -136,12 +71,12 @@ pub fn cmd_main(args: Vec<String>) {
             }
         }),
         ArgType::Filepath    => {
-            let tmp = File::create(ciphertext_src);
+            let tmp = File::create(ct_src);
             if let Err(_) = tmp {
                 println!("[!Err]: cannot open the file.");
                 return;
             }
-            if let Err(_) = tmp.unwrap().write_all(&ciphertext) {
+            if let Err(_) = tmp.unwrap().write_all(&ct) {
                 println!("[!Err]: an error occurred while writing data to file.");
                 return;
             }
@@ -167,30 +102,4 @@ pub fn println_subcmd_usage() {
     println!(" - if the data is the hexadecimal string \"00010203\", enter \"00010203.h\" (suffix is \".h\"))");
     println!(" - if the data is the string \"abc\", enter \"abc.s\" (suffix is \".s\"))");
     println!(" - if the data is the file \"efg.txt\", enter \"efg.txt.f\" (suffix is \".f\"))");
-}
-
-enum AeadState {
-    Aes128Ccm(Aes128),
-    Aes192Ccm(Aes192),
-    Aes256Ccm(Aes256),
-    Aes128Gcm(Aes128),
-    Aes192Gcm(Aes192),
-    Aes256Gcm(Aes256),
-    ChaCha20Poly1305(ChaCha20Poly1305),
-}
-
-impl AeadState {
-
-    fn seal(&mut self, nonce: &[u8], aad: &[u8], plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
-        return match self {
-            Self::Aes128Ccm(v)        => BlockCipherMode128::ccm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
-            Self::Aes192Ccm(v)        => BlockCipherMode128::ccm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
-            Self::Aes256Ccm(v)        => BlockCipherMode128::ccm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
-            Self::Aes128Gcm(v)        => BlockCipherMode128::gcm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
-            Self::Aes192Gcm(v)        => BlockCipherMode128::gcm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
-            Self::Aes256Gcm(v)        => BlockCipherMode128::gcm_encrypt_and_generate(v, nonce, aad, plaintext, ciphertext, tag),
-            Self::ChaCha20Poly1305(v) => v.encrypt_and_generate(nonce, aad, plaintext, ciphertext, tag),
-        };
-    }
-
 }

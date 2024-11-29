@@ -1,123 +1,123 @@
-use crate::crypto::block_cipher::BlockCipherStdFeature;
-use crate::crypto::block_cipher::BlockCipher128StdFeature;
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::feature::BlockCipher;
+use crate::crypto::feature::BlockCipher128;
 
 #[allow(private_bounds)]
 pub trait Ecb128: Ecb {
-    fn ecb_encrypt_blocks(cipher: &impl BlockCipher128StdFeature, plaintext: &[u8],
+    fn ecb_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_decrypt_blocks(cipher: &impl BlockCipher128StdFeature, ciphertext: &[u8],
+    fn ecb_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_encrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature,
+    fn ecb_encrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_decrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature,
+    fn ecb_decrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Cbc128: Cbc {
-    fn cbc_encrypt_blocks(cipher: &impl BlockCipher128StdFeature, iv: &[u8], plaintext: &[u8],
+    fn cbc_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_decrypt_blocks(cipher: &impl BlockCipher128StdFeature, iv: &[u8], ciphertext: &[u8],
+    fn cbc_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_encrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn cbc_encrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_decrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn cbc_decrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait CbcCts128: CbcCts {
-    fn cbc_cts_encrypt(cipher: &impl BlockCipher128StdFeature, iv: &[u8], plaintext: &[u8],
+    fn cbc_cts_encrypt(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_decrypt(cipher: &impl BlockCipher128StdFeature, iv: &[u8], ciphertext: &[u8],
+    fn cbc_cts_decrypt(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_encrypt_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn cbc_cts_encrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn cbc_cts_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Cfb128Fb1: CfbFb1 {
-    fn cfb_fb1_encrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb1_encrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb1_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb1_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb1_encrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb1_encrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb1_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb1_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Cfb128Fb8: CfbFb8 {
-    fn cfb_fb8_encrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_encrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb8_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_encrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Cfb128Fb128: CfbFb128 {
-    fn cfb_fb128_encrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_encrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         plaintext: &[u8], ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb128_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         ciphertext: &[u8], plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_encrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Ofb128: Ofb {
-    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn ofb_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ofb_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
-        text: &mut [u8]) -> Result<(), CryptoError>;
+    fn ofb_encrypt_or_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
+        sftreg: &mut [u8], text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Ctr128: Ctr {
-    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher128StdFeature, ctrblk: &mut [u8],
+    fn ctr_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), ctrblk: &mut [u8],
         ctrsize: usize, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ctr_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, ctrblk: &mut [u8],
-        ctrsize: usize, text: &mut [u8]) -> Result<(), CryptoError>;
+    fn ctr_encrypt_or_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
+        ctrblk: &mut [u8], ctrsize: usize, text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Ccm128: Ccm {
-    fn ccm_encrypt_and_generate(cipher: &impl BlockCipher128StdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_encrypt_and_generate(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8], ad: &[u8],
         plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
-    fn ccm_decrypt_and_verify(cipher: &impl BlockCipher128StdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_decrypt_and_verify(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8], ad: &[u8],
         ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
-    fn ccm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher128StdFeature, nonce: &[u8],
+    fn ccm_encrypt_and_generate_overwrite(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8],
         ad: &[u8], text: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
-    fn ccm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher128StdFeature, nonce: &[u8],
+    fn ccm_decrypt_and_verify_overwrite(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8],
         ad: &[u8], text: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Gcm128: Gcm {
-    fn gcm_encrypt_and_generate(cipher: &impl BlockCipher128StdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_encrypt_and_generate(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], aad: &[u8],
         plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
-    fn gcm_decrypt_and_verify(cipher: &impl BlockCipher128StdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_decrypt_and_verify(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], aad: &[u8],
         ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
-    fn gcm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn gcm_encrypt_and_generate_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         aad: &[u8], text: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
-    fn gcm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn gcm_decrypt_and_verify_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         aad: &[u8], text: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
 }
 
 #[allow(private_bounds)]
 pub trait Cmac128: Cmac {
-    fn cmac_compute(cipher: &impl BlockCipher128StdFeature, msg: &[u8],
+    fn cmac_compute(cipher: &(impl BlockCipher + BlockCipher128), msg: &[u8],
         cmac: &mut [u8]) -> Result<(), CryptoError>;
 }
 
@@ -125,7 +125,7 @@ pub struct BlockCipherMode128;
 
 impl Ecb for BlockCipherMode128 {
 
-    fn ecb_encrypt_blocks(cipher: &impl BlockCipherStdFeature, plaintext: &[u8],
+    fn ecb_encrypt_blocks(cipher: &impl BlockCipher, plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = plaintext.len();
@@ -145,7 +145,7 @@ impl Ecb for BlockCipherMode128 {
 
     }
 
-    fn ecb_decrypt_blocks(cipher: &impl BlockCipherStdFeature, ciphertext: &[u8],
+    fn ecb_decrypt_blocks(cipher: &impl BlockCipher, ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = ciphertext.len();
@@ -165,7 +165,7 @@ impl Ecb for BlockCipherMode128 {
 
     }
 
-    fn ecb_encrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature,
+    fn ecb_encrypt_blocks_overwrite(cipher: &impl BlockCipher,
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
@@ -182,7 +182,7 @@ impl Ecb for BlockCipherMode128 {
 
     }
 
-    fn ecb_decrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature,
+    fn ecb_decrypt_blocks_overwrite(cipher: &impl BlockCipher,
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
@@ -203,22 +203,22 @@ impl Ecb for BlockCipherMode128 {
 
 impl Ecb128 for BlockCipherMode128 {
 
-    fn ecb_encrypt_blocks(cipher: &impl BlockCipher128StdFeature, plaintext: &[u8],
+    fn ecb_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ecb>::ecb_encrypt_blocks(cipher, plaintext, ciphertext);
     }
 
-    fn ecb_decrypt_blocks(cipher: &impl BlockCipher128StdFeature, ciphertext: &[u8],
+    fn ecb_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ecb>::ecb_decrypt_blocks(cipher, ciphertext, plaintext);
     }
 
-    fn ecb_encrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature,
+    fn ecb_encrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ecb>::ecb_encrypt_blocks_overwrite(cipher, text);
     }
 
-    fn ecb_decrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature,
+    fn ecb_decrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ecb>::ecb_decrypt_blocks_overwrite(cipher, text);
     }
@@ -227,7 +227,7 @@ impl Ecb128 for BlockCipherMode128 {
 
 impl Cbc for BlockCipherMode128 {
 
-    fn cbc_encrypt_blocks(cipher: &impl BlockCipherStdFeature, iv: &[u8], plaintext: &[u8],
+    fn cbc_encrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = plaintext.len();
@@ -252,7 +252,7 @@ impl Cbc for BlockCipherMode128 {
 
     }
 
-    fn cbc_decrypt_blocks(cipher: &impl BlockCipherStdFeature, iv: &[u8], ciphertext: &[u8],
+    fn cbc_decrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = ciphertext.len();
@@ -277,7 +277,7 @@ impl Cbc for BlockCipherMode128 {
 
     }
 
-    fn cbc_encrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8],
+    fn cbc_encrypt_blocks_overwrite(cipher: &impl BlockCipher, iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
@@ -302,7 +302,7 @@ impl Cbc for BlockCipherMode128 {
 
     }
 
-    fn cbc_decrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8],
+    fn cbc_decrypt_blocks_overwrite(cipher: &impl BlockCipher, iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
@@ -334,22 +334,22 @@ impl Cbc for BlockCipherMode128 {
 
 impl Cbc128 for BlockCipherMode128 {
 
-    fn cbc_encrypt_blocks(cipher: &impl BlockCipher128StdFeature, iv: &[u8], plaintext: &[u8],
+    fn cbc_encrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Cbc>::cbc_encrypt_blocks(cipher, iv, plaintext, ciphertext);
     }
 
-    fn cbc_decrypt_blocks(cipher: &impl BlockCipher128StdFeature, iv: &[u8], ciphertext: &[u8],
+    fn cbc_decrypt_blocks(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Cbc>::cbc_decrypt_blocks(cipher, iv, ciphertext, plaintext);
     }
 
-    fn cbc_encrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn cbc_encrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Cbc>::cbc_encrypt_blocks_overwrite(cipher, iv, text);
     }
 
-    fn cbc_decrypt_blocks_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn cbc_decrypt_blocks_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Cbc>::cbc_decrypt_blocks_overwrite(cipher, iv, text);
     }
@@ -358,7 +358,7 @@ impl Cbc128 for BlockCipherMode128 {
 
 impl CfbFb8 for BlockCipherMode128 {
 
-    fn cfb_fb8_encrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb8_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = plaintext.len();
@@ -382,7 +382,7 @@ impl CfbFb8 for BlockCipherMode128 {
 
     }
 
-    fn cfb_fb8_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb8_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = ciphertext.len();
@@ -406,7 +406,7 @@ impl CfbFb8 for BlockCipherMode128 {
 
     }
 
-    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         if sftreg.len() != 16 {
@@ -429,7 +429,7 @@ impl CfbFb8 for BlockCipherMode128 {
 
     }
 
-    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         if sftreg.len() != 16 {
@@ -456,22 +456,22 @@ impl CfbFb8 for BlockCipherMode128 {
 
 impl Cfb128Fb8 for BlockCipherMode128 {
 
-    fn cfb_fb8_encrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb8_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb8>::cfb_fb8_encrypt(cipher, sftreg, plaintext, ciphertext);
     }
 
-    fn cfb_fb8_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb8_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb8>::cfb_fb8_decrypt(cipher, sftreg, ciphertext, plaintext);
     }
 
-    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb8>::cfb_fb8_encrypt_overwrite(cipher, sftreg, text);
     }
 
-    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb8>::cfb_fb8_decrypt_overwrite(cipher, sftreg, text);
     }
@@ -480,7 +480,7 @@ impl Cfb128Fb8 for BlockCipherMode128 {
 
 impl CfbFb128 for BlockCipherMode128 {
 
-    fn cfb_fb128_encrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb128_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = plaintext.len();
@@ -504,7 +504,7 @@ impl CfbFb128 for BlockCipherMode128 {
 
     }
 
-    fn cfb_fb128_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb128_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = ciphertext.len();
@@ -528,7 +528,7 @@ impl CfbFb128 for BlockCipherMode128 {
 
     }
 
-    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
@@ -552,7 +552,7 @@ impl CfbFb128 for BlockCipherMode128 {
 
     }
 
-    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
@@ -580,22 +580,22 @@ impl CfbFb128 for BlockCipherMode128 {
 
 impl Cfb128Fb128 for BlockCipherMode128 {
 
-    fn cfb_fb128_encrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb128_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb128>::cfb_fb128_encrypt(cipher, sftreg, plaintext, ciphertext);
     }
 
-    fn cfb_fb128_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb128_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb128>::cfb_fb128_decrypt(cipher, sftreg, ciphertext, plaintext);
     }
 
-    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb128>::cfb_fb128_encrypt_overwrite(cipher, sftreg, text);
     }
 
-    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as CfbFb128>::cfb_fb128_decrypt_overwrite(cipher, sftreg, text);
     }
@@ -604,7 +604,7 @@ impl Cfb128Fb128 for BlockCipherMode128 {
 
 impl Ofb for BlockCipherMode128 {
 
-    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], intext: &[u8],
+    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], intext: &[u8],
         outtext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = intext.len();
@@ -631,7 +631,7 @@ impl Ofb for BlockCipherMode128 {
 
     }
 
-    fn ofb_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn ofb_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError> {
 
         if sftreg.len() != 16 {
@@ -662,13 +662,13 @@ impl Ofb for BlockCipherMode128 {
 
 impl Ofb128 for BlockCipherMode128 {
 
-    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
+    fn ofb_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), sftreg: &mut [u8],
         intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ofb>::ofb_encrypt_or_decrypt(cipher, sftreg, intext, outtext);
     }
 
-    fn ofb_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, sftreg: &mut [u8],
-        text: &mut [u8]) -> Result<(), CryptoError> {
+    fn ofb_encrypt_or_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
+        sftreg: &mut [u8], text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ofb>::ofb_encrypt_or_decrypt_overwrite(cipher, sftreg, text);
     }
 
@@ -676,7 +676,7 @@ impl Ofb128 for BlockCipherMode128 {
 
 impl Ctr for BlockCipherMode128 {
 
-    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipherStdFeature, ctrblk: &mut [u8], ctrsize: usize,
+    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher, ctrblk: &mut [u8], ctrsize: usize,
         intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = intext.len();
@@ -713,8 +713,8 @@ impl Ctr for BlockCipherMode128 {
 
     }
 
-    fn ctr_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, ctrblk: &mut [u8],
-        ctrsize: usize, text: &mut [u8]) -> Result<(), CryptoError> {
+    fn ctr_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher, ctrblk: &mut [u8], ctrsize: usize,
+        text: &mut [u8]) -> Result<(), CryptoError> {
 
         let len: usize = text.len();
         let n: usize = len & usize::MAX.wrapping_shl(4);
@@ -754,13 +754,13 @@ impl Ctr for BlockCipherMode128 {
 
 impl Ctr128 for BlockCipherMode128 {
 
-    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher128StdFeature, ctrblk: &mut [u8],
+    fn ctr_encrypt_or_decrypt(cipher: &(impl BlockCipher + BlockCipher128), ctrblk: &mut [u8],
         ctrsize: usize, intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ctr>::ctr_encrypt_or_decrypt(cipher, ctrblk, ctrsize, intext, outtext);
     }
 
-    fn ctr_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher128StdFeature, ctrblk: &mut [u8],
-        ctrsize: usize, text: &mut [u8]) -> Result<(), CryptoError> {
+    fn ctr_encrypt_or_decrypt_overwrite(cipher: &(impl BlockCipher + BlockCipher128),
+        ctrblk: &mut [u8], ctrsize: usize, text: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ctr>::ctr_encrypt_or_decrypt_overwrite(cipher, ctrblk, ctrsize, text);
     }
 
@@ -768,8 +768,8 @@ impl Ctr128 for BlockCipherMode128 {
 
 impl Ccm for BlockCipherMode128 {
 
-    fn ccm_encrypt_and_generate(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
-        plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError> {
+    fn ccm_encrypt_and_generate(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError> {
 
         let nlen: usize = nonce.len();
         let tlen: usize = cbc_mac.len();
@@ -795,8 +795,8 @@ impl Ccm for BlockCipherMode128 {
 
     }
 
-    fn ccm_decrypt_and_verify(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
-        ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError> {
+    fn ccm_decrypt_and_verify(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError> {
 
         let nlen: usize = nonce.len();
         let tlen: usize = cbc_mac.len();
@@ -831,7 +831,7 @@ impl Ccm for BlockCipherMode128 {
 
     }
 
-    fn ccm_encrypt_and_generate_overwrite(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8],
         text: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError> {
 
         let nlen: usize = nonce.len();
@@ -856,7 +856,7 @@ impl Ccm for BlockCipherMode128 {
 
     }
 
-    fn ccm_decrypt_and_verify_overwrite(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8],
         text: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError> {
 
         let nlen: usize = nonce.len();
@@ -894,24 +894,24 @@ impl Ccm for BlockCipherMode128 {
 
 impl Ccm128 for BlockCipherMode128 {
 
-    fn ccm_encrypt_and_generate(cipher: &impl BlockCipher128StdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_encrypt_and_generate(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8], ad: &[u8],
         plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ccm>::ccm_encrypt_and_generate(cipher, nonce, ad, plaintext, ciphertext,
             cbc_mac);
     }
 
-    fn ccm_decrypt_and_verify(cipher: &impl BlockCipher128StdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_decrypt_and_verify(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8], ad: &[u8],
         ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError> {
         return <Self as Ccm>::ccm_decrypt_and_verify(cipher, nonce, ad, ciphertext, plaintext,
             cbc_mac);
     }
 
-    fn ccm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher128StdFeature, nonce: &[u8],
+    fn ccm_encrypt_and_generate_overwrite(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8],
         ad: &[u8], text: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Ccm>::ccm_encrypt_and_generate_overwrite(cipher, nonce, ad, text, cbc_mac);
     }
 
-    fn ccm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher128StdFeature, nonce: &[u8],
+    fn ccm_decrypt_and_verify_overwrite(cipher: &(impl BlockCipher + BlockCipher128), nonce: &[u8],
         ad: &[u8], text: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError> {
         return <Self as Ccm>::ccm_decrypt_and_verify_overwrite(cipher, nonce, ad, text, cbc_mac);
     }
@@ -920,8 +920,8 @@ impl Ccm128 for BlockCipherMode128 {
 
 impl Gcm for BlockCipherMode128 {
 
-    fn gcm_encrypt_and_generate(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
-        plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
+    fn gcm_encrypt_and_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
 
         if plaintext.len() != ciphertext.len() || tag.len() != 16 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
@@ -947,8 +947,8 @@ impl Gcm for BlockCipherMode128 {
 
     }
 
-    fn gcm_decrypt_and_verify(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
-        ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError> {
+    fn gcm_decrypt_and_verify(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError> {
 
         if ciphertext.len() != plaintext.len() || tag.len() != 16 {
             return Err(CryptoError::new(CryptoErrorCode::BufferLengthIncorrect));
@@ -975,7 +975,7 @@ impl Gcm for BlockCipherMode128 {
 
     }
 
-    fn gcm_encrypt_and_generate_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8],
         text: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
 
         if tag.len() != 16 {
@@ -1002,7 +1002,7 @@ impl Gcm for BlockCipherMode128 {
 
     }
 
-    fn gcm_decrypt_and_verify_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8],
         text: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError> {
 
         if tag.len() != 16 {
@@ -1034,22 +1034,22 @@ impl Gcm for BlockCipherMode128 {
 
 impl Gcm128 for BlockCipherMode128 {
 
-    fn gcm_encrypt_and_generate(cipher: &impl BlockCipher128StdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_encrypt_and_generate(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], aad: &[u8],
         plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Gcm>::gcm_encrypt_and_generate(cipher, iv, aad, plaintext, ciphertext, tag);
     }
 
-    fn gcm_decrypt_and_verify(cipher: &impl BlockCipher128StdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_decrypt_and_verify(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8], aad: &[u8],
         ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError> {
         return <Self as Gcm>::gcm_decrypt_and_verify(cipher, iv, aad, ciphertext, plaintext, tag);
     }
 
-    fn gcm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn gcm_encrypt_and_generate_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         aad: &[u8], text: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError> {
         return <Self as Gcm>::gcm_encrypt_and_generate_overwrite(cipher, iv, aad, text, tag);
     }
 
-    fn gcm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher128StdFeature, iv: &[u8],
+    fn gcm_decrypt_and_verify_overwrite(cipher: &(impl BlockCipher + BlockCipher128), iv: &[u8],
         aad: &[u8], text: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError> {
         return <Self as Gcm>::gcm_decrypt_and_verify_overwrite(cipher, iv, aad, text, tag);
     }
@@ -1082,7 +1082,7 @@ fn increment_counter_block_128(ctrblk: &mut [u8], ctrsize: usize) {
     }
 }
 
-fn ccm128_compute_cbc_mac(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8], plaintext: &[u8],
+fn ccm128_compute_cbc_mac(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], plaintext: &[u8],
     cbc_mac_buf: &mut [u8; 16], cbc_mac_len: usize) {
 
     let mut s: [u8; 16] = [0; 16];
@@ -1185,8 +1185,8 @@ fn ccm128_compute_cbc_mac(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad:
 
 }
 
-fn gcm128_compute_tag(cipher: &impl BlockCipherStdFeature, subkey: &Block128, ctrblk: &mut [u8],
-    aad: &[u8], intext: &[u8], tag: &mut [u8]) {
+fn gcm128_compute_tag(cipher: &impl BlockCipher, subkey: &Block128, ctrblk: &mut [u8], aad: &[u8],
+    intext: &[u8], tag: &mut [u8]) {
     let mut state: Block128 = Block128::from_u64_pair(0, 0);
     gcm128_ghash(subkey, &mut state, aad);
     gcm128_ghash(subkey, &mut state, intext);
@@ -1377,108 +1377,107 @@ impl Block128 {
 }
 
 trait Ecb {
-    fn ecb_encrypt_blocks(cipher: &impl BlockCipherStdFeature, plaintext: &[u8],
+    fn ecb_encrypt_blocks(cipher: &impl BlockCipher, plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_decrypt_blocks(cipher: &impl BlockCipherStdFeature, ciphertext: &[u8],
+    fn ecb_decrypt_blocks(cipher: &impl BlockCipher, ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_encrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature,
+    fn ecb_encrypt_blocks_overwrite(cipher: &impl BlockCipher,
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn ecb_decrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature,
+    fn ecb_decrypt_blocks_overwrite(cipher: &impl BlockCipher,
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait Cbc {
-    fn cbc_encrypt_blocks(cipher: &impl BlockCipherStdFeature, iv: &[u8], plaintext: &[u8],
+    fn cbc_encrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_decrypt_blocks(cipher: &impl BlockCipherStdFeature, iv: &[u8], ciphertext: &[u8],
+    fn cbc_decrypt_blocks(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_encrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8],
+    fn cbc_encrypt_blocks_overwrite(cipher: &impl BlockCipher, iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_decrypt_blocks_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8],
+    fn cbc_decrypt_blocks_overwrite(cipher: &impl BlockCipher, iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait CbcCts {
-    fn cbc_cts_encrypt(cipher: &impl BlockCipherStdFeature, iv: &[u8], plaintext: &[u8],
+    fn cbc_cts_encrypt(cipher: &impl BlockCipher, iv: &[u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_decrypt(cipher: &impl BlockCipherStdFeature, iv: &[u8], ciphertext: &[u8],
+    fn cbc_cts_decrypt(cipher: &impl BlockCipher, iv: &[u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_encrypt_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8],
+    fn cbc_cts_encrypt_overwrite(cipher: &impl BlockCipher, iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cbc_cts_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8],
+    fn cbc_cts_decrypt_overwrite(cipher: &impl BlockCipher, iv: &[u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait CfbFb1 {
-    fn cfb_fb1_encrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb1_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb1_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb1_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb1_encrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb1_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb1_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb1_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait CfbFb8 {
-    fn cfb_fb8_encrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb8_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb8_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb8_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
-        text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb8_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
+         text: &mut [u8]) -> Result<(), CryptoError>;
+    fn cfb_fb8_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait CfbFb128 {
-    fn cfb_fb128_encrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], plaintext: &[u8],
+    fn cfb_fb128_encrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], plaintext: &[u8],
         ciphertext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb128_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], ciphertext: &[u8],
+    fn cfb_fb128_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], ciphertext: &[u8],
         plaintext: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_encrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
-    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn cfb_fb128_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait Ofb {
-    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8], intext: &[u8],
+    fn ofb_encrypt_or_decrypt(cipher: &impl BlockCipher, sftreg: &mut [u8], intext: &[u8],
         outtext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ofb_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, sftreg: &mut [u8],
+    fn ofb_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher, sftreg: &mut [u8],
         text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait Ctr {
-    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipherStdFeature, ctrblk: &mut [u8], ctrsize: usize,
+    fn ctr_encrypt_or_decrypt(cipher: &impl BlockCipher, ctrblk: &mut [u8], ctrsize: usize,
         intext: &[u8], outtext: &mut [u8]) -> Result<(), CryptoError>;
-    fn ctr_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipherStdFeature, ctrblk: &mut [u8],
-        ctrsize: usize, text: &mut [u8]) -> Result<(), CryptoError>;
+    fn ctr_encrypt_or_decrypt_overwrite(cipher: &impl BlockCipher, ctrblk: &mut [u8], ctrsize: usize,
+        text: &mut [u8]) -> Result<(), CryptoError>;
 }
 
 trait Ccm {
-    fn ccm_encrypt_and_generate(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
-        plaintext: &[u8], ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
-    fn ccm_decrypt_and_verify(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
-        ciphertext: &[u8], plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
-    fn ccm_encrypt_and_generate_overwrite(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_encrypt_and_generate(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
+    fn ccm_decrypt_and_verify(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
+    fn ccm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8],
         text: &mut [u8], cbc_mac: &mut [u8]) -> Result<(), CryptoError>;
-    fn ccm_decrypt_and_verify_overwrite(cipher: &impl BlockCipherStdFeature, nonce: &[u8], ad: &[u8],
+    fn ccm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher, nonce: &[u8], ad: &[u8],
         text: &mut [u8], cbc_mac: &[u8]) -> Result<bool, CryptoError>;
 }
 
 trait Gcm {
-    fn gcm_encrypt_and_generate(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
-        plaintext: &[u8], ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
-    fn gcm_decrypt_and_verify(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
-        ciphertext: &[u8], plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
-    fn gcm_encrypt_and_generate_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_encrypt_and_generate(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], plaintext: &[u8],
+        ciphertext: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
+    fn gcm_decrypt_and_verify(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8], ciphertext: &[u8],
+        plaintext: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
+    fn gcm_encrypt_and_generate_overwrite(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8],
         text: &mut [u8], tag: &mut [u8]) -> Result<(), CryptoError>;
-    fn gcm_decrypt_and_verify_overwrite(cipher: &impl BlockCipherStdFeature, iv: &[u8], aad: &[u8],
+    fn gcm_decrypt_and_verify_overwrite(cipher: &impl BlockCipher, iv: &[u8], aad: &[u8],
         text: &mut [u8], tag: &[u8]) -> Result<bool, CryptoError>;
 }
 
 trait Cmac {
-    fn cmac_compute(cipher: &impl BlockCipherStdFeature, msg: &[u8],
-        cmac: &mut [u8]) -> Result<(), CryptoError>;
+    fn cmac_compute(cipher: &impl BlockCipher, msg: &[u8], cmac: &mut [u8]) -> Result<(), CryptoError>;
 }

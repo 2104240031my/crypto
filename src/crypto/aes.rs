@@ -1,11 +1,7 @@
-use crate::crypto::block_cipher::BlockCipherStdFeature;
-use crate::crypto::block_cipher::BlockCipherStdConst;
-use crate::crypto::block_cipher::BlockCipherStdInstanceFn;
-use crate::crypto::block_cipher::BlockCipher128StdFeature;
-use crate::crypto::block_cipher::BlockCipher128StdConst;
-use crate::crypto::block_cipher::BlockCipher128StdInstanceFn;
 use crate::crypto::error::CryptoError;
 use crate::crypto::error::CryptoErrorCode;
+use crate::crypto::feature::BlockCipher;
+use crate::crypto::feature::BlockCipher128;
 
 pub struct Aes128 {
     aes: Aes
@@ -22,9 +18,7 @@ pub struct Aes256 {
 impl Aes128 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
-        return Ok(Self{
-            aes: Aes::new(key, AES_128_NK)?
-        });
+        return Ok(Self{ aes: Aes::new(key, AES_128_NK)? });
     }
 
 }
@@ -32,9 +26,7 @@ impl Aes128 {
 impl Aes192 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
-        return Ok(Self{
-            aes: Aes::new(key, AES_192_NK)?
-        });
+        return Ok(Self{ aes: Aes::new(key, AES_192_NK)? });
     }
 
 }
@@ -42,43 +34,15 @@ impl Aes192 {
 impl Aes256 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
-        return Ok(Self{
-            aes: Aes::new(key, AES_256_NK)?
-        });
+        return Ok(Self{ aes: Aes::new(key, AES_256_NK)? });
     }
 
 }
 
-impl BlockCipher128StdFeature for Aes128 {}
-impl BlockCipher128StdFeature for Aes192 {}
-impl BlockCipher128StdFeature for Aes256 {}
-impl BlockCipher128StdConst for Aes128 {}
-impl BlockCipher128StdConst for Aes192 {}
-impl BlockCipher128StdConst for Aes256 {}
-impl BlockCipher128StdInstanceFn for Aes128 {}
-impl BlockCipher128StdInstanceFn for Aes192 {}
-impl BlockCipher128StdInstanceFn for Aes256 {}
+impl BlockCipher for Aes128 {
 
-impl BlockCipherStdFeature for Aes128 {}
-impl BlockCipherStdFeature for Aes192 {}
-impl BlockCipherStdFeature for Aes256 {}
-
-impl BlockCipherStdConst for Aes128 {
-    const KEY_LEN: usize = AES_128_KEY_LEN;
+    const KEY_LEN: usize    = AES_128_KEY_LEN;
     const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
-}
-
-impl BlockCipherStdConst for Aes192 {
-    const KEY_LEN: usize = AES_192_KEY_LEN;
-    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
-}
-
-impl BlockCipherStdConst for Aes256 {
-    const KEY_LEN: usize = AES_256_KEY_LEN;
-    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
-}
-
-impl BlockCipherStdInstanceFn for Aes128 {
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         self.aes.rekey(key, AES_128_NK)?;
@@ -119,7 +83,10 @@ impl BlockCipherStdInstanceFn for Aes128 {
 
 }
 
-impl BlockCipherStdInstanceFn for Aes192 {
+impl BlockCipher for Aes192 {
+
+    const KEY_LEN: usize    = AES_192_KEY_LEN;
+    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         self.aes.rekey(key, AES_192_NK)?;
@@ -160,7 +127,10 @@ impl BlockCipherStdInstanceFn for Aes192 {
 
 }
 
-impl BlockCipherStdInstanceFn for Aes256 {
+impl BlockCipher for Aes256 {
+
+    const KEY_LEN: usize    = AES_256_KEY_LEN;
+    const BLOCK_SIZE: usize = AES_BLOCK_SIZE;
 
     fn rekey(&mut self, key: &[u8]) -> Result<&mut Self, CryptoError> {
         self.aes.rekey(key, AES_256_NK)?;
@@ -200,6 +170,10 @@ impl BlockCipherStdInstanceFn for Aes256 {
     }
 
 }
+
+impl BlockCipher128 for Aes128 {}
+impl BlockCipher128 for Aes192 {}
+impl BlockCipher128 for Aes256 {}
 
 #[repr(align(8))]
 struct Aes {

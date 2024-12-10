@@ -17,6 +17,22 @@ pub enum CryptoErrorCode {
 
 }
 
+impl CryptoErrorCode {
+
+    fn to_str(&self) -> &str {
+        return match self {
+            Self::Unknown                              => "unknown",
+            Self::IllegalArgument                      => "illegal argument",
+            Self::UnsupportedAlgorithm                 => "unsupported algorithm",
+            Self::BufferLengthIncorrect                => "buffer length incorrect",
+            Self::BufferLengthIsNotMultipleOfBlockSize => "buffer length is not multiple of block size",
+            Self::CounterOverwrapped                   => "counter overwrapped",
+            Self::VerificationFailed                   => "verification failed"
+        };
+    }
+
+}
+
 impl Clone for CryptoErrorCode {
     fn clone(&self) -> Self { return *self; }
 }
@@ -41,19 +57,9 @@ impl CryptoError {
 }
 
 impl Display for CryptoError {
-
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        return write!(f, "CryptoError: {}", match &self.err_code {
-            CryptoErrorCode::Unknown                              => "unknown",
-            CryptoErrorCode::IllegalArgument                      => "illegal argument",
-            CryptoErrorCode::UnsupportedAlgorithm                 => "unsupported algorithm",
-            CryptoErrorCode::BufferLengthIncorrect                => "buffer length incorrect",
-            CryptoErrorCode::BufferLengthIsNotMultipleOfBlockSize => "buffer length is not multiple of block size",
-            CryptoErrorCode::CounterOverwrapped                   => "counter overwrapped",
-            CryptoErrorCode::VerificationFailed                   => "verification failed"
-        });
+        return write!(f, "CryptoError: {}", self.err_code.to_str());
     }
-
 }
 
 impl Error for CryptoError {}

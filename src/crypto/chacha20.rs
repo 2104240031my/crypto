@@ -298,3 +298,9 @@ fn chacha20_block(s: &ChaCha20State, k: &mut [u8]) {
     }
 
 }
+
+impl Drop for ChaCha20State {
+    fn drop(&mut self) {
+        self.words.fill(0);
+    }
+}

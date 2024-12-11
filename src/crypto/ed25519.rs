@@ -40,13 +40,13 @@ impl Ed25519 {
 }
 
 impl Ed25519Signer {
-
     pub fn new(priv_key: &[u8]) -> Result<Self, CryptoError> {
-        let mut v: Self = Self{ priv_key: [0; 32] };
+        let mut v: Self = Self{
+            priv_key: [0; 32]
+        };
         v.rekey(priv_key)?;
         return Ok(v);
     }
-
 }
 
 impl DigitalSignatureSigner for Ed25519Signer {
@@ -96,14 +96,20 @@ impl DigitalSignatureSigner for Ed25519Signer {
 
 }
 
-impl Ed25519Verifier {
+impl Drop for Ed25519Signer {
+    fn drop(&mut self) {
+        self.priv_key.fill(0);
+    }
+}
 
+impl Ed25519Verifier {
     pub fn new(pub_key: &[u8]) -> Result<Self, CryptoError> {
-        let mut v: Self = Self{ pub_key: [0; 32] };
+        let mut v: Self = Self{
+            pub_key: [0; 32]
+        };
         v.rekey(pub_key)?;
         return Ok(v);
     }
-
 }
 
 impl DigitalSignatureVerifier for Ed25519Verifier {
@@ -136,6 +142,12 @@ impl DigitalSignatureVerifier for Ed25519Verifier {
         return ed25519_verify(&self.pub_key[..], msg, signature);
     }
 
+}
+
+impl Drop for Ed25519Verifier {
+    fn drop(&mut self) {
+        self.pub_key.fill(0);
+    }
 }
 
 const ED25519_PRIVATE_KEY_LEN: usize = 32;

@@ -16,27 +16,21 @@ pub struct Aes256 {
 }
 
 impl Aes128 {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes::new(key, AES_128_NK)? });
     }
-
 }
 
 impl Aes192 {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes::new(key, AES_192_NK)? });
     }
-
 }
 
 impl Aes256 {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes::new(key, AES_256_NK)? });
     }
-
 }
 
 impl BlockCipher for Aes128 {
@@ -174,6 +168,27 @@ impl BlockCipher for Aes256 {
 impl BlockCipher128 for Aes128 {}
 impl BlockCipher128 for Aes192 {}
 impl BlockCipher128 for Aes256 {}
+
+impl Drop for Aes128 {
+    fn drop(&mut self) {
+        self.aes.ew.fill(0);
+        self.aes.dw.fill(0);
+    }
+}
+
+impl Drop for Aes192 {
+    fn drop(&mut self) {
+        self.aes.ew.fill(0);
+        self.aes.dw.fill(0);
+    }
+}
+
+impl Drop for Aes256 {
+    fn drop(&mut self) {
+        self.aes.ew.fill(0);
+        self.aes.dw.fill(0);
+    }
+}
 
 #[repr(align(8))]
 struct Aes {

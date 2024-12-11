@@ -34,7 +34,6 @@ pub struct HmacSha3512 {
 }
 
 impl HmacSha3224 {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             hash_state: Sha3224::new(),
@@ -44,7 +43,6 @@ impl HmacSha3224 {
         v.rekey(key)?.reset()?;
         return Ok(v);
     }
-
 }
 
 impl Hmac for HmacSha3224 {
@@ -98,6 +96,13 @@ impl Mac for HmacSha3224 {
 
     }
 
+}
+
+impl Drop for HmacSha3224 {
+    fn drop(&mut self) {
+        self.inner.fill(0);
+        self.outer.fill(0);
+    }
 }
 
 impl HmacSha3256 {
@@ -167,6 +172,13 @@ impl Mac for HmacSha3256 {
 
 }
 
+impl Drop for HmacSha3256 {
+    fn drop(&mut self) {
+        self.inner.fill(0);
+        self.outer.fill(0);
+    }
+}
+
 impl HmacSha3384 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
@@ -234,6 +246,13 @@ impl Mac for HmacSha3384 {
 
 }
 
+impl Drop for HmacSha3384 {
+    fn drop(&mut self) {
+        self.inner.fill(0);
+        self.outer.fill(0);
+    }
+}
+
 impl HmacSha3512 {
 
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
@@ -299,4 +318,11 @@ impl Mac for HmacSha3512 {
 
     }
 
+}
+
+impl Drop for HmacSha3512 {
+    fn drop(&mut self) {
+        self.inner.fill(0);
+        self.outer.fill(0);
+    }
 }

@@ -1367,13 +1367,22 @@ impl Block128 {
         ];
     }
 
+}
+
+impl Clone for Block128 {
     fn clone(&self) -> Self {
         return Self{
             l64: self.l64,
             r64: self.r64
         };
     }
+}
 
+impl Drop for Block128 {
+    fn drop(&mut self) {
+        self.l64 = 0;
+        self.r64 = 0;
+    }
 }
 
 trait Ecb {

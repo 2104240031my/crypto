@@ -132,19 +132,6 @@ impl Fp25519Uint {
 
     }
 
-    pub fn clone(&self) -> Self {
-        return Self{ words: [
-            self.words[0],
-            self.words[1],
-            self.words[2],
-            self.words[3],
-            self.words[4],
-            self.words[5],
-            self.words[6],
-            self.words[7]
-        ]};
-    }
-
     pub fn constant_time_swap(a: &mut Self, b: &mut Self, swap: bool) {
         let mask: u32 = if swap { u32::MAX } else { 0 };
         for i in 0..8 {
@@ -359,6 +346,27 @@ impl Fp25519Uint {
 
     }
 
+}
+
+impl Clone for Fp25519Uint {
+    fn clone(&self) -> Self {
+        return Self{ words: [
+            self.words[0],
+            self.words[1],
+            self.words[2],
+            self.words[3],
+            self.words[4],
+            self.words[5],
+            self.words[6],
+            self.words[7]
+        ]};
+    }
+}
+
+impl Drop for Fp25519Uint {
+    fn drop(&mut self) {
+        self.words.fill(0);
+    }
 }
 
 impl Edwards25519Point {

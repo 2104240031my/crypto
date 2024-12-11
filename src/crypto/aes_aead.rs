@@ -21,27 +21,21 @@ pub struct Aes256Ccm {
 }
 
 impl Aes128Ccm {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes128::new(key)? });
     }
-
 }
 
 impl Aes192Ccm {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes192::new(key)? });
     }
-
 }
 
 impl Aes256Ccm {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes256::new(key)? });
     }
-
 }
 
 impl Aead for Aes128Ccm {
@@ -165,27 +159,21 @@ pub struct Aes256Gcm {
 }
 
 impl Aes128Gcm {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes128::new(key)? });
     }
-
 }
 
 impl Aes192Gcm {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes192::new(key)? });
     }
-
 }
 
 impl Aes256Gcm {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         return Ok(Self{ aes: Aes256::new(key)? });
     }
-
 }
 
 impl Aead for Aes128Gcm {

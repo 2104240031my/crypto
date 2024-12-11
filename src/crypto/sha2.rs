@@ -721,6 +721,24 @@ const SHA512256_MESSAGE_DIGEST_LEN: usize = 32;
 const SHA2_32_BLOCK_SIZE: usize = 64;
 const SHA2_64_BLOCK_SIZE: usize = 128;
 
+impl Drop for Sha2State32 {
+    fn drop(&mut self) {
+        self.h.fill(0);
+        self.buf.fill(0);
+        self.buf_len = 0;
+        self.total_len = 0;
+    }
+}
+
+impl Drop for Sha2State64 {
+    fn drop(&mut self) {
+        self.h.fill(0);
+        self.buf.fill(0);
+        self.buf_len = 0;
+        self.total_len = 0;
+    }
+}
+
 fn sha2_32_digest_oneshot(state: &mut Sha2State32, msg: &[u8]) {
 
     let mut w: [u32; 64] = [0; 64];

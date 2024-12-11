@@ -11,7 +11,6 @@ pub struct ChaCha20Poly1305 {
 }
 
 impl ChaCha20Poly1305 {
-
     pub fn new(key: &[u8]) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             key: [0; 32]
@@ -19,7 +18,6 @@ impl ChaCha20Poly1305 {
         v.rekey(key)?;
         return Ok(v);
     }
-
 }
 
 impl Aead for ChaCha20Poly1305 {
@@ -238,6 +236,12 @@ impl Aead for ChaCha20Poly1305 {
 
     }
 
+}
+
+impl Drop for ChaCha20Poly1305 {
+    fn drop(&mut self) {
+        self.key.fill(0);
+    }
 }
 
 const CHACHA20_POLY1305_NONCE_LEN: usize = 12;

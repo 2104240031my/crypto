@@ -294,6 +294,12 @@ impl Fp1305Uint {
 
 }
 
+impl Drop for Fp1305Uint {
+    fn drop(&mut self) {
+        self.words.fill(0);
+    }
+}
+
 fn fp1305_uint_lt(lhs_carry: u64, lhs: &Fp1305Uint, rhs_carry: u64, rhs: &Fp1305Uint) -> bool {
 
     let mut bit: u64 = 1;

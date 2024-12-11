@@ -507,6 +507,14 @@ const SHA3_512_RATE: usize = 72;
 const SHAKE128_RATE: usize = 168;
 const SHAKE256_RATE: usize = 136;
 
+impl Drop for Sha3State {
+    fn drop(&mut self) {
+        self.a.fill(0);
+        self.buf.fill(0);
+        self.buf_len = 0;
+    }
+}
+
 fn rotl64(u: u64, r: usize) -> u64 {
     return (u << r) | (u >> ((64 - r) & 63));
 }

@@ -8,6 +8,9 @@ pub struct ChaCha20 {
 
 impl ChaCha20 {
 
+    pub const NONCE_LEN: usize = 12;
+    pub const BLOCK_SIZE: usize = 64;
+
     pub fn new(key: &[u8], nonce: &[u8], counter: u32) -> Result<Self, CryptoError> {
         let mut v: Self = Self{
             state: ChaCha20State{

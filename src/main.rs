@@ -4,7 +4,7 @@ mod crypto;
 mod cmd;
 mod test;
 
-const VERSION: &str = "0.1.0";
+const VERSION: &str = "0.2.0";
 
 fn main() {
 
@@ -28,6 +28,7 @@ fn main() {
         "keyshare" => cmd::cmd_keyshare::cmd_main,
         "sign"     => cmd::cmd_sign::cmd_main,
         "verify"   => cmd::cmd_verify::cmd_main,
+        "rand"     => cmd::cmd_rand::cmd_main,
         "help"     => |_: Vec<String>| { println_cmd_usage(); },
         #[cfg(debug_assertions)]
         "test"     => |_: Vec<String>| { test::test(); },
@@ -55,5 +56,6 @@ fn println_cmd_usage() {
     println!(" - keyshare");
     println!(" - sign");
     println!(" - verify");
+    println!(" - rand");
     println!(" - help");
 }

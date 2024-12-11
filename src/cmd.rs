@@ -7,6 +7,7 @@ pub mod cmd_keyshare;
 pub mod cmd_mac;
 pub mod cmd_open;
 pub mod cmd_pubkey;
+pub mod cmd_rand;
 pub mod cmd_seal;
 pub mod cmd_sign;
 pub mod cmd_verify;

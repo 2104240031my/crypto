@@ -1,6 +1,3 @@
-use std::error::Error;
-use std::fmt::Display;
-
 #[derive(Debug)]
 pub enum CryptoErrorCode {
 
@@ -13,13 +10,15 @@ pub enum CryptoErrorCode {
     BufferLengthIncorrect,
     BufferLengthIsNotMultipleOfBlockSize,
     CounterOverwrapped,
-    VerificationFailed
+    VerificationFailed,
+    RandomGenerationFailed,
+    ReseedRequired,
 
 }
 
 impl CryptoErrorCode {
 
-    fn to_str(&self) -> &str {
+    pub fn to_str(&self) -> &str {
         return match self {
             Self::Unknown                              => "unknown",
             Self::IllegalArgument                      => "illegal argument",
@@ -27,7 +26,9 @@ impl CryptoErrorCode {
             Self::BufferLengthIncorrect                => "buffer length incorrect",
             Self::BufferLengthIsNotMultipleOfBlockSize => "buffer length is not multiple of block size",
             Self::CounterOverwrapped                   => "counter overwrapped",
-            Self::VerificationFailed                   => "verification failed"
+            Self::VerificationFailed                   => "verification failed",
+            Self::RandomGenerationFailed               => "random generation failed",
+            Self::ReseedRequired                       => "reseed required",
         };
     }
 
@@ -56,10 +57,10 @@ impl CryptoError {
 
 }
 
-impl Display for CryptoError {
+impl std::fmt::Display for CryptoError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         return write!(f, "CryptoError: {}", self.err_code.to_str());
     }
 }
 
-impl Error for CryptoError {}
+impl std::error::Error for CryptoError {}

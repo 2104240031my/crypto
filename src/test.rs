@@ -23,6 +23,9 @@ mod test_hmac_sha3;
 mod test_poly1305;
 
 #[cfg(debug_assertions)]
+mod test_rand;
+
+#[cfg(debug_assertions)]
 mod test_sha2;
 
 #[cfg(debug_assertions)]
@@ -59,6 +62,9 @@ pub const DEBUG_PRINT_HMAC_SHA3: bool         = false | DEBUG_PRINT_ALL;
 pub const DEBUG_PRINT_POLY1305: bool          = false | DEBUG_PRINT_ALL;
 
 #[cfg(debug_assertions)]
+pub const DEBUG_PRINT_RAND: bool              = false | DEBUG_PRINT_ALL;
+
+#[cfg(debug_assertions)]
 pub const DEBUG_PRINT_SHA2: bool              = false | DEBUG_PRINT_ALL;
 
 #[cfg(debug_assertions)]
@@ -78,6 +84,7 @@ pub fn test() {
     err = err + print_test_result_msg(test_hmac_sha2::test_hmac_sha2(),                 "HMAC-SHA-2 module");
     err = err + print_test_result_msg(test_hmac_sha3::test_hmac_sha3(),                 "HMAC-SHA-3 module");
     err = err + print_test_result_msg(test_poly1305::test_poly1305(),                   "Poly1305 module");
+    err = err + print_test_result_msg(test_rand::test_rand(),                           "Rand module");
     err = err + print_test_result_msg(test_sha2::test_sha2(),                           "SHA-2 module");
     err = err + print_test_result_msg(test_sha3::test_sha3(),                           "SHA-3 module");
     err = err + print_test_result_msg(test_x25519::test_x25519(),                       "X25519 module");

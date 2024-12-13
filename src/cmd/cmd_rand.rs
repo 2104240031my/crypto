@@ -1,4 +1,4 @@
-use crate::crypto::rand::RandChaCha20;
+use crate::crypto::random::RandChaCha20;
 use crate::cmd::printbytesln;
 
 pub fn cmd_main(args: Vec<String>) {
@@ -7,12 +7,6 @@ pub fn cmd_main(args: Vec<String>) {
         println_subcmd_usage();
         return;
     }
-
-    // if args.len() < 2 {
-    //     println!("[!Err]: rand sub-command takes at least 1 arguments.");
-    //     println!("[Info]: if you want to know the syntax of the sub-command, run \"crypto rand help\".");
-    //     return;
-    // }
 
     let Ok(len) = args[1].as_str().parse::<usize>() else {
         println!("[!Err]: length is not non-negative integer.");

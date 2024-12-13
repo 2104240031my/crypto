@@ -1,4 +1,5 @@
-use crate::crypto::rand::RandChaCha20;
+use crate::crypto::random::RandAes256;
+use crate::crypto::random::RandChaCha20;
 use crate::test::{
     DEBUG_PRINT_RAND,
     printbytesln
@@ -6,8 +7,42 @@ use crate::test::{
 
 pub fn test_rand() -> usize {
     let mut err: usize = 0;
+    err = err + test_randaes256();
     err = err + test_randchacha20();
     return err;
+}
+
+pub fn test_randaes256() -> usize {
+
+    let mut rand: RandAes256 = RandAes256::new().unwrap();
+    let mut buf: [u8; 32] = [0; 32];
+
+    if DEBUG_PRINT_RAND {
+        let n: usize = 16;
+        rand.fill_bytes(&mut buf[..n]).unwrap();
+        printbytesln(&buf[..n]);
+    }
+
+    if DEBUG_PRINT_RAND {
+        let n: usize = 32;
+        rand.fill_bytes(&mut buf[..n]).unwrap();
+        printbytesln(&buf[..n]);
+    }
+
+    if DEBUG_PRINT_RAND {
+        let n: usize = 9;
+        rand.fill_bytes(&mut buf[..n]).unwrap();
+        printbytesln(&buf[..n]);
+    }
+
+    if DEBUG_PRINT_RAND {
+        let n: usize = 25;
+        rand.fill_bytes(&mut buf[..n]).unwrap();
+        printbytesln(&buf[..n]);
+    }
+
+    return 0;
+
 }
 
 pub fn test_randchacha20() -> usize {
@@ -22,7 +57,7 @@ pub fn test_randchacha20() -> usize {
     }
 
     if DEBUG_PRINT_RAND {
-        let n: usize = buf.len();
+        let n: usize = 128;
         rand.fill_bytes(&mut buf[..n]).unwrap();
         printbytesln(&buf[..n]);
     }

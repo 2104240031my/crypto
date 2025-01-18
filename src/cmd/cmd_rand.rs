@@ -1,4 +1,4 @@
-use crate::crypto::random::RandChaCha20;
+use crate::crypto::rand::ChaCha20Rng;
 use crate::cmd::printbytesln;
 
 pub fn cmd_main(args: Vec<String>) {
@@ -15,7 +15,7 @@ pub fn cmd_main(args: Vec<String>) {
 
     let mut bytes: Vec<u8> = Vec::<u8>::with_capacity(len);
     unsafe { bytes.set_len(len); }
-    RandChaCha20::new().unwrap().fill_bytes(&mut bytes).unwrap();
+    ChaCha20Rng::new().unwrap().fill_bytes(&mut bytes).unwrap();
     printbytesln(&bytes[..]);
 
 }

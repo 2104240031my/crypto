@@ -4,7 +4,7 @@ mod crypto;
 mod cmd;
 mod test;
 
-const VERSION: &str = "0.3.1";
+const VERSION: &str = "0.3.2";
 
 fn main() {
 

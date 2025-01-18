@@ -14,12 +14,12 @@ use core::arch::x86_64::_rdseed64_step;
 use core::arch::x86_64::_rdrand64_step;
 use core::arch::x86_64::_rdtsc;
 
-pub struct RandAes256 {
+pub struct Aes256Rng {
     aes256: Aes256,
     counter: usize
 }
 
-pub struct RandChaCha20 {
+pub struct ChaCha20Rng {
     chacha20: ChaCha20,
     counter: usize
 }
@@ -27,7 +27,7 @@ pub struct RandChaCha20 {
 const RDRAND64_MAX_TRYING_NUM: usize = 10;
 const COUNTER_LIMIT: usize           = u32::MAX as usize;
 
-impl RandAes256 {
+impl Aes256Rng {
 
     pub fn new() -> Result<Self, CryptoError> {
 
@@ -130,7 +130,7 @@ impl RandAes256 {
 
 }
 
-impl RandChaCha20 {
+impl ChaCha20Rng {
 
     pub fn new() -> Result<Self, CryptoError> {
 

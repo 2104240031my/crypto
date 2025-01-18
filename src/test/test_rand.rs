@@ -1,5 +1,5 @@
-use crate::crypto::random::RandAes256;
-use crate::crypto::random::RandChaCha20;
+use crate::crypto::rand::Aes256Rng;
+use crate::crypto::rand::ChaCha20Rng;
 use crate::test::{
     DEBUG_PRINT_RAND,
     printbytesln
@@ -7,14 +7,14 @@ use crate::test::{
 
 pub fn test_rand() -> usize {
     let mut err: usize = 0;
-    err = err + test_randaes256();
-    err = err + test_randchacha20();
+    err = err + test_aes_256_rng();
+    err = err + test_chacha20_rng();
     return err;
 }
 
-pub fn test_randaes256() -> usize {
+pub fn test_aes_256_rng() -> usize {
 
-    let mut rand: RandAes256 = RandAes256::new().unwrap();
+    let mut rand: Aes256Rng = Aes256Rng::new().unwrap();
     let mut buf: [u8; 32] = [0; 32];
 
     if DEBUG_PRINT_RAND {
@@ -45,9 +45,9 @@ pub fn test_randaes256() -> usize {
 
 }
 
-pub fn test_randchacha20() -> usize {
+pub fn test_chacha20_rng() -> usize {
 
-    let mut rand: RandChaCha20 = RandChaCha20::new().unwrap();
+    let mut rand: ChaCha20Rng = ChaCha20Rng::new().unwrap();
     let mut buf: [u8; 128] = [0; 128];
 
     if DEBUG_PRINT_RAND {

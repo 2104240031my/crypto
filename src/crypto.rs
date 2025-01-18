@@ -14,6 +14,9 @@ pub mod chacha20;
 pub mod chacha20_poly1305;
 
 #[allow(dead_code)]
+pub mod ctime;
+
+#[allow(dead_code)]
 pub mod ed25519;
 
 #[allow(dead_code)]
@@ -32,7 +35,7 @@ pub mod hmac_sha3;
 pub mod poly1305;
 
 #[allow(dead_code)]
-pub mod random;
+pub mod rand;
 
 #[allow(dead_code)]
 pub mod sha2;

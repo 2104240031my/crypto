@@ -10,7 +10,7 @@ use crate::crypto::feature::StreamCipher;
 use crate::crypto::hmac_sha3::HmacSha3256;
 use crate::crypto::sha3::Sha3256;
 use crate::crypto::sha3::Shake256;
-use core::arch::x86_64::_rdseed64_step;
+// use core::arch::x86_64::_rdseed64_step;
 use core::arch::x86_64::_rdrand64_step;
 use core::arch::x86_64::_rdtsc;
 
@@ -234,11 +234,11 @@ impl ChaCha20Rng {
 
 fn rand64() -> u64 {
 
-    let mut rand: u64 = 0;
-
-    if unsafe { _rdseed64_step(&mut rand) } == 1 {
-        return rand;
-    }
+    // let mut rand: u64 = 0;
+    //
+    // if unsafe { _rdseed64_step(&mut rand) } == 1 {
+    //     return rand;
+    // }
 
     for _ in 0..RDRAND64_MAX_TRYING_NUM {
         let mut rand: u64 = 0;
